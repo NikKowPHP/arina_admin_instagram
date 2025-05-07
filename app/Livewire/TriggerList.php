@@ -3,25 +3,21 @@
 namespace App\Livewire;
 
 use Livewire\Component;
+use Livewire\WithPagination;
 use App\Models\PostTrigger;
 
 class TriggerList extends Component
 {
-    public $triggers;
-
-    public function mount()
-    {
-        $this->triggers = PostTrigger::latest()->paginate(15);
-    }
+    use WithPagination;
 
     public function deleteTrigger($triggerId)
     {
         PostTrigger::find($triggerId)->delete();
-        $this->triggers = PostTrigger::latest()->paginate(15);
     }
 
     public function render()
     {
-        return view('livewire.trigger-list');
+        $triggers = PostTrigger::latest()->paginate(15);
+        return view('livewire.trigger-list', ['triggers' => $triggers]);
     }
 }

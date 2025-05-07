@@ -5,6 +5,10 @@ use App\Models\PostTrigger;
 
 Auth::routes();
 
+Route::get('/home', function () {
+    return redirect('/admin/triggers');
+});
+
 Route::get('/', function () {
     return view('welcome');
 });
