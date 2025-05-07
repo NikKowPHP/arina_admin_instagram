@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Log;
 use App\Models\PostTrigger;
+use App\Jobs\SendInstagramDmJob;
 
 class InstagramWebhookController extends Controller
 {
@@ -21,9 +23,11 @@ class InstagramWebhookController extends Controller
         $challenge = $request->query('hub.challenge');
 
         if ($mode === 'subscribe' && $token === env('INSTAGRAM_WEBHOOK_VERIFY_TOKEN')) {
+            Log::info('Webhook verification successful.');
             return Response::make($challenge, 200);
         }
 
+        Log::error('Webhook verification failed: Invalid mode or token.');
         return Response::make('Forbidden', 403);
     }
 
@@ -35,152 +39,66 @@ class InstagramWebhookController extends Controller
      */
     public function handle(Request $request)
     {
+        Log::info('Webhook handle method called.');
         // Verify signature
         $signature = $request->header('X-Hub-Signature-256');
         if (!$signature) {
-            \Log::error('Missing signature');
+            Log::error('Missing signature');
             return Response::make('Missing signature', 400);
         }
 
         $expectedSignature = 'sha256=' . hash_hmac('sha256', $request->getContent(), env('FACEBOOK_APP_SECRET'));
         if (!hash_equals($expectedSignature, $signature)) {
-            \Log::error('Invalid signature');
+            Log::error('Invalid signature');
             return Response::make('Invalid signature', 403);
         }
+        Log::info('Signature verification successful.');
 
         // Process payload
         $data = $request->json()->all();
+        Log::info('Received webhook payload: ' . json_encode($data));
 
         if ($data['object'] === 'instagram') {
+            Log::info('Processing Instagram object.');
             foreach ($data['entry'] as $entry) {
                 foreach ($entry['changes'] as $change) {
+                    Log::info('Processing change: ' . json_encode($change));
                     if ($change['field'] === 'comments') {
                         $value = $change['value'];
                         $mediaId = $value['media']['id'];
                         $commentText = strtolower($value['text']);
                         $commenterId = $value['from']['id'];
 
+                        Log::info("Comment received on media ID {$mediaId} from user ID {$commenterId}: '{$commentText}'");
+
                         // Query PostTrigger model
                         $triggers = PostTrigger::where('instagram_post_id', $mediaId)
                                             ->where('is_active', true)
                                             ->get();
 
+                        Log::info("Found " . $triggers->count() . " active triggers for media ID {$mediaId}.");
+
                         foreach ($triggers as $trigger) {
                             // Ensure keyword matching is case-insensitive
                             if (str_contains($commentText, strtolower($trigger->keyword))) {
+                                Log::info("Keyword '{$trigger->keyword}' matched for trigger ID {$trigger->id}.");
                                 // Keyword matched for this trigger
-                                $this->sendConfiguredDm($commenterId, $trigger);
+                                SendInstagramDmJob::dispatch($commenterId, $trigger);
+                                Log::info("Dispatched SendInstagramDmJob for recipient ID {$commenterId} and trigger ID {$trigger->id}.");
                                 // Decide if multiple keyword matches on one comment should send multiple DMs or break;
                                 break; // Sending one DM per comment for the first matched trigger
+                            } else {
+                                Log::info("Keyword '{$trigger->keyword}' did not match for trigger ID {$trigger->id}.");
                             }
                         }
                     }
                     // Add handling for other fields like 'messaging' for story replies if needed later
                 }
             }
+        } else {
+            Log::info('Received non-instagram object: ' . $data['object']);
         }
 
         return Response::make('Event received', 200);
-    }
-
-    /**
-     * Send a configured DM based on a PostTrigger.
-     *
-     * @param string $recipientId
-     * @param PostTrigger $trigger
-     * @return void
-     */
-    private function sendConfiguredDm(string $recipientId, PostTrigger $trigger)
-    {
-        $accessToken = env('INSTAGRAM_PAGE_ACCESS_TOKEN');
-        $dmContent = $trigger->dm_message; // Already an array due to model cast
-
-        $mediaUrl = $dmContent['media_url'] ?? null;
-        $mediaType = $dmContent['media_type'] ?? 'image'; // Default or derive
-        $descriptionText = $dmContent['description_text'] ?? '';
-        $ctaText = $dmContent['cta_text'] ?? 'Learn More';
-        $ctaUrl = $dmContent['cta_url'] ?? null; // This will be the Telegram URL
-
-        $messagePayload = [
-            'recipient' => [
-                'id' => $recipientId,
-            ],
-            'message' => [],
-        ];
-
-        // Construct message payload - consider Generic Template if media_url is present
-        if ($mediaUrl && $ctaUrl) {
-            // Using Generic Template for rich content with CTA button
-            $messagePayload['message']['attachment'] = [
-                'type' => 'template',
-                'payload' => [
-                    'template_type' => 'generic',
-                    'elements' => [
-                        [
-                            'title' => $descriptionText ?: 'DM from Bot', // Use description as title, fallback if empty
-                            'image_url' => $mediaUrl,
-                            'buttons' => [
-                                [
-                                    'type' => 'web_url',
-                                    'url' => $ctaUrl,
-                                    'title' => $ctaText,
-                                ]
-                            ],
-                        ]
-                    ],
-                ],
-            ];
-        } elseif ($descriptionText || $ctaUrl) {
-            // Sending a text message, potentially with an embedded link or button
-            $textMessage = $descriptionText;
-            if ($ctaUrl && !$mediaUrl) { // Add embedded link if no media and CTA URL exists
-                 $textMessage .= "\n\n" . ($ctaText ?: 'Link') . ": " . $ctaUrl;
-            }
-
-            $messagePayload['message']['text'] = $textMessage;
-
-            // Optionally add a web_url button even without media
-            if ($ctaUrl && !$mediaUrl) {
-                 $messagePayload['message']['quick_replies'] = [ // Using quick_replies for a button-like feel in text messages
-                     [
-                         'content_type' => 'text',
-                         'title' => $ctaText,
-                         'payload' => 'CTA_PAYLOAD', // Can be any string, not used for web_url
-                         'image_url' => null, // No image for text quick reply
-                     ]
-                 ];
-                 // Note: quick_replies are not standard buttons, they disappear after click.
-                 // For persistent buttons, a different template type might be needed or a simple text message with the URL.
-                 // Let's stick to a simple text message with embedded link for now if no media.
-                 unset($messagePayload['message']['quick_replies']); // Remove quick replies for now
-                 $textMessage = $descriptionText;
-                 if ($ctaUrl) {
-                     $textMessage .= "\n\n" . ($ctaText ?: 'Link') . ": " . $ctaUrl;
-                 }
-                 $messagePayload['message']['text'] = $textMessage;
-            }
-
-
-        } else {
-            // No rich content, send a basic text message (shouldn't happen if keyword matches, but as a fallback)
-             $messagePayload['message']['text'] = "Keyword matched, but no DM content configured.";
-        }
-
-
-        $client = new \GuzzleHttp\Client();
-        // Use the correct Graph API endpoint for sending messages
-        $graphApiUrl = 'https://graph.facebook.com/v19.0/me/messages?access_token=' . $accessToken;
-
-        try {
-            $response = $client->post($graphApiUrl, [
-                'headers' => ['Content-Type' => 'application/json'],
-                'body' => json_encode($messagePayload),
-            ]);
-
-            $body = $response->getBody();
-            \Log::info('DM sent successfully: ' . $body);
-        } catch (\Exception $e) {
-            \Log::error('Error sending DM: ' . $e->getMessage());
-        }
     }
 }

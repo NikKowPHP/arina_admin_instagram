@@ -160,21 +160,21 @@ This document provides a detailed, step-by-step plan for implementing the Larave
 
 ## 10. Environment Configuration
 
-*   [ ] **10.1. Update `.env.example` and `.env`:** — @cline
-    *   [ ] Add `INSTAGRAM_WEBHOOK_VERIFY_TOKEN` (used for webhook verification). — @cline
-    *   [ ] Add `FACEBOOK_APP_SECRET` (used for webhook signature verification). — @cline
-    *   [ ] Add `INSTAGRAM_PAGE_ACCESS_TOKEN` (used for sending DMs via Graph API). — @cline
-    *   [ ] Review and remove/deprecate old `.env` variables if they are no longer used by the bot's core logic (e.g., `TARGET_INSTAGRAM_POST_ID`, `TRIGGER_KEYWORD`, `MEDIA_URL`, `DESCRIPTION_TEXT`, `TELEGRAM_POST_URL` if they were for the static bot). — @cline
+*   [x] **10.1. Update `.env.example` and `.env`:** — @cline
+    *   [x] Add `INSTAGRAM_WEBHOOK_VERIFY_TOKEN` (used for webhook verification). — @cline
+    *   [x] Add `FACEBOOK_APP_SECRET` (used for webhook signature verification). — @cline
+    *   [x] Add `INSTAGRAM_PAGE_ACCESS_TOKEN` (used for sending DMs via Graph API). — @cline
+    *   [x] Review and remove/deprecate old `.env` variables if they are no longer used by the bot's core logic (e.g., `TARGET_INSTAGRAM_POST_ID`, `TRIGGER_KEYWORD`, `MEDIA_URL`, `DESCRIPTION_TEXT`, `TELEGRAM_POST_URL` if they were for the static bot). — @cline
 
 ## 11. General Considerations & Future Enhancements
 
-*   [ ] **11.1. Error Handling & Logging:** — @cline
-    *   [ ] Enhance logging in `InstagramWebhookController` for API calls, database interactions, and unexpected webhook payloads. Use `Log::error()`, `Log::info()`. — @cline
-*   [ ] **11.2. Job Queues for Sending DMs (Recommended for Production):** — @cline
-    *   [ ] Create a Job (e.g., `SendInstagramDmJob`): `php artisan make:job SendInstagramDmJob`. — @cline
-    *   [ ] The job should accept necessary data (recipient ID, DM content details from the trigger).
-    *   [ ] Move the DM sending logic (Guzzle call) into the job's `handle()` method.
-    *   [ ] Dispatch this job from `InstagramWebhookController` instead of calling `sendConfiguredDm` directly: `SendInstagramDmJob::dispatch($commenterId, $trigger->dm_message);`. — @cline
+*   [x] **11.1. Error Handling & Logging:** — @cline
+    *   [x] Enhance logging in `InstagramWebhookController` for API calls, database interactions, and unexpected webhook payloads. Use `Log::error()`, `Log::info()`. — @cline
+*   [x] **11.2. Job Queues for Sending DMs (Recommended for Production):** — @cline
+    *   [x] Create a Job (e.g., `SendInstagramDmJob`): `php artisan make:job SendInstagramDmJob`. — @cline
+    *   [x] The job should accept necessary data (recipient ID, DM content details from the trigger).
+    *   [x] Move the DM sending logic (Guzzle call) into the job's `handle()` method.
+    *   [x] Dispatch this job from `InstagramWebhookController` instead of calling `sendConfiguredDm` directly: `SendInstagramDmJob::dispatch($commenterId, $trigger->dm_message);`. — @cline
     *   [ ] Configure and run queue workers: `php artisan queue:work`.
 *   [ ] **11.3. API Versioning for Instagram Graph API:** — @cline
     *   [ ] Ensure Graph API calls use a specific version (e.g., `v19.0`) in the URL to avoid unexpected breaking changes.
@@ -196,7 +196,7 @@ This document provides a detailed, step-by-step plan for implementing the Larave
         *   [ ] Correct trigger is fetched from the database.
         *   [ ] Correct DM (with media, text, CTA) is sent to the commenter.
         *   [ ] Check logs for any errors.
-*   [ ] **12.4. Write Automated Tests:** — @cline
+*   [~] **12.4. Write Automated Tests:** — @cline
     *   [ ] **Feature Tests (Admin Panel):**
         *   [ ] Test authentication (login, redirect if not logged in).
         *   [ ] Test CRUD operations for triggers (e.g., `tests/Feature/Admin/TriggerManagementTest.php`).
@@ -206,5 +206,6 @@ This document provides a detailed, step-by-step plan for implementing the Larave
         *   [ ] Test trigger lookup logic (mock `PostTrigger` model).
         *   [ ] Test DM sending logic (mock Guzzle HTTP client and Graph API calls).
         (e.g., `tests/Feature/Webhook/InstagramWebhookTest.php`)
+    *   [x] Created test files: `tests/Feature/Admin/TriggerManagementTest.php` and `tests/Feature/Webhook/InstagramWebhookTest.php`.
 
 This updated plan should provide a clear roadmap for the next development phase.
