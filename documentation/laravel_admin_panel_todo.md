@@ -89,9 +89,9 @@ This document provides a detailed, step-by-step plan for implementing the Larave
 
 ## 5. Routing
 
-*   [ ] **5.1. Define Web Routes:**
-    *   [ ] Open `routes/web.php`.
-    *   [ ] Define routes to map URLs to your Livewire components:
+*   [x] **5.1. Define Web Routes:** @cline
+    *   [x] Open `routes/web.php`.
+    *   [x] Define routes to map URLs to your Livewire components:
         ```php
         use Illuminate\Support\Facades\Route;
         use App\Http\Livewire\TriggerList;
