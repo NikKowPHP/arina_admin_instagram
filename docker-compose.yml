@@ -1,101 +1,90 @@
-
-
 services:
-  # PHP Service (Application Server)
+  # PHP Service (Application Backend)
   app:
     build:
-      context: .
-      dockerfile: Dockerfile # Assumes a Dockerfile exists for PHP setup
-      args:
-        UID: "${UID:-1000}" # Pass host user ID for permissions
-        GID: "${GID:-1000}" # Pass host group ID for permissions
-    container_name: huberman_app_php
+      context: .                      # Path to the project root directory
+      dockerfile: ./docker/php/Dockerfile  # Relative path to your PHP Dockerfile
+    container_name: arinaadmin_app
     restart: unless-stopped
     tty: true
     environment:
       SERVICE_NAME: app
       SERVICE_TAGS: dev
-      # Pass environment variables from .env file
-      PHP_IDE_CONFIG: "serverName=Docker" # Example for Xdebug integration
-      XDEBUG_MODE: "${XDEBUG_MODE:-off}" # Control Xdebug mode via .env
-      XDEBUG_CONFIG: "client_host=host.docker.internal" # Xdebug config for Docker Desktop
+      DB_CONNECTION: ${DB_CONNECTION:-pgsql}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_DATABASE: ${DB_DATABASE:-zirofit_db}
+      DB_USERNAME: ${DB_USERNAME:-user}
+      DB_PASSWORD: ${DB_PASSWORD:-password}
+      APP_NAME: ${APP_NAME:-Laravel}
+      APP_ENV: ${APP_ENV:-local}
+      APP_KEY: ${APP_KEY}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      LOG_CHANNEL: ${LOG_CHANNEL:-stderr}
+      CACHE_STORE: ${CACHE_STORE:-database}
+      SESSION_DRIVER: ${SESSION_DRIVER:-database}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
+      VITE_APP_NAME: "${APP_NAME}"
+      VITE_SERVER_HOST: 0.0.0.0
     working_dir: /var/www/html
     volumes:
-      - ./:/var/www/html # Mount application code
-      # Persist bash history (optional)
-      # - ./docker-data/bashhistory:/root/.bash_history_docker
+      - ./:/var/www/html:delegated
+    ports:
+      - "5173:5173"
     networks:
-      - huberman_app_network
+      - arinaadmin_network
     depends_on:
       - db
-      - redis
 
-  # Web Server (Nginx)
+  # Webserver Service (Apache)
   webserver:
-    image: nginx:alpine
-    container_name: huberman_app_nginx
+    image: httpd:2.4 # Use official Apache image
+    container_name: arinaadmin_webserver
     restart: unless-stopped
     tty: true
     ports:
-      - "${APP_PORT:-8000}:80" # Expose app port from .env or default 8000
+      - "${APP_PORT:-8080}:80"
     volumes:
       - ./:/var/www/html
-      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/ # Mount custom Nginx config
+      - ./docker/apache/default.conf:/usr/local/apache2/conf/extra/httpd-vhosts.conf
+    # Command to:
+    # 1. Ensure our vhost config is included (if not already)
+    # 2. Start Apache in the foreground (sed commands removed)
+    command: >
+      /bin/sh -c "
+      if ! grep -q 'Include /usr/local/apache2/conf/extra/httpd-vhosts.conf' /usr/local/apache2/conf/httpd.conf; then echo 'Include /usr/local/apache2/conf/extra/httpd-vhosts.conf' >> /usr/local/apache2/conf/httpd.conf; fi && \
+      httpd-foreground
+      "
     networks:
-      - huberman_app_network
+      - arinaadmin_network
     depends_on:
       - app
-
-  # Database Server (PostgreSQL)
+  # PostgreSQL Database Service
   db:
-    image: postgres:17-alpine
-    container_name: huberman_app_db
+    image: postgres:17
+    container_name: arinaadmin_db
     restart: unless-stopped
     tty: true
     ports:
-      - "${DB_PORT:-5432}:5432" # Expose DB port from .env or default 5432
+      - "${DB_HOST_PORT:-54321}:5432"
     environment:
-      POSTGRES_DB: "${DB_DATABASE:-huberman_db}"
-      POSTGRES_USER: "${DB_USERNAME:-sail}" # Use Sail defaults or .env values
-      POSTGRES_PASSWORD: "${DB_PASSWORD:-password}"
-      POSTGRES_HOST_AUTH_METHOD: "trust" # For easy local connections, change if needed
+      # Set PostgreSQL credentials using variables from host .env file or defaults
+      POSTGRES_DB: ${DB_DATABASE:-zirofit_db}
+      POSTGRES_USER: ${DB_USERNAME:-user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      - huberman_db_data:/var/lib/postgresql/data # Persistent DB data
-      # Optional: Mount init scripts
-      # - ./docker/db/init:/docker-entrypoint-initdb.d
+      - db_data:/var/lib/postgresql/data/pgdata
     networks:
-      - huberman_app_network
-    healthcheck: # Basic healthcheck
-      test: ["CMD", "pg_isready", "-U", "${DB_USERNAME:-sail}", "-d", "${DB_DATABASE:-huberman_db}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - arinaadmin_network
 
-  # Cache Server (Redis)
-  redis:
-    image: redis:7-alpine
-    container_name: huberman_app_redis
-    restart: unless-stopped
-    ports:
-      - "${REDIS_PORT:-6379}:6379" # Expose Redis port from .env or default 6379
-    volumes:
-      - huberman_redis_data:/data # Persistent Redis data
-    networks:
-      - huberman_app_network
-    healthcheck: # Basic healthcheck
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-# Define Networks
+# Define the custom network
 networks:
-  huberman_app_network:
+  arinaadmin_network:
     driver: bridge
 
-# Define Volumes
+# Define named volumes
 volumes:
-  huberman_db_data:
-    driver: local
-  huberman_redis_data:
+  db_data:
     driver: local
