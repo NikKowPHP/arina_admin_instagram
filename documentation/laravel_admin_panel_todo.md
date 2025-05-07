@@ -70,9 +70,9 @@ This document provides a detailed, step-by-step plan for implementing the Larave
 
 ## 7. `PostTrigger` Model & Migration Enhancements (Rich DM Content)
 
-*   [ ] **7.1. Configure `dm_message` for Structured Data (JSON Approach):** — @cline
-    *   [ ] Ensure `dm_message` column in `create_post_triggers_table` migration is `TEXT` (already is).
-    *   [ ] In `app/Models/PostTrigger.php`, add Eloquent cast for `dm_message` to `array`:
+*   [x] **7.1. Configure `dm_message` for Structured Data (JSON Approach):**
+    *   [x] Ensure `dm_message` column in `create_post_triggers_table` migration is `TEXT` (already is).
+    *   [x] In `app/Models/PostTrigger.php`, add Eloquent cast for `dm_message` to `array`:
         ```php
         protected $casts = [
             'dm_message' => 'array', // or AsArrayObject::class
@@ -80,14 +80,14 @@ This document provides a detailed, step-by-step plan for implementing the Larave
         ];
         ```
         (Ensure `$fillable` remains appropriate if `dm_message` itself is being filled directly with an array).
-*   [ ] **7.2. Update Admin Forms for Rich DM Content (`CreateTrigger`, `EditTrigger`):** — @cline
-    *   [ ] In `CreateTrigger.php` and `EditTrigger.php` Livewire components:
-        *   [ ] Add public properties for: `$media_url`, `$media_type`, `$description_text`, `$cta_text`, `$cta_url`. — @cline
-        *   [ ] Update validation rules for these new fields (e.g., `url` for URLs, `nullable`, `string`, etc.). — @cline
-        *   [ ] Logic to combine these separate form fields into an array/JSON structure and store it in the `dm_message` property before saving the `PostTrigger` model. — @cline
-        *   [ ] When editing (`EditTrigger.php` `mount()` method), parse the `dm_message` (if it's an array/JSON) to populate these separate form field properties. — @cline
-    *   [ ] In `resources/views/livewire/create-trigger.blade.php` and `edit-trigger.blade.php`:
-        *   [ ] Add input fields for `media_url` (text), `media_type` (e.g., dropdown: image, video, or text input), `description_text` (textarea), `cta_text` (text), `cta_url` (text). Bind them to the new Livewire properties. — @cline
+*   [x] **7.2. Update Admin Forms for Rich DM Content (`CreateTrigger`, `EditTrigger`):**
+    *   [x] In `CreateTrigger.php` and `EditTrigger.php` Livewire components:
+        *   [x] Add public properties for: `$media_url`, `$media_type`, `$description_text`, `$cta_text`, `$cta_url`.
+        *   [x] Update validation rules for these new fields (e.g., `url` for URLs, `nullable`, `string`, etc.).
+        *   [x] Logic to combine these separate form fields into an array/JSON structure and store it in the `dm_message` property before saving the `PostTrigger` model.
+        *   [x] When editing (`EditTrigger.php` `mount()` method), parse the `dm_message` (if it's an array/JSON) to populate these separate form field properties.
+    *   [x] In `resources/views/livewire/create-trigger.blade.php` and `edit-trigger.blade.php`:
+        *   [x] Add input fields for `media_url` (text), `media_type` (e.g., dropdown: image, video, or text input), `description_text` (textarea), `cta_text` (text), `cta_url` (text). Bind them to the new Livewire properties.
 
 ## 8. Instagram Bot Logic (in `InstagramWebhookController.php`)
 

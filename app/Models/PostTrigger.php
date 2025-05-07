@@ -12,4 +12,9 @@ class PostTrigger extends Model
         'dm_message',
         'is_active',
     ];
+
+    protected $casts = [
+        'dm_message' => 'array',
+        'is_active' => 'boolean',
+    ];
 }

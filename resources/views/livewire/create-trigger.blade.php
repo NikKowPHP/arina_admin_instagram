@@ -24,9 +24,33 @@
         </div>
 
         <div>
-            <label for="dm_message">DM Message:</label>
-            <textarea id="dm_message" wire:model="dm_message"></textarea>
-            @error('dm_message') <span>{{ $message }}</span> @enderror
+            <label for="media_url">Media URL:</label>
+            <input type="text" id="media_url" wire:model="media_url">
+            @error('media_url') <span>{{ $message }}</span> @enderror
+        </div>
+
+        <div>
+            <label for="media_type">Media Type:</label>
+            <input type="text" id="media_type" wire:model="media_type"> {{-- Consider a dropdown later --}}
+            @error('media_type') <span>{{ $message }}</span> @enderror
+        </div>
+
+        <div>
+            <label for="description_text">Description Text:</label>
+            <textarea id="description_text" wire:model="description_text"></textarea>
+            @error('description_text') <span>{{ $message }}</span> @enderror
+        </div>
+
+        <div>
+            <label for="cta_text">CTA Text:</label>
+            <input type="text" id="cta_text" wire:model="cta_text">
+            @error('cta_text') <span>{{ $message }}</span> @enderror
+        </div>
+
+        <div>
+            <label for="cta_url">CTA URL:</label>
+            <input type="text" id="cta_url" wire:model="cta_url">
+            @error('cta_url') <span>{{ $message }}</span> @enderror
         </div>
 
         <div>
