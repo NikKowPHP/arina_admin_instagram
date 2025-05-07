@@ -10,16 +10,16 @@ This document provides a detailed, step-by-step plan for implementing the Larave
 *   [x] **1.2. Configure Environment with Docker Compose:**
     *   Environment configuration, including the database connection, is managed via the `docker-compose.yml` file. Ensure your `.env` file is copied from `.env.example` and the database variables match the docker compose configuration.
 *   [x] **1.3. Start Docker Containers:**
-    *   [ ] Execute `docker compose up -d` to build and run the environment containers.
+    *   [x] Execute `docker compose up -d` to build and run the environment containers.
 *   [x] **1.4. Install Livewire:**
     *   [x] Execute `docker compose exec app composer require livewire/livewire` inside the container.
     *   [x] Execute `docker compose exec app php artisan livewire:install` inside the container.
 
 ## 2. Database Migration
 
-*   [ ] **2.1. Create Migration File:**
+*   [x] **2.1. Create Migration File:** @cline
     *   [ ] Execute `php artisan make:migration create_post_triggers_table --create=post_triggers`.
-*   [ ] **2.2. Define Table Schema:**
+*   [x] **2.2. Define Table Schema:** @cline
     *   [ ] Open the generated migration file in `database/migrations/`.
     *   [ ] In the `up()` method, define the `post_triggers` table with the following columns:
         *   `$table->id();`
@@ -28,14 +28,14 @@ This document provides a detailed, step-by-step plan for implementing the Larave
         *   `$table->text('dm_message');`
         *   `$table->boolean('is_active')->default(true);`
         *   `$table->timestamps();`
-*   [ ] **2.3. Run Migrations:**
-    *   [ ] Execute `php artisan migrate`.
+*   [x] **2.3. Run Migrations:** @cline
+    *   [x] Execute `php artisan migrate`.
 
 ## 3. Eloquent Model
 
-*   [ ] **3.1. Create Model File:**
+*   [x] **3.1. Create Model File:** @cline
     *   [ ] Execute `php artisan make:model PostTrigger`.
-*   [ ] **3.2. Define Fillable Properties:**
+*   [x] **3.2. Define Fillable Properties:** @cline
     *   [ ] Open the `app/Models/PostTrigger.php` file.
     *   [ ] Add the `$fillable` property to allow mass assignment for the relevant columns:
         ```php
