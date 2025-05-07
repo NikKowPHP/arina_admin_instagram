@@ -83,9 +83,40 @@ The `sendConfiguredDm` method in `InstagramWebhookController` interacts with the
         *   `attachment`: For sending media.
             *   `type`: e.g., 'image', 'video', 'audio'.
             *   `payload`: `{ "url": "<publicly_accessible_media_url>" }`.
-        *   `quick_replies` or other button structures for CTAs, if applicable. Often, the CTA is included as a link within the `text`.
-          Example for text with embedded CTA:
-          `"text": "Check this out: {$descriptionText}\n\n{$ctaText}: {$ctaUrl}"`
+        *   `quick_replies` or other button structures for CTAs, if applicable.
+
+        **Current Implementation Goal for CTA:** The Call to Action (CTA) in the DM is intended to directly provide the user with the Telegram link (or other configured URL) within the *first* DM. This is typically achieved by embedding the link in the text or using a button that opens the URL directly.
+
+        **Recommendation for Richer DM with Media:** When including media (`media_url` is present), it is highly recommended to use Instagram's "Generic Template" message type. This template allows you to display an image or video alongside a title (from `description_text`) and a `web_url` button (using `cta_text` and `cta_url`). This provides a better user experience than simply embedding the link in the text.
+
+        Example payload using the Generic Template:
+
+        ```json
+        {
+          "recipient": {"id": "USER_ID"},
+          "message": {
+            "attachment": {
+              "type": "template",
+              "payload": {
+                "template_type": "generic",
+                "elements": [{
+                  "title": "<description_text_from_trigger>",
+                  "image_url": "<media_url_from_trigger>", // or video_url if type is video
+                  "buttons": [{
+                    "type": "web_url",
+                    "url": "<cta_url_from_trigger>", // Telegram link or other configured URL
+                    "title": "<cta_text_from_trigger>"
+                  }]
+                }]
+              }
+            }
+          }
+        }
+        ```
+
+        If no media is provided in the trigger, a simple text message with an embedded link or a text message with a `web_url` button (if supported for text-only messages in this context) can be sent.
+
+        *Note: If the requirement "cta click sends another message with the link" is a strict necessity, this implies a two-step DM process (e.g., using postback buttons and handling `messaging_postbacks`). This would require significant changes to the `dm_message` structure, admin forms, and webhook controller logic. The current documentation and planned implementation focus on a single DM with a direct link CTA.*
 
 ## 7. Database Interaction (`post_triggers` table)
 

@@ -44,6 +44,8 @@ The content is organized as follows:
 </file_summary>
 
 <directory_structure>
+.clinerules/
+  todorules.md
 app/
   Http/
     Controllers/
@@ -156,6 +158,12 @@ vite.config.js
 
 <files>
 This section contains the contents of the repository's files.
+
+<file path=".clinerules/todorules.md">
+# To-Do Rules for Laravel Admin Panel Development
+
+Follow the project documentation located at `documentation`  for all development tasks related to the Laravel Admin Panel.
+</file>
 
 <file path="app/Http/Controllers/Controller.php">
 <?php
@@ -3198,267 +3206,6 @@ class EditTrigger extends Component
 }
 </file>
 
-<file path="documentation/instagram_telegram_integration_guide.md">
-# Instagram Comment Trigger to DM with Media, Description, and CTA Guide
-
-This document outlines the steps required to create a bot that automatically sends a Direct Message (DM) containing media (image, audio, or video), a description, and a Call to Action (CTA) when a user comments on a specific Instagram post with a designated keyword.
-
-## Goal
-
-When a user comments on a specific Instagram post with a particular keyword, a bot should automatically send that user a Direct Message (DM) containing predefined media (image, audio, or video), a description, and a Call to Action (CTA) related to a specific post within a Telegram channel.
-
-## Prerequisites
-
-1.  **Facebook Developer Account:** You need an account at [https://developers.facebook.com/](https://developers.facebook.com/).
-2.  **Facebook App:** Create a new Facebook App within the Developer Dashboard.
-3.  **Instagram Business or Creator Account:** The Instagram account that will receive the DMs must be a Business or Creator account.
-4.  **Facebook Page:** A Facebook Page linked to the Instagram Business/Creator account.
-5.  **Permissions:** Your Facebook App needs the `instagram_manage_comments`, `instagram_manage_messages`, and potentially `pages_messaging` permissions granted through the App Review process (though you can test with developers/admins before full review).
-6.  **Publicly Accessible HTTPS URL:** You need a server or service (like Cloud Run, Heroku, AWS Lambda, etc.) with a stable HTTPS URL to receive webhook notifications from Instagram/Facebook.
-7.  **Target Instagram Post ID:** The ID of the specific Instagram post you want to monitor for comments. You can usually find this in the post's URL or via API tools.
-8.  **Trigger Keyword:** The specific word or phrase users must include in their comment to trigger the bot.
-9.  **Telegram Post Link:** The full URL to the specific Telegram post (e.g., `https://t.me/YourChannelUsername/12345`).
-10. **Media URL:** A publicly accessible URL for the image, audio, or video you want to send in the DM.
-
-## Technical Steps
-
-1.  **Configure Facebook App & Instagram:**
-    *   In the Facebook Developer Dashboard for your App, add the "Messenger" product.
-    *   In the Messenger settings, configure "Instagram Messaging".
-    *   Link your Facebook Page (which is linked to your Instagram account).
-    *   Generate a Page Access Token. **Store this securely!** (e.g., in an environment variable `INSTAGRAM_PAGE_ACCESS_TOKEN`).
-
-2.  **Set Up Webhooks:**
-    *   In the Messenger -> Instagram Messaging settings, configure Webhooks.
-    *   Provide your publicly accessible HTTPS endpoint URL (e.g., `https://your-service-url.com/webhook`).
-    *   Create a **Verify Token**. This is a secret string you define. **Store this securely!** (e.g., `INSTAGRAM_WEBHOOK_VERIFY_TOKEN`). Facebook will use this to verify your endpoint.
-    *   Subscribe to the `comments` webhook field for your linked Facebook Page. **Important:** Ensure you are subscribing to the *Instagram* comments field, not Facebook comments if both are options.
-
-3.  **Set Up Laravel Route and Controller:**
-    *   Define a route in your Laravel application (e.g., in `routes/api.php`) to handle incoming POST requests from the Instagram webhook (e.g., `/webhook/instagram`).
-    *   Create a dedicated controller (e.g., `InstagramWebhookController`) with a method to handle the incoming request.
-
-4.  **Handle Incoming Comments (Laravel Controller):**
-    *   **Verify Signature (Security):** In your controller method, verify the `X-Hub-Signature-256` header using your Facebook App Secret to ensure the request genuinely came from Facebook. Laravel's `Illuminate\Http\Request` object provides access to headers and the request body.
-    *   **Parse Payload:** Access the JSON request body using `$request->json()` and parse the `entry[].changes[].value` structure. Extract:
-        *   The comment ID (`id`).
-        *   The comment text (`text`).
-        *   The ID of the post the comment was made on (`media.id`).
-        *   The ID of the user who made the comment (`from.id`). This will be the Instagram Scoped User ID (IGSID).
-    *   **Filter by Post ID:** Check if the extracted `media.id` matches your `TARGET_INSTAGRAM_POST_ID` (stored in your environment variables). Ignore comments on other posts.
-    *   **Check for Keyword:** Check if the comment `text` contains your predefined `TRIGGER_KEYWORD` (case-insensitive check recommended).
-    *   **Avoid Loops:** Ensure the comment is not from your own page/bot ID.
-    *   **Prepare DM Content:** Retrieve the description text, the `MEDIA_URL` (which can be an image, audio, or video URL), and the `TELEGRAM_POST_URL` (this will be your CTA link) from your environment variables or configuration.
-
-5.  **Send DM via Messenger Platform API (Laravel Implementation):**
-    *   Use the commenter's ID (`from.id` from the webhook payload) as the `recipient.id`. Note: This is an IGSID.
-    *   Use an HTTP client like Guzzle (install with `composer require guzzlehttp/guzzle`) to make a `POST` request to the Facebook Graph API endpoint: `https://graph.facebook.com/v19.0/me/messages` (use the latest stable API version).
-    *   Include your `INSTAGRAM_PAGE_ACCESS_TOKEN` (stored securely in your environment variables) in the request (e.g., as a query parameter `access_token=YOUR_TOKEN`).
-    *   The request body should be JSON, specifying the recipient and the message attachment (image, audio, or video) and text (description and CTA leading to the Telegram post).
-        ```json
-        {
-          "recipient": {
-            "id": "<IGSID_FROM_WEBHOOK>"
-          },
-          "message": {
-            "attachment": {
-              "type": "<media_type>",  // 'image', 'audio', or 'video'
-              "payload": {
-                "url": "YOUR_PUBLIC_MEDIA_URL_HERE",
-                "is_reusable": true // Optional: set to true if sending the same media often
-              }
-            },
-            "text": "YOUR_DESCRIPTION_TEXT_HERE\n\nYOUR_CTA_TEXT_HERE: YOUR_TELEGRAM_POST_URL_HERE"
-          }
-        }
-        ```
-    *   **Important:** Sending a message to an IGSID initiates a standard messaging conversation via the Messenger Platform. Ensure your app has the necessary permissions (`instagram_manage_messages`, `pages_messaging`). The Messenger Platform API supports sending various media types.
-
-6.  **Deployment:**
-    *   Deploy your Laravel application to a platform that provides a public HTTPS URL (e.g., a web server with PHP support).
-    *   Configure necessary environment variables (`INSTAGRAM_PAGE_ACCESS_TOKEN`, `INSTAGRAM_WEBHOOK_VERIFY_TOKEN`, `FACEBOOK_APP_SECRET`, `TARGET_INSTAGRAM_POST_ID`, `TRIGGER_KEYWORD`, `MEDIA_URL`, `DESCRIPTION_TEXT`, `CTA_TEXT`, `TELEGRAM_POST_URL`).
-
-## Next Steps
-
-1.  Follow the prerequisites to set up your Facebook App and Instagram connection.
-2.  Obtain the necessary tokens, IDs, keyword, and URLs (Telegram post, image).
-3.  Implement the Laravel route and controller to handle webhook requests and process comment data.
-4.  Implement the logic to send DMs using an HTTP client like Guzzle.
-5.  Deploy the application and configure the webhook (subscribing to `comments`) in the Facebook Developer Dashboard.
-6.  Test thoroughly by commenting on the target post with the keyword. Check application logs and verify the DM is received correctly.
-</file>
-
-<file path="documentation/laravel_admin_panel_documentation.md">
-# Laravel Admin Panel: AI-Friendly Overview and Actionable Steps
-
-This document provides an AI-friendly overview and outlines actionable steps for building a separate admin panel using the Laravel framework, PostgreSQL database, Blade templating engine, and Livewire for dynamic components. The purpose of this panel is to enable administrators to manage Instagram post triggers, linking keywords to specific Instagram posts and defining automated direct messages (DMs) for the bot.
-
-The admin panel will function as a distinct application from the core bot webhook (`webhook_server.py`). Both applications will share and interact with a single PostgreSQL database to manage trigger data.
-
-## 1. Architectural Components
-
-The system is composed of two primary, independent applications:
-
-*   **1.1. Admin Panel (Laravel):**
-    *   **Function:** Web interface for administrators.
-    *   **Core Task:** Perform CRUD operations on `PostTrigger` data.
-    *   **Technology:** Laravel (PHP), Blade, Livewire.
-*   **1.2. Webhook Service (Python):**
-    *   **Function:** Background process for real-time event handling.
-    *   **Core Task:** Receive Instagram comments via webhooks, look up triggers in the database, and send DMs via the Instagram API.
-    *   **Technology:** Python (with a PostgreSQL client library).
-
-## 2. Technology Stack Details
-
-*   **2.1. Laravel (PHP Framework):** Provides the foundational structure for the web application, including routing, MVC architecture, and backend logic.
-*   **2.2. PostgreSQL (Database):** A relational database system required for persistent storage of `PostTrigger` data.
-*   **2.3. Blade (Templating Engine):** Laravel's default templating engine for defining the structure of web pages.
-*   **2.4. Livewire (Full-Stack Framework):** Used to build dynamic user interfaces with minimal JavaScript, handling front-end interactions via server-side PHP.
-
-## 3. Environment Setup with Docker Compose
-
-The application environment, including the PHP application server, Nginx web server, PostgreSQL database, and Redis cache, can be easily set up using the provided `docker-compose.yml` file.
-
-1.  **Copy Environment File:** Copy the `.env.example` file to `.env` in the project root.
-2.  **Configure .env:** Update the `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` variables in the `.env` file to match the PostgreSQL service configuration in `docker-compose.yml`. The default values in `docker-compose.yml` are:
-    *   `DB_CONNECTION=pgsql`
-    *   `DB_HOST=db`
-    *   `DB_PORT=5432`
-    *   `DB_DATABASE=huberman_db`
-    *   `DB_USERNAME=sail`
-    *   `DB_PASSWORD=password`
-    Ensure these match or update them in your `.env` file if you've customized the docker compose configuration.
-3.  **Build and Run:** From the project root, run the following command to build the images and start the containers in detached mode:
-    ```bash
-    docker compose up -d
-    ```
-4.  **Access the Application:** The application will be accessible via the port specified in the `APP_PORT` variable in your `.env` file (default is 8000).
-
-## 4. Database Schema
-
-A single table is required in the PostgreSQL database to store trigger information:
-
-*   **Table Name:** `post_triggers`
-*   **Columns:**
-    *   `id`: Primary Key, Auto-incrementing Integer.
-    *   `instagram_post_id`: String, Stores the unique identifier of the Instagram post. Indexed for efficient lookups.
-    *   `keyword`: String, Stores the specific keyword that triggers the DM.
-    *   `dm_message`: Text, Stores the content of the direct message to be sent.
-    *   `is_active`: Boolean, Default: `TRUE`. Indicates if the trigger is currently active.
-    *   `created_at`: Timestamp, Automatically managed by Laravel.
-    *   `updated_at`: Timestamp, Automatically managed by Laravel.
-
-## 5. Actionable Implementation Steps (High-Level)
-
-The following steps outline the high-level process for building the Laravel admin panel:
-
-*   **Step 4.1. Project Setup:**
-    *   Create a new Laravel project.
-    *   Configure the `.env` file for PostgreSQL database connection.
-    *   Install Livewire.
-*   **Step 4.2. Database Migration:**
-    *   Create a Laravel migration file for the `post_triggers` table.
-    *   Define the schema for the `post_triggers` table as specified in Section 3.
-    *   Run the database migration.
-*   **Step 4.3. Eloquent Model:**
-    *   Create an Eloquent model named `PostTrigger` to represent the `post_triggers` table.
-    *   Define the `$fillable` properties in the model.
-*   **Step 4.4. Admin Interface Components (Livewire):**
-    *   Create Livewire components for managing triggers (e.g., `TriggerList`, `CreateTrigger`, `EditTrigger`).
-    *   Implement the logic within these components to interact with the `PostTrigger` model for CRUD operations.
-    *   Develop the associated Blade views for each Livewire component to define the user interface.
-*   **Step 4.5. Routing:**
-    *   Define web routes in `routes/web.php` to map URLs to the Livewire components or relevant controllers.
-*   **Step 4.6. Database Integration for Webhook:**
-    *   Ensure the Python webhook service has the necessary PostgreSQL client library (`psycopg2`).
-    *   Modify the webhook code to connect to the same PostgreSQL database.
-    *   Implement logic in the webhook to query the `post_triggers` table based on incoming Instagram comment data.
-
-## 6. Integration Point
-
-The key integration point between the Admin Panel and the Webhook Service is the **shared PostgreSQL database**. The Admin Panel writes to and updates the `post_triggers` table, while the Webhook Service reads from it to determine if a DM should be sent.
-
-## 7. Deployment Consideration
-
-Both the Laravel Admin Panel and the Python Webhook Service should be deployed as separate applications, ensuring they can both securely access the shared PostgreSQL database.
-
-This document provides the necessary structure and high-level steps for an AI to proceed with the detailed implementation planning and subsequent development of the Laravel admin panel.
-</file>
-
-<file path="documentation/webhook_documentation.md">
-# Instagram Bot Webhook Documentation
-
-This document provides documentation for the Laravel implementation of the Instagram webhook handler and bot logic. Its primary function is to receive real-time comment notifications from Instagram via webhooks and trigger automated direct messages (DMs) based on predefined triggers stored in a PostgreSQL database.
-
-## 1. Purpose
-
-The webhook service acts as the bridge between the Instagram platform and the bot's DM sending capability. It listens for specific events (like comments on a post) and initiates the automated response process.
-
-## 2. Webhook Endpoint
-
-*   **URL:** This is the public URL where Instagram will send POST requests containing comment data. The exact URL will depend on your deployment environment.
-*   **Method:** `POST`
-
-## 3. Instagram Webhook Payload (Comments)
-
-When a user comments on an Instagram post that your bot is subscribed to, Instagram sends a POST request to your configured webhook URL. The request body will contain a JSON payload with details about the event. The structure is part of the Instagram Graph API webhook documentation, but key relevant fields for a comment might include:
-
-*   `object`: Type of object (e.g., "instagram").
-*   `entry`: An array of entries.
-    *   `id`: Page ID.
-    *   `time`: Timestamp of the update.
-    *   `changes`: An array of changes.
-        *   `field`: The type of change (e.g., "comments").
-        *   `value`: An object containing details about the comment.
-            *   `id`: The comment ID.
-            *   `from`: An object with the user's ID and username who made the comment.
-            *   `media`: An object with the media (post) ID and owner ID.
-            *   `text`: The content of the comment.
-            *   `timestamp`: Timestamp of the comment.
-            *   `parent_id`: (If it's a reply to another comment).
-
-The webhook needs to parse this JSON payload to extract the `media` (post) ID, the `text` of the comment, and the `from` user's ID.
-
-## 4. Expected Webhook Response
-
-Upon successful receipt and processing of the webhook payload, the webhook endpoint should return:
-
-*   **HTTP Status Code:** `200 OK`
-
-This signals to Instagram that the notification was received successfully.
-
-## 5. Internal Logic Flow (Laravel Implementation)
-
-When the Laravel application receives a POST request from the Instagram webhook:
-
-1.  **Receive and Parse Payload:** A dedicated route and controller method receive the JSON payload and parse it to extract relevant information, particularly the Instagram `post_id`, the `comment_text`, and the commenting `user_id`.
-2.  **Verify Signature:** The controller verifies the request signature (`X-Hub-Signature-256`) using the Facebook App Secret to ensure the request is legitimate.
-3.  **Database Lookup:** The application uses the Eloquent model (`App\Models\PostTrigger`) to query the `post_triggers` table. It searches for an active trigger where the `instagram_post_id` matches the post ID from the webhook and the `comment_text` contains the `keyword` defined in the trigger.
-4.  **Retrieve DM Message:** If a matching active trigger is found, the application retrieves the associated `dm_message` from the database using the Eloquent model.
-5.  **Send Direct Message:** Using a suitable HTTP client (like Guzzle) and the Instagram Graph API, the application sends the retrieved `dm_message` as a direct message to the `user_id` who made the comment. This requires authentication with the Instagram API using an access token and making a POST request to the appropriate API endpoint.
-6.  **Respond to Instagram:** The controller returns a `200 OK` status code to the Instagram webhook endpoint.
-
-## 6. Interaction with Instagram Graph API
-
-The webhook service interacts with the Instagram Graph API primarily to send direct messages. This involves:
-
-*   **Authentication:** Using an access token with the necessary permissions to send messages.
-*   **API Endpoint:** Making a POST request to the appropriate API endpoint for sending messages (refer to the official Instagram Graph API documentation for the exact endpoint and required parameters).
-*   **Parameters:** Including the recipient user ID and the message content in the API request.
-
-## 7. Database Interaction
-
-The webhook service reads from the `post_triggers` table in the shared PostgreSQL database. It does **not** write to or modify this table; that is the responsibility of the Admin Panel.
-
-## 8. Key Dependencies
-
-*   Laravel framework to handle routing, requests, and database interactions.
-*   Eloquent ORM for interacting with the PostgreSQL database.
-*   An HTTP client library (like Guzzle) to make requests to the Instagram Graph API.
-
-This documentation provides an overview of the webhook's role, how it receives data, its internal processing logic, and its interactions with the database and the Instagram API within the Laravel framework. This information is essential for an AI (or developer) to understand and potentially modify or debug the webhook service.
-</file>
-
 <file path="resources/views/livewire/trigger-list.blade.php">
 @extends('layouts.admin')
 
@@ -3514,6 +3261,231 @@ Route::get('/', function () {
 Route::get('/admin/triggers', TriggerList::class)->name('admin.triggers.index');
 Route::get('/admin/triggers/create', CreateTrigger::class)->name('admin.triggers.create');
 Route::get('/admin/triggers/{trigger}/edit', EditTrigger::class)->name('admin.triggers.edit');
+</file>
+
+<file path="documentation/instagram_telegram_integration_guide.md">
+# Instagram Comment Trigger to DM with Media, Description, and CTA Guide
+
+This document outlines the steps required to create a bot that automatically sends a Direct Message (DM) containing media (image, audio, or video), a description, and a Call to Action (CTA) when a user comments on a specific Instagram post with a designated keyword.
+
+## Goal
+
+When a user comments on an Instagram post with a keyword defined in the admin panel, a bot should automatically send that user a Direct Message (DM). The DM content (media, description, CTA) is also managed via the admin panel and stored in the database, allowing for dynamic responses per trigger.
+
+## Prerequisites
+
+1.  **Facebook Developer Account:** You need an account at [https://developers.facebook.com/](https://developers.facebook.com/).
+2.  **Facebook App:** Create a new Facebook App within the Developer Dashboard.
+3.  **Instagram Business or Creator Account:** The Instagram account that will receive the DMs must be a Business or Creator account.
+4.  **Facebook Page:** A Facebook Page linked to the Instagram Business/Creator account.
+5.  **Permissions:** Your Facebook App needs the `instagram_manage_comments`, `instagram_manage_messages`, and potentially `pages_messaging` permissions granted through the App Review process.
+6.  **Publicly Accessible HTTPS URL:** Your Laravel application needs to be hosted on a server with a stable HTTPS URL to receive webhook notifications.
+7.  **Laravel Admin Panel:** A functional Laravel admin panel (as described in `laravel_admin_panel_documentation.md`) for managing `PostTrigger` records, which define the Instagram post ID, keyword, and the structured DM content (media URL, media type, description, CTA text, CTA URL).
+
+## Technical Steps
+
+1.  **Configure Facebook App & Instagram:**
+    *   In the Facebook Developer Dashboard for your App, add the "Messenger" product.
+    *   In the Messenger settings, configure "Instagram Messaging".
+    *   Link your Facebook Page (which is linked to your Instagram account).
+    *   Generate a Page Access Token. **Store this securely!** (e.g., in an environment variable `INSTAGRAM_PAGE_ACCESS_TOKEN`).
+
+2.  **Set Up Webhooks:**
+    *   In the Messenger -> Instagram Messaging settings, configure Webhooks.
+    *   Provide your publicly accessible HTTPS endpoint URL (e.g., `https://your-app-domain.com/api/webhook/instagram`).
+    *   Create a **Verify Token**. This is a secret string you define. **Store this securely!** (e.g., in `.env` as `INSTAGRAM_WEBHOOK_VERIFY_TOKEN`). Facebook will use this to verify your endpoint.
+    *   Subscribe to the `comments` (for post comments) and/or `messages` (for story replies, if applicable) webhook fields for your linked Facebook Page.
+
+3.  **Laravel Route and Controller (`InstagramWebhookController`):**
+    *   A route is defined (e.g., in `routes/api.php`) that points to `App\Http\Controllers\InstagramWebhookController@handle`.
+    *   This controller handles webhook verification (`verify` method) and incoming comment/message processing (`handle` method).
+
+4.  **Handle Incoming Comments/Messages (in `InstagramWebhookController@handle`):**
+    *   **Verify Signature:** The `handle` method verifies the `X-Hub-Signature-256` header using your `FACEBOOK_APP_SECRET` (from `.env`).
+    *   **Parse Payload:** The JSON request body is parsed to extract:
+        *   Comment text (e.g., `entry[0].changes[0].value.text`).
+        *   The ID of the media the comment was made on (e.g., `entry[0].changes[0].value.media.id` for post comments).
+        *   The Instagram Scoped User ID (IGSID) of the commenter (e.g., `entry[0].changes[0].value.from.id`).
+    *   **Lookup Triggers in Database:**
+        *   The controller queries the `post_triggers` table using the extracted `media.id`.
+        *   It iterates through active triggers (`is_active = true`) for that `media.id`.
+        *   For each trigger, it checks if the comment `text` contains the trigger's `keyword` (case-insensitive).
+    *   **Prepare DM Content from Database:**
+        *   If a keyword match is found for a `PostTrigger` record:
+            *   The structured DM content is retrieved from the `dm_message` field of the matched `$trigger` (which is stored as JSON and cast to an array in the `PostTrigger` model). This includes:
+                *   `media_url`
+                *   `media_type` (e.g., 'image', 'video')
+                *   `description_text`
+                *   `cta_text`
+                *   `cta_url` (this will be the Telegram post URL or other link)
+    *   **Avoid Loops:** Ensure the comment is not from your own page/bot ID.
+
+5.  **Send DM via Messenger Platform API (Laravel Implementation using `sendConfiguredDm`):**
+    *   The `sendConfiguredDm` method in `InstagramWebhookController` is called with the commenter's IGSID and the matched `$trigger` object.
+    *   It uses an HTTP client (like Guzzle) to make a `POST` request to the Facebook Graph API: `https://graph.facebook.com/vXX.X/me/messages` (use a specific API version).
+    *   The `INSTAGRAM_PAGE_ACCESS_TOKEN` (from `.env`) is included.
+    *   The request body is JSON, constructed using the details from the `$trigger->dm_message`:
+        ```json
+        {
+          "recipient": {
+            "id": "<IGSID_FROM_WEBHOOK>"
+          },
+          "message": {
+            "attachment": {
+              "type": "<media_type_from_trigger>", // e.g., 'image', 'video'
+              "payload": {
+                "url": "<media_url_from_trigger>",
+                "is_reusable": true
+              }
+            },
+            "text": "<description_text_from_trigger>",
+            "quick_replies": [ // Or use Call to Action buttons if preferred and supported for the context
+              {
+                "content_type": "text",
+                "title": "<cta_text_from_trigger>",
+                "payload": "cta_payload_optional" // Can be used for tracking, or simply make the CTA text itself the link if using in text.
+                                                 // For actual buttons, refer to Instagram Graph API docs for message templates.
+                                                 // A common approach is to include the CTA URL directly in the text.
+              }
+            ]
+            // Example with CTA in text:
+            // "text": "<description_text_from_trigger>\n\n<cta_text_from_trigger>: <cta_url_from_trigger>"
+          }
+        }
+        ```
+        *Note: The exact structure for CTAs (buttons vs. text links) should be chosen based on desired UX and Instagram API capabilities for the message type. The example above shows a quick reply; for a persistent button, message templates might be needed. Often, embedding the link in the `text` is simplest.*
+    *   **Permissions:** Ensure your app has `instagram_manage_messages`.
+
+6.  **Deployment & Configuration:**
+    *   Deploy your Laravel application.
+    *   Configure necessary environment variables in your `.env` file:
+        *   `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
+        *   `INSTAGRAM_PAGE_ACCESS_TOKEN`
+        *   `INSTAGRAM_WEBHOOK_VERIFY_TOKEN`
+        *   `FACEBOOK_APP_SECRET`
+        *   `APP_URL` (used by Laravel, should be your public HTTPS URL)
+    *   Ensure the admin panel is secured (e.g., via authentication).
+
+## Next Steps
+
+1.  Ensure your Laravel Admin Panel is set up and you can create/manage `PostTrigger` records with structured DM content (media URL, type, description, CTA text & URL).
+2.  Set up your Facebook App, Instagram account, and Facebook Page as per prerequisites.
+3.  Obtain `INSTAGRAM_PAGE_ACCESS_TOKEN`, `INSTAGRAM_WEBHOOK_VERIFY_TOKEN`, and `FACEBOOK_APP_SECRET`.
+4.  Deploy your Laravel application to a publicly accessible HTTPS server.
+5.  Configure the Webhook in the Facebook Developer Dashboard, pointing to your Laravel app's webhook endpoint and subscribing to `comments`.
+6.  Use the Admin Panel to create a specific trigger:
+    *   Enter the `instagram_post_id` of a test post.
+    *   Set a `keyword`.
+    *   Fill in the `dm_message` details: `media_url`, `media_type`, `description_text`, `cta_text`, and `cta_url` (e.g., your Telegram link).
+    *   Ensure the trigger is `is_active`.
+7.  Test thoroughly by commenting on the target Instagram post with the specified keyword.
+8.  Check application logs (`storage/logs/laravel.log`) and verify the DM is received correctly with all parts of the structured message.
+</file>
+
+<file path="documentation/webhook_documentation.md">
+# Instagram Bot Webhook Documentation
+
+This document provides documentation for the Laravel implementation of the Instagram webhook handler and bot logic. Its primary function is to receive real-time comment notifications from Instagram via webhooks and trigger automated direct messages (DMs) based on predefined triggers stored in a PostgreSQL database.
+
+## 1. Purpose
+
+The webhook service, implemented in `app/Http/Controllers/InstagramWebhookController.php`, acts as the bridge between the Instagram platform and the bot's DM sending capability. It listens for specific events (like comments on a post or story replies) and initiates the automated response process based on triggers defined in the `post_triggers` database table.
+
+## 2. Webhook Endpoint
+
+*   **URL:** Configured in the Facebook Developer App, pointing to the Laravel application's API route (e.g., `https://your-app-domain.com/api/webhook/instagram`).
+*   **Method:** `GET` (for webhook verification) and `POST` (for event notifications).
+*   **Controller:** `App\Http\Controllers\InstagramWebhookController`
+    *   `verify()`: Handles `GET` requests for `hub.mode=subscribe` verification.
+    *   `handle()`: Handles `POST` requests with event data.
+
+## 3. Instagram Webhook Payload (Comments & Other Events)
+
+When an event occurs (e.g., a user comments on a subscribed Instagram post), Instagram sends a `POST` request to your configured webhook URL. The request body contains a JSON payload. Key relevant fields for a **comment** event (`entry[0].changes[0].field == 'comments'`) typically include:
+
+*   `object`: Type of object (e.g., "instagram").
+*   `entry`: An array of entries.
+    *   `id`: Page ID.
+    *   `time`: Timestamp of the update.
+    *   `changes`: An array of changes.
+        *   `field`: The type of change (e.g., "comments").
+        *   `value`: An object containing details about the comment.
+            *   `id`: The comment ID (e.g., `entry[0].changes[0].value.id`).
+            *   `from`: An object with the user's Instagram Scoped ID (IGSID) and username who made the comment (e.g., `entry[0].changes[0].value.from.id`).
+            *   `media`: An object with the media (post) ID (e.g., `entry[0].changes[0].value.media.id`).
+            *   `text`: The content of the comment (e.g., `entry[0].changes[0].value.text`).
+            *   `timestamp`: Timestamp of the comment.
+            *   `parent_id`: (If it's a reply to another comment).
+
+The `handle()` method in `InstagramWebhookController` parses this JSON payload to extract the `media.id` (or equivalent for other event types like story replies), the `text` of the comment/message, and the commenter's/sender's IGSID.
+
+## 4. Expected Webhook Response
+
+Upon successful receipt and processing of the webhook payload, the webhook endpoint should return:
+
+*   **HTTP Status Code:** `200 OK`
+
+This signals to Instagram that the notification was received successfully.
+
+## 5. Internal Logic Flow (Laravel Implementation)
+
+When the Laravel application receives a POST request from the Instagram webhook:
+
+1.  **Receive and Parse Payload:** A dedicated route and controller method receive the JSON payload and parse it to extract relevant information, particularly the Instagram `post_id`, the `comment_text`, and the commenting `user_id`.
+2.  **Verify Signature:** The `handle()` method verifies the `X-Hub-Signature-256` header using the `FACEBOOK_APP_SECRET` environment variable.
+3.  **Database Lookup for Triggers:**
+    *   The controller queries the `PostTrigger` model (`App\Models\PostTrigger`).
+    *   It searches for active triggers (`is_active = true`) where `instagram_post_id` matches the `media.id` from the webhook.
+    *   It iterates through these triggers and checks if the comment `text` (case-insensitively) contains the trigger's `keyword`.
+4.  **Retrieve Structured DM Content:**
+    *   If a matching active trigger is found, the controller accesses the `dm_message` attribute of the `PostTrigger` model.
+    *   Since `dm_message` is cast to an `array` in the model, it directly provides structured data:
+        ```php
+        $dmContent = $trigger->dm_message; // e.g., ['media_url' => '...', 'media_type' => 'image', ...]
+        $mediaUrl = $dmContent['media_url'] ?? null;
+        $mediaType = $dmContent['media_type'] ?? 'image';
+        $descriptionText = $dmContent['description_text'] ?? '';
+        $ctaText = $dmContent['cta_text'] ?? 'Learn More';
+        $ctaUrl = $dmContent['cta_url'] ?? null;
+        ```
+5.  **Send Direct Message (via `sendConfiguredDm` method):**
+    *   The `sendConfiguredDm(string $recipientId, PostTrigger $trigger)` private method is called.
+    *   It uses Guzzle HTTP client to make a `POST` request to the Instagram Graph API (`https://graph.facebook.com/vXX.X/me/messages`).
+    *   It constructs the message payload using the structured DM content retrieved in the previous step (media, description, CTA).
+    *   The `INSTAGRAM_PAGE_ACCESS_TOKEN` environment variable is used for authentication.
+6.  **Respond to Instagram:** The controller returns a `200 OK` status code.
+
+## 6. Interaction with Instagram Graph API
+
+The `sendConfiguredDm` method in `InstagramWebhookController` interacts with the Instagram Graph API to send DMs. This involves:
+
+*   **Authentication:** Using the `INSTAGRAM_PAGE_ACCESS_TOKEN`.
+*   **API Endpoint:** `POST https://graph.facebook.com/vXX.X/me/messages` (ensure `XX.X` is a current API version).
+*   **Parameters:**
+    *   `recipient`: `{ "id": "<IGSID_OF_COMMENTER>" }`
+    *   `message`: A complex object that can include:
+        *   `text`: The main textual part of the message (e.g., `description_text`).
+        *   `attachment`: For sending media.
+            *   `type`: e.g., 'image', 'video', 'audio'.
+            *   `payload`: `{ "url": "<publicly_accessible_media_url>" }`.
+        *   `quick_replies` or other button structures for CTAs, if applicable. Often, the CTA is included as a link within the `text`.
+          Example for text with embedded CTA:
+          `"text": "Check this out: {$descriptionText}\n\n{$ctaText}: {$ctaUrl}"`
+
+## 7. Database Interaction (`post_triggers` table)
+
+*   The webhook controller **reads** from the `post_triggers` table to find matching triggers and retrieve DM content.
+*   It uses the `App\Models\PostTrigger` Eloquent model.
+*   The `dm_message` column is expected to store a JSON string, which is automatically cast to an array by Eloquent due to the `$casts` property in the model.
+*   The Admin Panel is responsible for writing to and managing records in this table.
+
+## 8. Key Dependencies
+
+*   Laravel framework to handle routing, requests, and database interactions.
+*   Eloquent ORM for interacting with the PostgreSQL database.
+*   An HTTP client library (like Guzzle) to make requests to the Instagram Graph API.
+
+This documentation provides an overview of the webhook's role, how it receives data, its internal processing logic, and its interactions with the database and the Instagram API within the Laravel framework. This information is essential for an AI (or developer) to understand and potentially modify or debug the webhook service.
 </file>
 
 <file path="resources/views/livewire/create-trigger.blade.php">
@@ -3682,163 +3654,318 @@ Route::get('/admin/triggers/{trigger}/edit', EditTrigger::class)->name('admin.tr
 }
 </file>
 
+<file path="documentation/laravel_admin_panel_documentation.md">
+# Laravel Admin Panel: AI-Friendly Overview and Actionable Steps
+
+This document provides an AI-friendly overview and outlines actionable steps for building a separate admin panel using the Laravel framework, PostgreSQL database, Blade templating engine, and Livewire for dynamic components. The purpose of this panel is to enable administrators to manage Instagram post triggers, linking keywords to specific Instagram posts and defining automated direct messages (DMs) for the bot.
+
+Both applications will share and interact with a single PostgreSQL database to manage trigger data.
+
+## 1. Architectural Components
+
+The system is composed of two primary, independent applications:
+
+*   **1.1. Admin Panel & Webhook Service (Laravel):**
+    *   **Function:**
+        *   Admin Panel: Web interface for administrators to perform CRUD operations on `PostTrigger` data.
+        *   Webhook Service: Handles incoming Instagram webhook notifications (comments, messages), looks up triggers in the database, and sends DMs via the Instagram API.
+    *   **Technology:** Laravel (PHP), Blade, Livewire, Guzzle (for API calls).
+    *   **Key Controller for Webhook:** `App\Http\Controllers\InstagramWebhookController`.
+
+## 2. Technology Stack Details
+
+*   **2.1. Laravel (PHP Framework):** Provides the foundational structure for the web application, including routing, MVC architecture, and backend logic.
+*   **2.2. PostgreSQL (Database):** A relational database system required for persistent storage of `PostTrigger` data.
+*   **2.3. Blade (Templating Engine):** Laravel's default templating engine for defining the structure of web pages.
+*   **2.4. Livewire (Full-Stack Framework):** Used to build dynamic user interfaces with minimal JavaScript, handling front-end interactions via server-side PHP.
+
+## 3. Environment Setup with Docker Compose
+
+The application environment, including the PHP application server, Nginx web server, PostgreSQL database, and Redis cache, can be easily set up using the provided `docker-compose.yml` file.
+
+1.  **Copy Environment File:** Copy the `.env.example` file to `.env` in the project root.
+2.  **Configure .env:** Update the `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` variables in the `.env` file to match the PostgreSQL service configuration in `docker-compose.yml`. The default values in `docker-compose.yml` are:
+    *   `DB_CONNECTION=pgsql`
+    *   `DB_HOST=db`
+    *   `DB_PORT=5432`
+    *   `DB_DATABASE=huberman_db`
+    *   `DB_USERNAME=sail`
+    *   `DB_PASSWORD=password`
+    Ensure these match or update them in your `.env` file if you've customized the docker compose configuration.
+3.  **Build and Run:** From the project root, run the following command to build the images and start the containers in detached mode:
+    ```bash
+    docker compose up -d
+    ```
+4.  **Access the Application:** The application will be accessible via the port specified in the `APP_PORT` variable in your `.env` file (default is 8000).
+
+## 4. Database Schema
+
+A single table is required in the PostgreSQL database to store trigger information:
+
+*   **Table Name:** `post_triggers`
+*   **Columns:**
+    *   `id`: Primary Key, Auto-incrementing Integer.
+    *   `instagram_post_id`: String, Stores the unique identifier of the Instagram post. Indexed for efficient lookups.
+    *   `keyword`: String, Stores the specific keyword that triggers the DM.
+    *   `dm_message`: Text, Stores a JSON object containing structured data for the direct message (e.g., `media_url`, `media_type`, `description_text`, `cta_text`, `cta_url`).
+    *   `is_active`: Boolean, Default: `TRUE`. Indicates if the trigger is currently active.
+    *   `created_at`: Timestamp, Automatically managed by Laravel.
+    *   `updated_at`: Timestamp, Automatically managed by Laravel.
+
+## 5. Actionable Implementation Steps (High-Level)
+
+The following steps outline the high-level process for building the Laravel admin panel:
+
+*   **Step 4.1. Project Setup:**
+    *   Create a new Laravel project.
+    *   Configure the `.env` file for PostgreSQL database connection.
+    *   Install Livewire.
+*   **Step 4.2. Database Migration:**
+    *   Create a Laravel migration file for the `post_triggers` table.
+    *   Define the schema for the `post_triggers` table as specified in Section 3.
+    *   Run the database migration.
+*   **Step 4.3. Eloquent Model:**
+    *   Create an Eloquent model named `PostTrigger` to represent the `post_triggers` table.
+    *   Define the `$fillable` properties in the model.
+*   **Step 4.4. Admin Interface Components (Livewire):**
+    *   Create Livewire components for managing triggers (e.g., `TriggerList`, `CreateTrigger`, `EditTrigger`).
+    *   Implement the logic within these components to interact with the `PostTrigger` model for CRUD operations.
+    *   Develop the associated Blade views for each Livewire component to define the user interface.
+*   **Step 4.5. Routing:**
+    *   Define web routes in `routes/web.php` for the admin panel Livewire components.
+    *   Define API routes in `routes/api.php` for the Instagram webhook endpoint, pointing to `InstagramWebhookController`.
+*   **Step 4.6. Webhook Logic (InstagramWebhookController):**
+    *   Implement webhook verification (`verify` method).
+    *   Implement event handling (`handle` method):
+        *   Verify webhook signature.
+        *   Parse incoming payload (comment data, user ID, media ID).
+        *   Query `PostTrigger` model based on `instagram_post_id` and `keyword` from the comment.
+        *   Retrieve structured `dm_message` content.
+        *   Call a method (e.g., `sendConfiguredDm`) to send the DM using the Instagram Graph API (via Guzzle).
+
+## 6. Integration Point & Data Flow
+
+*   **Admin Panel:** Administrators use the web interface (Livewire components) to create, read, update, and delete `PostTrigger` records in the PostgreSQL database. This includes defining the `instagram_post_id`, `keyword`, and the structured `dm_message` (media, description, CTA).
+*   **Webhook Service (`InstagramWebhookController`):**
+    1.  Receives event notifications from Instagram.
+    2.  Reads from the `post_triggers` table in the PostgreSQL database to find matching active triggers.
+    3.  Uses the structured `dm_message` from the found trigger to compose and send a DM via the Instagram Graph API.
+*   The **shared PostgreSQL database** remains the central integration point.
+
+## 7. Deployment Consideration
+
+The Laravel application, which now includes both the Admin Panel and the Instagram Webhook Service, should be deployed to a server environment that supports PHP and can handle incoming HTTPS requests for the webhook. The application must have secure access to the PostgreSQL database and be able to make outbound HTTPS requests to the Instagram Graph API.
+
+This document provides the necessary structure and high-level steps for an AI to proceed with the detailed implementation planning and subsequent development of the Laravel admin panel.
+</file>
+
 <file path="documentation/laravel_admin_panel_todo.md">
 # Laravel Admin Panel: Detailed To-Do Plan
 
-This document provides a detailed, step-by-step plan for implementing the Laravel-based admin panel for managing Instagram post triggers. This plan expands upon the high-level overview and is designed to guide the autonomous development process.
+This document provides a detailed, step-by-step plan for implementing the Laravel-based admin panel for managing Instagram post triggers and the integrated Instagram bot. This plan incorporates feedback and outlines current and future tasks.
 
 ## 1. Project Setup
 
-*   [ ] **1.1. Create New Laravel Project:**
-    *   [x] Execute `composer create-project --prefer-dist laravel/laravel [project-name]` in the desired directory (e.g., `admin_panel`).
+*   [x] **1.1. Create New Laravel Project:** — @cline
+    *   [x] Execute `composer create-project --prefer-dist laravel/laravel [project-name]`
     *   [x] Navigate into the newly created project directory.
-*   [x] **1.2. Configure Environment with Docker Compose:**
-    *   Environment configuration, including the database connection, is managed via the `docker-compose.yml` file. Ensure your `.env` file is copied from `.env.example` and the database variables match the docker compose configuration.
-*   [x] **1.3. Start Docker Containers:**
+*   [x] **1.2. Configure Environment with Docker Compose:** — @cline
+    *   [x] Environment configuration, including the database connection, is managed via the `docker-compose.yml` file. Ensure your `.env` file is copied from `.env.example` and the database variables match the docker compose configuration.
+*   [x] **1.3. Start Docker Containers:** — @cline
     *   [x] Execute `docker compose up -d` to build and run the environment containers.
-*   [x] **1.4. Install Livewire:**
-    *   [x] Execute `docker compose exec app composer require livewire/livewire` inside the container.
-    *   [x] Execute `docker compose exec app php artisan livewire:install` inside the container.
+*   [x] **1.4. Install Livewire:** — @cline
+    *   [x] Execute `docker compose exec app composer require livewire/livewire`
+    *   [x] Execute `docker compose exec app php artisan livewire:install`
 
 ## 2. Database Migration
 
-*   [x] **2.1. Create Migration File:** @cline
-    *   [ ] Execute `php artisan make:migration create_post_triggers_table --create=post_triggers`.
-*   [x] **2.2. Define Table Schema:** @cline
-    *   [ ] Open the generated migration file in `database/migrations/`.
-    *   [ ] In the `up()` method, define the `post_triggers` table with the following columns:
-        *   `$table->id();`
-        *   `$table->string('instagram_post_id')->index();`
-        *   `$table->string('keyword');`
-        *   `$table->text('dm_message');`
-        *   `$table->boolean('is_active')->default(true);`
-        *   `$table->timestamps();`
-*   [x] **2.3. Run Migrations:** @cline
+*   [x] **2.1. Create Migration File for `post_triggers`:** — @cline
+    *   [x] Execute `php artisan make:migration create_post_triggers_table --create=post_triggers`.
+*   [x] **2.2. Define `post_triggers` Table Schema:** — @cline
+    *   [x] Open the generated migration file in `database/migrations/`.
+    *   [x] In the `up()` method, define the `post_triggers` table with: `id`, `instagram_post_id`, `keyword`, `dm_message` (TEXT), `is_active`, `timestamps`.
+*   [x] **2.3. Run Migrations:** — @cline
     *   [x] Execute `php artisan migrate`.
 
-## 3. Eloquent Model
+## 3. Eloquent Model (`PostTrigger`)
 
-*   [x] **3.1. Create Model File:** @cline
-    *   [ ] Execute `php artisan make:model PostTrigger`.
-*   [x] **3.2. Define Fillable Properties:** @cline
-    *   [ ] Open the `app/Models/PostTrigger.php` file.
-    *   [ ] Add the `$fillable` property to allow mass assignment for the relevant columns:
+*   [x] **3.1. Create Model File:** — @cline
+    *   [x] Execute `php artisan make:model PostTrigger`.
+*   [x] **3.2. Define Fillable Properties:** — @cline
+    *   [x] Open `app/Models/PostTrigger.php`.
+    *   [x] Add `$fillable` for `instagram_post_id`, `keyword`, `dm_message`, `is_active`.
+
+## 4. Admin Interface (Livewire Components - Basic CRUD)
+
+*   [x] **4.1. Create Livewire Components:** — @cline
+    *   [x] Execute `php artisan make:livewire TriggerList`.
+    *   [x] Execute `php artisan make:livewire CreateTrigger`.
+    *   [x] Execute `php artisan make:livewire EditTrigger`.
+*   [x] **4.2. Implement `TriggerList` Component:** — @cline
+    *   [x] **PHP Class:** Fetch triggers, implement delete.
+    *   [x] **Blade View:** Display triggers, add edit/delete buttons, link to create.
+*   [x] **4.3. Implement `CreateTrigger` Component:** — @cline
+    *   [x] **PHP Class:** Properties for form inputs, validation, create record, redirect.
+    *   [x] **Blade View:** Form with inputs, bind to properties, submit button, validation errors.
+*   [x] **4.4. Implement `EditTrigger` Component:** — @cline
+    *   [x] **PHP Class:** Fetch record, properties for inputs, validation, update record, redirect.
+    *   [x] **Blade View:** Form pre-populated, bind inputs, update button, validation errors.
+
+## 5. Routing (Admin Panel)
+
+*   [x] **5.1. Define Web Routes:** — @cline
+    *   [x] Open `routes/web.php`.
+    *   [x] Define routes for `TriggerList`, `CreateTrigger`, `EditTrigger`.
+
+## 6. Basic UI Layout (Admin Panel)
+
+*   [x] **6.1. Create a Layout File:** — @cline
+    *   [x] Create `resources/views/layouts/admin.blade.php`.
+    *   [x] Include HTML structure, `@livewireStyles`, `@livewireScripts`, `@yield('content')`.
+*   [x] **6.2. Extend Layout in Component Views:** — @cline
+    *   [x] Use `@extends('layouts.admin')` in Livewire component views.
+
+## 7. `PostTrigger` Model & Migration Enhancements (Rich DM Content)
+
+*   [ ] **7.1. Configure `dm_message` for Structured Data (JSON Approach):** — @cline
+    *   [ ] Ensure `dm_message` column in `create_post_triggers_table` migration is `TEXT` (already is).
+    *   [ ] In `app/Models/PostTrigger.php`, add Eloquent cast for `dm_message` to `array`:
         ```php
-        protected $fillable = [
-            'instagram_post_id',
-            'keyword',
-            'dm_message',
-            'is_active',
+        protected $casts = [
+            'dm_message' => 'array', // or AsArrayObject::class
+            'is_active' => 'boolean',
         ];
         ```
+        (Ensure `$fillable` remains appropriate if `dm_message` itself is being filled directly with an array).
+*   [ ] **7.2. Update Admin Forms for Rich DM Content (`CreateTrigger`, `EditTrigger`):** — @cline
+    *   [ ] In `CreateTrigger.php` and `EditTrigger.php` Livewire components:
+        *   [ ] Add public properties for: `$media_url`, `$media_type`, `$description_text`, `$cta_text`, `$cta_url`. — @cline
+        *   [ ] Update validation rules for these new fields (e.g., `url` for URLs, `nullable`, `string`, etc.). — @cline
+        *   [ ] Logic to combine these separate form fields into an array/JSON structure and store it in the `dm_message` property before saving the `PostTrigger` model. — @cline
+        *   [ ] When editing (`EditTrigger.php` `mount()` method), parse the `dm_message` (if it's an array/JSON) to populate these separate form field properties. — @cline
+    *   [ ] In `resources/views/livewire/create-trigger.blade.php` and `edit-trigger.blade.php`:
+        *   [ ] Add input fields for `media_url` (text), `media_type` (e.g., dropdown: image, video, or text input), `description_text` (textarea), `cta_text` (text), `cta_url` (text). Bind them to the new Livewire properties. — @cline
 
-## 4. Admin Interface (Livewire Components)
+## 8. Instagram Bot Logic (in `InstagramWebhookController.php`)
 
-*   [x] **4.1. Create Livewire Components:** @cline
-    *   [ ] Execute `php artisan make:livewire TriggerList`.
-    *   [ ] Execute `php artisan make:livewire CreateTrigger`.
-    *   [ ] Execute `php artisan make:livewire EditTrigger`.
-*   [x] **4.2. Implement `TriggerList` Component:** @cline
-    *   [x] **PHP Class (`app/Http/Livewire/TriggerList.php`):**
-        *   [x] Add a public property to hold the list of triggers (e.g., `$triggers`).
-        *   [x] In the `mount()` or `render()` method, fetch all `PostTrigger` records from the database.
-        *   [x] Implement methods for deleting a trigger (e.g., `deleteTrigger($triggerId)`).
-    *   [ ] **Blade View (`resources/views/livewire/trigger-list.blade.php`):**
-        *   [x] Loop through the `$triggers` and display them in a table or list format.
-        *   [x] Include buttons/links for editing and deleting each trigger, using Livewire actions (e.g., `wire:click="deleteTrigger({{ $trigger->id }})"`).
-        *   [x] Add a link or button to navigate to the create trigger page.
-*   [x] **4.3. Implement `CreateTrigger` Component:** @cline
-    *   [ ] **PHP Class (`app/Http/Livewire/CreateTrigger.php`):**
-        *   [ ] Add public properties for form inputs (e.g., `$instagram_post_id`, `$keyword`, `$dm_message`, `$is_active`).
-        *   [ ] Implement a `submitForm()` method to validate the input data.
-        *   [ ] If validation passes, create a new `PostTrigger` record using the model.
-        *   [ ] Redirect the user back to the trigger list page after successful creation.
-    *   [ ] **Blade View (`resources/views/livewire/create-trigger.blade.php`):**
-        *   [ ] Create an HTML form with input fields for `instagram_post_id`, `keyword`, `dm_message`, and a checkbox for `is_active`.
-        *   [ ] Bind the input fields to the Livewire component properties using `wire:model`.
-        *   [ ] Add a submit button with `wire:click="submitForm"`.
-        *   [ ] Include validation error messages using Blade directives (`@error`).
-*   [x] **4.4. Implement `EditTrigger` Component:** @cline
-    *   [ ] **PHP Class (`app/Http/Livewire/EditTrigger.php`):**
-        *   [ ] Add a public property for the trigger ID (e.g., `$triggerId`).
-        *   [ ] Add public properties for form inputs (e.g., `$instagram_post_id`, `$keyword`, `$dm_message`, `$is_active`).
-        *   [ ] In the `mount()` method, fetch the `PostTrigger` record based on `$triggerId` and populate the form input properties.
-        *   [ ] Implement an `updateForm()` method to validate the input data.
-        *   [ ] If validation passes, update the existing `PostTrigger` record.
-        *   [ ] Redirect the user back to the trigger list page after successful update.
-    *   [ ] **Blade View (`resources/views/livewire/edit-trigger.blade.php`):**
-        *   [ ] Create an HTML form similar to the create form, pre-populated with the existing trigger data.
-        *   [ ] Bind input fields using `wire:model`.
-        *   [ ] Add an update button with `wire:click="updateForm"`.
-        *   [ ] Include validation error messages.
+*   [ ] **8.1. Refactor `handle()` method to use Database Triggers:** — @cline
+    *   [ ] Remove reliance on `.env` variables like `TARGET_INSTAGRAM_POST_ID` and `TRIGGER_KEYWORD` for core trigger logic. — @cline
+    *   [ ] After extracting `mediaId` (from webhook, e.g., `entry[0].changes[0].value.media.id` or `entry[0].changes[0].value.post.id` for comments on posts; `entry[0].messaging[0].message.reply_to.story.id` for story replies) and `commentText` (e.g. `entry[0].changes[0].value.text`):
+        *   Query the `PostTrigger` model:
+            ```php
+            $triggers = PostTrigger::where('instagram_post_id', $mediaId)
+                                ->where('is_active', true)
+                                ->get();
 
-## 5. Routing
-
-*   [x] **5.1. Define Web Routes:** @cline
-    *   [x] Open `routes/web.php`.
-    *   [x] Define routes to map URLs to your Livewire components:
+            foreach ($triggers as $trigger) {
+                // Ensure keyword matching is case-insensitive and handles partial matches if needed
+                if (str_contains(strtolower($commentText), strtolower($trigger->keyword))) {
+                    // Keyword matched for this trigger
+                    $commenterId = $payload['entry'][0]['changes'][0]['value']['from']['id']; // Adjust path as needed
+                    $this->sendConfiguredDm($commenterId, $trigger); // Pass the whole trigger
+                    // Decide if multiple keyword matches on one comment should send multiple DMs or break;
+                    break; 
+                }
+            }
+            ```
+            — @cline
+*   [ ] **8.2. Create/Modify `sendConfiguredDm(string $recipientId, PostTrigger $trigger)` method:** — @cline
+    *   [ ] This method should accept the `$recipientId` and the `$trigger` (PostTrigger model instance).
+    *   [ ] Fetch DM content from the `$trigger->dm_message` (which should be an array due to the cast):
         ```php
-        use Illuminate\Support\Facades\Route;
-        use App\Http\Livewire\TriggerList;
-        use App\Http\Livewire\CreateTrigger;
-        use App\Http\Livewire\EditTrigger;
-
-        Route::get('/admin/triggers', TriggerList::class)->name('admin.triggers.index');
-        Route::get('/admin/triggers/create', CreateTrigger::class)->name('admin.triggers.create');
-        Route::get('/admin/triggers/{trigger}/edit', EditTrigger::class)->name('admin.triggers.edit');
+        // Inside sendConfiguredDm($recipientId, PostTrigger $trigger)
+        $dmContent = $trigger->dm_message; // Already an array
+        $mediaUrl = $dmContent['media_url'] ?? null;
+        $mediaType = $dmContent['media_type'] ?? 'image'; // Default or derive
+        $descriptionText = $dmContent['description_text'] ?? '';
+        $ctaText = $dmContent['cta_text'] ?? 'Learn More';
+        $ctaUrl = $dmContent['cta_url'] ?? null; // This will be the Telegram URL
         ```
-    *   [ ] (Optional) Add basic authentication middleware to protect these routes.
+        — @cline
+    *   [ ] Adapt the existing Guzzle call logic in the old `sendDm` method to use these variables to construct the message payload (text, media, CTA button). — @cline
+    *   [ ] Ensure the CTA button points to the `$ctaUrl` (Telegram post URL).
 
-## 6. Basic UI Layout
+## 9. Admin Panel Enhancements
 
-*   [x] **6.1. Create a Layout File:** @cline
-    *   [x] Create a master layout Blade file (e.g., `resources/views/layouts/admin.blade.php`).
-    *   [x] Include necessary HTML structure, Livewire styles and scripts (`@livewireStyles`, `@livewireScripts`), and a placeholder for content (`@yield('content')`).
-*   [x] **6.2. Extend Layout in Component Views:**
-    *   [x] In your Livewire component Blade views (`.blade.php` files), extend the master layout:
-        ```blade
-        @extends('layouts.admin')
-
-        @section('content')
-            {{-- Component content here --}}
-        @endsection
+*   [ ] **9.1. Implement Authentication:** — @cline
+    *   [ ] Install Laravel Breeze or Jetstream: `php artisan breeze:install` (choose appropriate stack, e.g., Blade). Or implement custom auth. — @cline
+    *   [ ] Run migrations for auth tables: `php artisan migrate`. — @cline
+    *   [ ] Protect admin routes in `routes/web.php` with `auth` middleware:
+        ```php
+        Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+            Route::get('/triggers', TriggerList::class)->name('triggers.index');
+            Route::get('/triggers/create', CreateTrigger::class)->name('triggers.create');
+            Route::get('/triggers/{trigger}/edit', EditTrigger::class)->name('triggers.edit');
+        });
         ```
+        — @cline
+*   [ ] **9.2. UI/UX Improvements:** — @cline
+    *   [ ] **Styling:** Consistently apply Tailwind CSS classes to `admin.blade.php` and Livewire views for a professional look. — @cline
+    *   [ ] **Navigation:** Add a simple navigation bar in `layouts/admin.blade.php` (e.g., link to Triggers, Logout). — @cline
+    *   [ ] **Feedback Messages:** Style the `session()->flash('message')` display more effectively (e.g., using Tailwind alerts). — @cline
+    *   [ ] **Input Validation Messages:** Improve display of validation messages in forms. — @cline
+    *   [ ] **Pagination:** In `app/Livewire/TriggerList.php`, change `PostTrigger::all()` to `PostTrigger::latest()->paginate(15);`. Update `trigger-list.blade.php` to display pagination links (`{{ $triggers->links() }}`). — @cline
+*   [ ] **9.3. Advanced Input Validation:** — @cline
+    *   [ ] In Livewire components (`CreateTrigger`, `EditTrigger`), add more specific validation rules:
+        *   `media_url`: `nullable|url`
+        *   `media_type`: `nullable|string|in:image,video` (or other relevant types)
+        *   `description_text`: `nullable|string`
+        *   `cta_text`: `nullable|string|max:20` (Instagram CTA button text limit)
+        *   `cta_url`: `nullable|url`
+        *   `keyword`: `required|string|max:255`
+        *   `instagram_post_id`: `required|string|max:255`
+        — @cline
 
-## 7. Integrate Webhook Database Access (Conceptual)
+## 10. Environment Configuration
 
-*   [ ] **7.1. Install PostgreSQL Client in Python:**
-    *   [ ] In your webhook project, execute `pip install psycopg2-binary`.
-*   [ ] **7.2. Update Webhook Database Connection:**
-    *   [ ] Modify `webhook_server.py` to establish a connection to the same PostgreSQL database using `psycopg2`.
-    *   [ ] Ensure database credentials are loaded securely (e.g., from environment variables or a separate config file).
-*   [ ] **7.3. Implement Trigger Lookup Logic:**
-    *   [ ] Write a function in `webhook_server.py` to query the `post_triggers` table based on the Instagram post ID and comment text.
-    *   [ ] Use SQL queries to find an active trigger where the comment text contains the keyword (using `LIKE` or `ILIKE`).
-    *   [ ] Retrieve the `dm_message` if a match is found.
+*   [ ] **10.1. Update `.env.example` and `.env`:** — @cline
+    *   [ ] Add `INSTAGRAM_WEBHOOK_VERIFY_TOKEN` (used for webhook verification). — @cline
+    *   [ ] Add `FACEBOOK_APP_SECRET` (used for webhook signature verification). — @cline
+    *   [ ] Add `INSTAGRAM_PAGE_ACCESS_TOKEN` (used for sending DMs via Graph API). — @cline
+    *   [ ] Review and remove/deprecate old `.env` variables if they are no longer used by the bot's core logic (e.g., `TARGET_INSTAGRAM_POST_ID`, `TRIGGER_KEYWORD`, `MEDIA_URL`, `DESCRIPTION_TEXT`, `TELEGRAM_POST_URL` if they were for the static bot). — @cline
 
-## 8. Testing
+## 11. General Considerations & Future Enhancements
 
-*   [ ] **8.1. Run Laravel Development Server:**
-    *   [ ] Execute `php artisan serve` in the admin panel project directory.
-    *   [ ] Access the admin panel in a web browser (usually `http://127.0.0.1:8000/admin/triggers`).
-*   [ ] **8.2. Test CRUD Operations:**
-    *   [ ] Use the admin interface to create, view, edit, and delete triggers.
-*   [ ] **8.3. Test Webhook Integration (Requires Instagram Setup):**
-    *   [ ] Ensure the webhook service is running and accessible to Instagram.
-    *   [ ] Create a test post on Instagram.
-    *   [ ] Use the admin panel to create a trigger for that test post with a specific keyword and DM message.
+*   [ ] **11.1. Error Handling & Logging:** — @cline
+    *   [ ] Enhance logging in `InstagramWebhookController` for API calls, database interactions, and unexpected webhook payloads. Use `Log::error()`, `Log::info()`. — @cline
+*   [ ] **11.2. Job Queues for Sending DMs (Recommended for Production):** — @cline
+    *   [ ] Create a Job (e.g., `SendInstagramDmJob`): `php artisan make:job SendInstagramDmJob`. — @cline
+    *   [ ] The job should accept necessary data (recipient ID, DM content details from the trigger).
+    *   [ ] Move the DM sending logic (Guzzle call) into the job's `handle()` method.
+    *   [ ] Dispatch this job from `InstagramWebhookController` instead of calling `sendConfiguredDm` directly: `SendInstagramDmJob::dispatch($commenterId, $trigger->dm_message);`. — @cline
+    *   [ ] Configure and run queue workers: `php artisan queue:work`.
+*   [ ] **11.3. API Versioning for Instagram Graph API:** — @cline
+    *   [ ] Ensure Graph API calls use a specific version (e.g., `v19.0`) in the URL to avoid unexpected breaking changes.
+
+## 12. Testing
+
+*   [x] **12.1. Run Laravel Development Server:**
+    *   [x] Execute `php artisan serve`.
+    *   [x] Access admin panel: `http://127.0.0.1:8000/admin/triggers`.
+*   [x] **12.2. Test Admin Panel CRUD Operations:**
+    *   [x] Create, view, edit, and delete triggers, including the new rich DM content fields.
+*   [ ] **12.3. Test Webhook Integration (Requires Instagram Setup & App Review for `instagram_manage_messages`):** — @cline
+    *   [ ] Ensure webhook URL is correctly set up in Facebook Developer App and subscribed to the page.
+    *   [ ] Create a test post on the linked Instagram page.
+    *   [ ] Use the admin panel to create a trigger for that test post (correct `instagram_post_id`), a specific keyword, and DM content (including media, text, CTA).
     *   [ ] Comment on the Instagram test post with the trigger keyword.
-    *   [ ] Verify that the webhook processes the comment and sends the correct DM.
+    *   [ ] Verify:
+        *   [ ] Webhook is received by `InstagramWebhookController`.
+        *   [ ] Correct trigger is fetched from the database.
+        *   [ ] Correct DM (with media, text, CTA) is sent to the commenter.
+        *   [ ] Check logs for any errors.
+*   [ ] **12.4. Write Automated Tests:** — @cline
+    *   [ ] **Feature Tests (Admin Panel):**
+        *   [ ] Test authentication (login, redirect if not logged in).
+        *   [ ] Test CRUD operations for triggers (e.g., `tests/Feature/Admin/TriggerManagementTest.php`).
+    *   [ ] **Feature/Unit Tests (Webhook Controller):**
+        *   [ ] Test webhook signature verification.
+        *   [ ] Test webhook event processing (mock incoming webhook data).
+        *   [ ] Test trigger lookup logic (mock `PostTrigger` model).
+        *   [ ] Test DM sending logic (mock Guzzle HTTP client and Graph API calls).
+        (e.g., `tests/Feature/Webhook/InstagramWebhookTest.php`)
 
-This detailed plan provides a roadmap for implementing the Laravel admin panel and integrating it with the existing Python webhook via the shared PostgreSQL database.
-
-## 9. Rewrite Instagram Webhooks and Bot
-
-*   [ ] **9.1. Rewrite Instagram webhooks and bot in Laravel** - @cline
-    *   [ ] Create a new route to handle incoming Instagram webhook notifications.
-    *   [ ] Implement a controller method to process webhook data and verify the signature.
-    *   [ ] Implement the bot logic to respond to comments and send DMs using the Instagram Graph API.
-    *   [ ] Update documentation (`documentation/webhook_documentation.md`, `documentation/instagram_telegram_integration_guide.md`) to reflect the Laravel implementation.
+This updated plan should provide a clear roadmap for the next development phase.
 </file>
 
 </files>

@@ -2,6 +2,11 @@
 
 This document provides a detailed, step-by-step plan for implementing the Laravel-based admin panel for managing Instagram post triggers and the integrated Instagram bot. This plan incorporates feedback and outlines current and future tasks.
 
+## 0. Clarifications & Confirmations
+
+*   [ ] **0.1. Clarify CTA Behavior:** — @cline
+    *   [ ] The current plan is for the DM's CTA to directly link to the Telegram post (e.g., via a `web_url` button or an embedded link). If the requirement "cta click sends *another message* with the link" is a strict necessity, this implies a two-step DM process (e.g., using postback buttons and handling `messaging_postbacks`). This would require significant changes to the `dm_message` structure, admin forms, and webhook controller logic. **Please confirm if the single DM with a direct link CTA is the correct immediate goal.**
+
 ## 1. Project Setup
 
 *   [x] **1.1. Create New Laravel Project:** — @cline
@@ -102,7 +107,7 @@ This document provides a detailed, step-by-step plan for implementing the Larave
                     $commenterId = $payload['entry'][0]['changes'][0]['value']['from']['id']; // Adjust path as needed
                     $this->sendConfiguredDm($commenterId, $trigger); // Pass the whole trigger
                     // Decide if multiple keyword matches on one comment should send multiple DMs or break;
-                    break; 
+                    break;
                 }
             }
             ```
@@ -120,7 +125,7 @@ This document provides a detailed, step-by-step plan for implementing the Larave
         $ctaUrl = $dmContent['cta_url'] ?? null; // This will be the Telegram URL
         ```
         — @cline
-    *   [ ] Adapt the existing Guzzle call logic in the old `sendDm` method to use these variables to construct the message payload (text, media, CTA button). — @cline
+    *   [ ] Adapt the existing Guzzle call logic in the old `sendDm` method to use these variables to construct the message payload. **Strongly consider constructing a 'Generic Template' message payload (see Instagram Graph API documentation) if `media_url` is present in the trigger. This allows for an image/video display alongside a title (from `description_text`) and a `web_url` button (using `cta_text` and `cta_url`). If no `media_url` is provided, a text message with an embedded link (using `cta_text` and `cta_url`) or a text message with a `web_url` button can be sent.** — @cline
     *   [ ] Ensure the CTA button points to the `$ctaUrl` (Telegram post URL).
 
 ## 9. Admin Panel Enhancements

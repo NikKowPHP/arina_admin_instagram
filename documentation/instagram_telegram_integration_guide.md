@@ -58,36 +58,41 @@ When a user comments on an Instagram post with a keyword defined in the admin pa
     *   The `sendConfiguredDm` method in `InstagramWebhookController` is called with the commenter's IGSID and the matched `$trigger` object.
     *   It uses an HTTP client (like Guzzle) to make a `POST` request to the Facebook Graph API: `https://graph.facebook.com/vXX.X/me/messages` (use a specific API version).
     *   The `INSTAGRAM_PAGE_ACCESS_TOKEN` (from `.env`) is included.
-    *   The request body is JSON, constructed using the details from the `$trigger->dm_message`:
-        ```json
-        {
-          "recipient": {
-            "id": "<IGSID_FROM_WEBHOOK>"
-          },
-          "message": {
-            "attachment": {
-              "type": "<media_type_from_trigger>", // e.g., 'image', 'video'
-              "payload": {
-                "url": "<media_url_from_trigger>",
-                "is_reusable": true
-              }
-            },
-            "text": "<description_text_from_trigger>",
-            "quick_replies": [ // Or use Call to Action buttons if preferred and supported for the context
-              {
-                "content_type": "text",
-                "title": "<cta_text_from_trigger>",
-                "payload": "cta_payload_optional" // Can be used for tracking, or simply make the CTA text itself the link if using in text.
-                                                 // For actual buttons, refer to Instagram Graph API docs for message templates.
-                                                 // A common approach is to include the CTA URL directly in the text.
-              }
-            ]
-            // Example with CTA in text:
-            // "text": "<description_text_from_trigger>\n\n<cta_text_from_trigger>: <cta_url_from_trigger>"
+    *   The request body is JSON, constructed using the details from the `$trigger->dm_message`.
+
+    **Current Implementation Goal for CTA:** The Call to Action (CTA) in the DM is intended to directly provide the user with the Telegram link (or other configured URL) within the *first* DM. This is typically achieved by embedding the link in the text or using a button that opens the URL directly.
+
+    **Recommendation for Richer DM with Media:** When including media (`media_url` is present), it is highly recommended to use Instagram's "Generic Template" message type. This template allows you to display an image or video alongside a title (from `description_text`) and a `web_url` button (using `cta_text` and `cta_url`). This provides a better user experience than simply embedding the link in the text.
+
+    Example payload using the Generic Template:
+
+    ```json
+    {
+      "recipient": {"id": "USER_ID"},
+      "message": {
+        "attachment": {
+          "type": "template",
+          "payload": {
+            "template_type": "generic",
+            "elements": [{
+              "title": "<description_text_from_trigger>",
+              "image_url": "<media_url_from_trigger>", // or video_url if type is video
+              "buttons": [{
+                "type": "web_url",
+                "url": "<cta_url_from_trigger>", // Telegram link or other configured URL
+                "title": "<cta_text_from_trigger>"
+              }]
+            }]
           }
         }
-        ```
-        *Note: The exact structure for CTAs (buttons vs. text links) should be chosen based on desired UX and Instagram API capabilities for the message type. The example above shows a quick reply; for a persistent button, message templates might be needed. Often, embedding the link in the `text` is simplest.*
+      }
+    }
+    ```
+
+    If no media is provided in the trigger, a simple text message with an embedded link or a text message with a `web_url` button (if supported for text-only messages in this context) can be sent.
+
+    *Note: If the requirement "cta click sends another message with the link" is a strict necessity, this implies a two-step DM process (e.g., using postback buttons and handling `messaging_postbacks`). This would require significant changes to the `dm_message` structure, admin forms, and webhook controller logic. The current documentation and planned implementation focus on a single DM with a direct link CTA.*
+
     *   **Permissions:** Ensure your app has `instagram_manage_messages`.
 
 6.  **Deployment & Configuration:**
