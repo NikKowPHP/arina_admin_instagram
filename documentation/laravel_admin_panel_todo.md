@@ -91,9 +91,9 @@ This document provides a detailed, step-by-step plan for implementing the Larave
 
 ## 8. Instagram Bot Logic (in `InstagramWebhookController.php`)
 
-*   [ ] **8.1. Refactor `handle()` method to use Database Triggers:** — @cline
-    *   [ ] Remove reliance on `.env` variables like `TARGET_INSTAGRAM_POST_ID` and `TRIGGER_KEYWORD` for core trigger logic. — @cline
-    *   [ ] After extracting `mediaId` (from webhook, e.g., `entry[0].changes[0].value.media.id` or `entry[0].changes[0].value.post.id` for comments on posts; `entry[0].messaging[0].message.reply_to.story.id` for story replies) and `commentText` (e.g. `entry[0].changes[0].value.text`):
+*   [x] **8.1. Refactor `handle()` method to use Database Triggers:**
+    *   [x] Remove reliance on `.env` variables like `TARGET_INSTAGRAM_POST_ID` and `TRIGGER_KEYWORD` for core trigger logic.
+    *   [x] After extracting `mediaId` (from webhook, e.g., `entry[0].changes[0].value.media.id` or `entry[0].changes[0].value.post.id` for comments on posts; `entry[0].messaging[0].message.reply_to.story.id` for story replies) and `commentText` (e.g. `entry[0].changes[0].value.text`):
         *   Query the `PostTrigger` model:
             ```php
             $triggers = PostTrigger::where('instagram_post_id', $mediaId)
@@ -111,10 +111,10 @@ This document provides a detailed, step-by-step plan for implementing the Larave
                 }
             }
             ```
-            — @cline
-*   [ ] **8.2. Create/Modify `sendConfiguredDm(string $recipientId, PostTrigger $trigger)` method:** — @cline
-    *   [ ] This method should accept the `$recipientId` and the `$trigger` (PostTrigger model instance).
-    *   [ ] Fetch DM content from the `$trigger->dm_message` (which should be an array due to the cast):
+    *   [x] Handle other fields like 'messaging' for story replies if needed later.
+*   [x] **8.2. Create/Modify `sendConfiguredDm(string $recipientId, PostTrigger $trigger)` method:**
+    *   [x] This method should accept the `$recipientId` and the `$trigger` (PostTrigger model instance).
+    *   [x] Fetch DM content from the `$trigger->dm_message` (which should be an array due to the cast):
         ```php
         // Inside sendConfiguredDm($recipientId, PostTrigger $trigger)
         $dmContent = $trigger->dm_message; // Already an array
@@ -124,9 +124,8 @@ This document provides a detailed, step-by-step plan for implementing the Larave
         $ctaText = $dmContent['cta_text'] ?? 'Learn More';
         $ctaUrl = $dmContent['cta_url'] ?? null; // This will be the Telegram URL
         ```
-        — @cline
-    *   [ ] Adapt the existing Guzzle call logic in the old `sendDm` method to use these variables to construct the message payload. **Strongly consider constructing a 'Generic Template' message payload (see Instagram Graph API documentation) if `media_url` is present in the trigger. This allows for an image/video display alongside a title (from `description_text`) and a `web_url` button (using `cta_text` and `cta_url`). If no `media_url` is provided, a text message with an embedded link (using `cta_text` and `cta_url`) or a text message with a `web_url` button can be sent.** — @cline
-    *   [ ] Ensure the CTA button points to the `$ctaUrl` (Telegram post URL).
+    *   [x] Adapt the existing Guzzle call logic in the old `sendDm` method to use these variables to construct the message payload. **Strongly consider constructing a 'Generic Template' message payload (see Instagram Graph API documentation) if `media_url` is present in the trigger. This allows for an image/video display alongside a title (from `description_text`) and a `web_url` button (using `cta_text` and `cta_url`). If no `media_url` is provided, a text message with an embedded link (using `cta_text` and `cta_url`) or a text message with a `web_url` button can be sent.**
+    *   [x] Ensure the CTA button points to the `$ctaUrl` (Telegram post URL).
 
 ## 9. Admin Panel Enhancements
 
