@@ -5,10 +5,10 @@ This document provides a detailed, step-by-step plan for implementing the Larave
 ## 1. Project Setup
 
 *   [ ] **1.1. Create New Laravel Project:**
-    *   [ ] Execute `composer create-project --prefer-dist laravel/laravel [project-name]` in the desired directory (e.g., `admin_panel`).
-    *   [ ] Navigate into the newly created project directory.
+    *   [x] Execute `composer create-project --prefer-dist laravel/laravel [project-name]` in the desired directory (e.g., `admin_panel`).
+    *   [x] Navigate into the newly created project directory.
 *   [ ] **1.2. Configure Environment Variables:**
-    *   [ ] Copy `.env.example` to `.env`.
+    *   [x] Copy `.env.example` to `.env`.
     *   [ ] Update the `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` variables in `.env` to connect to the PostgreSQL database.
     *   [ ] Ensure `APP_KEY` is set (usually generated automatically).
 *   [ ] **1.3. Install Livewire:**
