@@ -146,3 +146,11 @@ This document provides a detailed, step-by-step plan for implementing the Larave
     *   [ ] Verify that the webhook processes the comment and sends the correct DM.
 
 This detailed plan provides a roadmap for implementing the Laravel admin panel and integrating it with the existing Python webhook via the shared PostgreSQL database.
+
+## 9. Rewrite Instagram Webhooks and Bot
+
+*   [ ] **9.1. Rewrite Instagram webhooks and bot in Laravel** - @cline
+    *   [ ] Create a new route to handle incoming Instagram webhook notifications.
+    *   [ ] Implement a controller method to process webhook data and verify the signature.
+    *   [ ] Implement the bot logic to respond to comments and send DMs using the Instagram Graph API.
+    *   [ ] Update documentation (`documentation/webhook_documentation.md`, `documentation/instagram_telegram_integration_guide.md`) to reflect the Laravel implementation.

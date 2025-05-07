@@ -1,6 +1,6 @@
 # Instagram Bot Webhook Documentation
 
-This document provides documentation for the Python webhook service (`webhook_server.py`) responsible for interacting with the Instagram bot. Its primary function is to receive real-time comment notifications from Instagram via webhooks and trigger automated direct messages (DMs) based on predefined triggers stored in a PostgreSQL database.
+This document provides documentation for the Laravel implementation of the Instagram webhook handler and bot logic. Its primary function is to receive real-time comment notifications from Instagram via webhooks and trigger automated direct messages (DMs) based on predefined triggers stored in a PostgreSQL database.
 
 ## 1. Purpose
 
@@ -39,15 +39,16 @@ Upon successful receipt and processing of the webhook payload, the webhook endpo
 
 This signals to Instagram that the notification was received successfully.
 
-## 5. Internal Logic Flow (`webhook_server.py`)
+## 5. Internal Logic Flow (Laravel Implementation)
 
-When the webhook service receives a POST request from Instagram:
+When the Laravel application receives a POST request from the Instagram webhook:
 
-1.  **Receive and Parse Payload:** The service receives the JSON payload and parses it to extract relevant information, particularly the Instagram `post_id`, the `comment_text`, and the commenting `user_id`.
-2.  **Database Lookup:** The service connects to the shared PostgreSQL database. It queries the `post_triggers` table to find an active trigger where the `instagram_post_id` matches the post ID from the webhook and the `comment_text` contains the `keyword` defined in the trigger.
-3.  **Retrieve DM Message:** If a matching active trigger is found, the service retrieves the associated `dm_message` from the database.
-4.  **Send Direct Message:** Using the Instagram Graph API, the service sends the retrieved `dm_message` as a direct message to the `user_id` who made the comment. This requires authentication with the Instagram API and making a POST request to the appropriate API endpoint.
-5.  **Respond to Instagram:** The service returns a `200 OK` status code to the Instagram webhook endpoint.
+1.  **Receive and Parse Payload:** A dedicated route and controller method receive the JSON payload and parse it to extract relevant information, particularly the Instagram `post_id`, the `comment_text`, and the commenting `user_id`.
+2.  **Verify Signature:** The controller verifies the request signature (`X-Hub-Signature-256`) using the Facebook App Secret to ensure the request is legitimate.
+3.  **Database Lookup:** The application uses the Eloquent model (`App\Models\PostTrigger`) to query the `post_triggers` table. It searches for an active trigger where the `instagram_post_id` matches the post ID from the webhook and the `comment_text` contains the `keyword` defined in the trigger.
+4.  **Retrieve DM Message:** If a matching active trigger is found, the application retrieves the associated `dm_message` from the database using the Eloquent model.
+5.  **Send Direct Message:** Using a suitable HTTP client (like Guzzle) and the Instagram Graph API, the application sends the retrieved `dm_message` as a direct message to the `user_id` who made the comment. This requires authentication with the Instagram API using an access token and making a POST request to the appropriate API endpoint.
+6.  **Respond to Instagram:** The controller returns a `200 OK` status code to the Instagram webhook endpoint.
 
 ## 6. Interaction with Instagram Graph API
 
@@ -63,8 +64,8 @@ The webhook service reads from the `post_triggers` table in the shared PostgreSQ
 
 ## 8. Key Dependencies
 
-*   A web server framework in Python (like Flask or FastAPI) to handle incoming POST requests.
-*   A PostgreSQL client library for Python (like `psycopg2`) to connect to the database.
-*   A library or custom code to make HTTP requests to the Instagram Graph API.
+*   Laravel framework to handle routing, requests, and database interactions.
+*   Eloquent ORM for interacting with the PostgreSQL database.
+*   An HTTP client library (like Guzzle) to make requests to the Instagram Graph API.
 
-This documentation provides an overview of the webhook's role, how it receives data, its internal processing logic, and its interactions with the database and the Instagram API. This information is essential for an AI (or developer) to understand and potentially modify or debug the webhook service.
+This documentation provides an overview of the webhook's role, how it receives data, its internal processing logic, and its interactions with the database and the Instagram API within the Laravel framework. This information is essential for an AI (or developer) to understand and potentially modify or debug the webhook service.
