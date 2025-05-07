@@ -11,13 +11,13 @@ class TriggerList extends Component
 
     public function mount()
     {
-        $this->triggers = PostTrigger::all();
+        $this->triggers = PostTrigger::latest()->paginate(15);
     }
 
     public function deleteTrigger($triggerId)
     {
         PostTrigger::find($triggerId)->delete();
-        $this->triggers = PostTrigger::all();
+        $this->triggers = PostTrigger::latest()->paginate(15);
     }
 
     public function render()

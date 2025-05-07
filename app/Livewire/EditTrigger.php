@@ -11,22 +11,22 @@ class EditTrigger extends Component
 {
     public $triggerId;
 
-    #[Validate('required|string')]
+    #[Validate('required|string|max:255')]
     public $instagram_post_id = '';
 
-    #[Validate('required|string')]
+    #[Validate('required|string|max:255')]
     public $keyword = '';
 
     #[Validate('nullable|url')]
     public $media_url = '';
 
-    #[Validate('nullable|string')]
+    #[Validate('nullable|string|in:image,video')]
     public $media_type = ''; // e.g., 'image', 'video'
 
     #[Validate('nullable|string')]
     public $description_text = '';
 
-    #[Validate('nullable|string')]
+    #[Validate('nullable|string|max:20')]
     public $cta_text = '';
 
     #[Validate('nullable|url')]
