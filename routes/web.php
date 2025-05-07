@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Models\PostTrigger;
 
+Auth::routes();
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -12,7 +14,3 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/triggers/create', function () { return view('admin.triggers.create'); })->name('triggers.create');
     Route::get('/triggers/{trigger}/edit', function (PostTrigger $trigger) { return view('admin.triggers.edit', compact('trigger')); })->name('triggers.edit');
 });
-
-Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

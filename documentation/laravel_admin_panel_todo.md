@@ -129,15 +129,16 @@ This document provides a detailed, step-by-step plan for implementing the Larave
 
 ## 9. Admin Panel Enhancements
 
-*   [x] **9.1. Implement Authentication:** — @cline
-    *   [x] Install Laravel Breeze or Jetstream: `php artisan breeze:install` (choose appropriate stack, e.g., Blade). Or implement custom auth. — @cline
-    *   [x] Run migrations for auth tables: `php artisan migrate`. — @cline
-    *   [x] Protect admin routes in `routes/web.php` with `auth` middleware:
+*   [~] **9.1. Implement Authentication:** — @cline
+    *   [x] Install `laravel/ui`: `composer require laravel/ui`. — @cline
+    *   [x] **Scaffold Auth Views & Controllers:** Execute `php artisan ui bootstrap --auth` (or `vue --auth` / `react --auth` if preferred). Then run `npm install && npm run build` (or `npm run dev`). — @cline
+    *   [x] Run migrations for auth tables: `php artisan migrate` (these migrations are standard Laravel migrations, likely already run with `create_users_table`). — @cline
+    *   [x] Protect admin routes in `routes/web.php` with `auth` middleware and include `Auth::routes();`.
         ```php
+        Auth::routes(); // Add this line if not present
+
         Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
-            Route::get('/triggers', TriggerList::class)->name('triggers.index');
-            Route::get('/triggers/create', CreateTrigger::class)->name('triggers.create');
-            Route::get('/triggers/{trigger}/edit', EditTrigger::class)->name('triggers.edit');
+            // ... your admin routes
         });
         ```
         — @cline
@@ -174,7 +175,7 @@ This document provides a detailed, step-by-step plan for implementing the Larave
     *   [x] Create a Job (e.g., `SendInstagramDmJob`): `php artisan make:job SendInstagramDmJob`. — @cline
     *   [x] The job should accept necessary data (recipient ID, DM content details from the trigger).
     *   [x] Move the DM sending logic (Guzzle call) into the job's `handle()` method.
-    *   [x] Dispatch this job from `InstagramWebhookController` instead of calling `sendConfiguredDm` directly: `SendInstagramDmJob::dispatch($commenterId, $trigger->dm_message);`. — @cline
+    *   [x] Dispatch this job from `InstagramWebhookController` instead of calling `sendConfiguredDm` directly: `SendInstagramDmJob::dispatch($commenterId, $trigger);`. — @cline *(Corrected to pass the trigger object, not just dm_message based on current SendInstagramDmJob constructor)*
     *   [ ] Configure and run queue workers: `php artisan queue:work`.
 *   [ ] **11.3. API Versioning for Instagram Graph API:** — @cline
     *   [ ] Ensure Graph API calls use a specific version (e.g., `v19.0`) in the URL to avoid unexpected breaking changes.
