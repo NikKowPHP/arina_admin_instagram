@@ -106,11 +106,11 @@ This document provides a detailed, step-by-step plan for implementing the Larave
 
 ## 6. Basic UI Layout
 
-*   [ ] **6.1. Create a Layout File:**
-    *   [ ] Create a master layout Blade file (e.g., `resources/views/layouts/admin.blade.php`).
-    *   [ ] Include necessary HTML structure, Livewire styles and scripts (`@livewireStyles`, `@livewireScripts`), and a placeholder for content (`@yield('content')`).
-*   [ ] **6.2. Extend Layout in Component Views:**
-    *   [ ] In your Livewire component Blade views (`.blade.php` files), extend the master layout:
+*   [x] **6.1. Create a Layout File:** @cline
+    *   [x] Create a master layout Blade file (e.g., `resources/views/layouts/admin.blade.php`).
+    *   [x] Include necessary HTML structure, Livewire styles and scripts (`@livewireStyles`, `@livewireScripts`), and a placeholder for content (`@yield('content')`).
+*   [x] **6.2. Extend Layout in Component Views:**
+    *   [x] In your Livewire component Blade views (`.blade.php` files), extend the master layout:
         ```blade
         @extends('layouts.admin')
 

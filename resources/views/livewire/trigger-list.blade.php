@@ -1,3 +1,6 @@
+@extends('layouts.admin')
+
+@section('content')
 <div>
     <h1>Post Triggers</h1>
 
@@ -31,3 +34,4 @@
         </tbody>
     </table>
 </div>
+@endsection

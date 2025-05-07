@@ -1,3 +1,6 @@
+@extends('layouts.admin')
+
+@section('content')
 <div>
     <h1>Edit Trigger</h1>
 
@@ -34,3 +37,4 @@
         <button type="submit">Update Trigger</button>
     </form>
 </div>
+@endsection
