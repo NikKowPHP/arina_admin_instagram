@@ -62,7 +62,7 @@ This document provides a detailed, step-by-step plan for implementing the Larave
         *   [x] Loop through the `$triggers` and display them in a table or list format.
         *   [x] Include buttons/links for editing and deleting each trigger, using Livewire actions (e.g., `wire:click="deleteTrigger({{ $trigger->id }})"`).
         *   [x] Add a link or button to navigate to the create trigger page.
-*   [ ] **4.3. Implement `CreateTrigger` Component:**
+*   [x] **4.3. Implement `CreateTrigger` Component:** @cline
     *   [ ] **PHP Class (`app/Http/Livewire/CreateTrigger.php`):**
         *   [ ] Add public properties for form inputs (e.g., `$instagram_post_id`, `$keyword`, `$dm_message`, `$is_active`).
         *   [ ] Implement a `submitForm()` method to validate the input data.
