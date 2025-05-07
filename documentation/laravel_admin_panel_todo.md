@@ -1,156 +1,206 @@
 # Laravel Admin Panel: Detailed To-Do Plan
 
-This document provides a detailed, step-by-step plan for implementing the Laravel-based admin panel for managing Instagram post triggers. This plan expands upon the high-level overview and is designed to guide the autonomous development process.
+This document provides a detailed, step-by-step plan for implementing the Laravel-based admin panel for managing Instagram post triggers and the integrated Instagram bot. This plan incorporates feedback and outlines current and future tasks.
 
 ## 1. Project Setup
 
-*   [ ] **1.1. Create New Laravel Project:**
-    *   [x] Execute `composer create-project --prefer-dist laravel/laravel [project-name]` in the desired directory (e.g., `admin_panel`).
+*   [x] **1.1. Create New Laravel Project:** — @cline
+    *   [x] Execute `composer create-project --prefer-dist laravel/laravel [project-name]`
     *   [x] Navigate into the newly created project directory.
-*   [x] **1.2. Configure Environment with Docker Compose:**
-    *   Environment configuration, including the database connection, is managed via the `docker-compose.yml` file. Ensure your `.env` file is copied from `.env.example` and the database variables match the docker compose configuration.
-*   [x] **1.3. Start Docker Containers:**
+*   [x] **1.2. Configure Environment with Docker Compose:** — @cline
+    *   [x] Environment configuration, including the database connection, is managed via the `docker-compose.yml` file. Ensure your `.env` file is copied from `.env.example` and the database variables match the docker compose configuration.
+*   [x] **1.3. Start Docker Containers:** — @cline
     *   [x] Execute `docker compose up -d` to build and run the environment containers.
-*   [x] **1.4. Install Livewire:**
-    *   [x] Execute `docker compose exec app composer require livewire/livewire` inside the container.
-    *   [x] Execute `docker compose exec app php artisan livewire:install` inside the container.
+*   [x] **1.4. Install Livewire:** — @cline
+    *   [x] Execute `docker compose exec app composer require livewire/livewire`
+    *   [x] Execute `docker compose exec app php artisan livewire:install`
 
 ## 2. Database Migration
 
-*   [x] **2.1. Create Migration File:** @cline
-    *   [ ] Execute `php artisan make:migration create_post_triggers_table --create=post_triggers`.
-*   [x] **2.2. Define Table Schema:** @cline
-    *   [ ] Open the generated migration file in `database/migrations/`.
-    *   [ ] In the `up()` method, define the `post_triggers` table with the following columns:
-        *   `$table->id();`
-        *   `$table->string('instagram_post_id')->index();`
-        *   `$table->string('keyword');`
-        *   `$table->text('dm_message');`
-        *   `$table->boolean('is_active')->default(true);`
-        *   `$table->timestamps();`
-*   [x] **2.3. Run Migrations:** @cline
+*   [x] **2.1. Create Migration File for `post_triggers`:** — @cline
+    *   [x] Execute `php artisan make:migration create_post_triggers_table --create=post_triggers`.
+*   [x] **2.2. Define `post_triggers` Table Schema:** — @cline
+    *   [x] Open the generated migration file in `database/migrations/`.
+    *   [x] In the `up()` method, define the `post_triggers` table with: `id`, `instagram_post_id`, `keyword`, `dm_message` (TEXT), `is_active`, `timestamps`.
+*   [x] **2.3. Run Migrations:** — @cline
     *   [x] Execute `php artisan migrate`.
 
-## 3. Eloquent Model
+## 3. Eloquent Model (`PostTrigger`)
 
-*   [x] **3.1. Create Model File:** @cline
-    *   [ ] Execute `php artisan make:model PostTrigger`.
-*   [x] **3.2. Define Fillable Properties:** @cline
-    *   [ ] Open the `app/Models/PostTrigger.php` file.
-    *   [ ] Add the `$fillable` property to allow mass assignment for the relevant columns:
+*   [x] **3.1. Create Model File:** — @cline
+    *   [x] Execute `php artisan make:model PostTrigger`.
+*   [x] **3.2. Define Fillable Properties:** — @cline
+    *   [x] Open `app/Models/PostTrigger.php`.
+    *   [x] Add `$fillable` for `instagram_post_id`, `keyword`, `dm_message`, `is_active`.
+
+## 4. Admin Interface (Livewire Components - Basic CRUD)
+
+*   [x] **4.1. Create Livewire Components:** — @cline
+    *   [x] Execute `php artisan make:livewire TriggerList`.
+    *   [x] Execute `php artisan make:livewire CreateTrigger`.
+    *   [x] Execute `php artisan make:livewire EditTrigger`.
+*   [x] **4.2. Implement `TriggerList` Component:** — @cline
+    *   [x] **PHP Class:** Fetch triggers, implement delete.
+    *   [x] **Blade View:** Display triggers, add edit/delete buttons, link to create.
+*   [x] **4.3. Implement `CreateTrigger` Component:** — @cline
+    *   [x] **PHP Class:** Properties for form inputs, validation, create record, redirect.
+    *   [x] **Blade View:** Form with inputs, bind to properties, submit button, validation errors.
+*   [x] **4.4. Implement `EditTrigger` Component:** — @cline
+    *   [x] **PHP Class:** Fetch record, properties for inputs, validation, update record, redirect.
+    *   [x] **Blade View:** Form pre-populated, bind inputs, update button, validation errors.
+
+## 5. Routing (Admin Panel)
+
+*   [x] **5.1. Define Web Routes:** — @cline
+    *   [x] Open `routes/web.php`.
+    *   [x] Define routes for `TriggerList`, `CreateTrigger`, `EditTrigger`.
+
+## 6. Basic UI Layout (Admin Panel)
+
+*   [x] **6.1. Create a Layout File:** — @cline
+    *   [x] Create `resources/views/layouts/admin.blade.php`.
+    *   [x] Include HTML structure, `@livewireStyles`, `@livewireScripts`, `@yield('content')`.
+*   [x] **6.2. Extend Layout in Component Views:** — @cline
+    *   [x] Use `@extends('layouts.admin')` in Livewire component views.
+
+## 7. `PostTrigger` Model & Migration Enhancements (Rich DM Content)
+
+*   [ ] **7.1. Configure `dm_message` for Structured Data (JSON Approach):** — @cline
+    *   [ ] Ensure `dm_message` column in `create_post_triggers_table` migration is `TEXT` (already is).
+    *   [ ] In `app/Models/PostTrigger.php`, add Eloquent cast for `dm_message` to `array`:
         ```php
-        protected $fillable = [
-            'instagram_post_id',
-            'keyword',
-            'dm_message',
-            'is_active',
+        protected $casts = [
+            'dm_message' => 'array', // or AsArrayObject::class
+            'is_active' => 'boolean',
         ];
         ```
+        (Ensure `$fillable` remains appropriate if `dm_message` itself is being filled directly with an array).
+*   [ ] **7.2. Update Admin Forms for Rich DM Content (`CreateTrigger`, `EditTrigger`):** — @cline
+    *   [ ] In `CreateTrigger.php` and `EditTrigger.php` Livewire components:
+        *   [ ] Add public properties for: `$media_url`, `$media_type`, `$description_text`, `$cta_text`, `$cta_url`. — @cline
+        *   [ ] Update validation rules for these new fields (e.g., `url` for URLs, `nullable`, `string`, etc.). — @cline
+        *   [ ] Logic to combine these separate form fields into an array/JSON structure and store it in the `dm_message` property before saving the `PostTrigger` model. — @cline
+        *   [ ] When editing (`EditTrigger.php` `mount()` method), parse the `dm_message` (if it's an array/JSON) to populate these separate form field properties. — @cline
+    *   [ ] In `resources/views/livewire/create-trigger.blade.php` and `edit-trigger.blade.php`:
+        *   [ ] Add input fields for `media_url` (text), `media_type` (e.g., dropdown: image, video, or text input), `description_text` (textarea), `cta_text` (text), `cta_url` (text). Bind them to the new Livewire properties. — @cline
 
-## 4. Admin Interface (Livewire Components)
+## 8. Instagram Bot Logic (in `InstagramWebhookController.php`)
 
-*   [x] **4.1. Create Livewire Components:** @cline
-    *   [ ] Execute `php artisan make:livewire TriggerList`.
-    *   [ ] Execute `php artisan make:livewire CreateTrigger`.
-    *   [ ] Execute `php artisan make:livewire EditTrigger`.
-*   [x] **4.2. Implement `TriggerList` Component:** @cline
-    *   [x] **PHP Class (`app/Http/Livewire/TriggerList.php`):**
-        *   [x] Add a public property to hold the list of triggers (e.g., `$triggers`).
-        *   [x] In the `mount()` or `render()` method, fetch all `PostTrigger` records from the database.
-        *   [x] Implement methods for deleting a trigger (e.g., `deleteTrigger($triggerId)`).
-    *   [ ] **Blade View (`resources/views/livewire/trigger-list.blade.php`):**
-        *   [x] Loop through the `$triggers` and display them in a table or list format.
-        *   [x] Include buttons/links for editing and deleting each trigger, using Livewire actions (e.g., `wire:click="deleteTrigger({{ $trigger->id }})"`).
-        *   [x] Add a link or button to navigate to the create trigger page.
-*   [x] **4.3. Implement `CreateTrigger` Component:** @cline
-    *   [ ] **PHP Class (`app/Http/Livewire/CreateTrigger.php`):**
-        *   [ ] Add public properties for form inputs (e.g., `$instagram_post_id`, `$keyword`, `$dm_message`, `$is_active`).
-        *   [ ] Implement a `submitForm()` method to validate the input data.
-        *   [ ] If validation passes, create a new `PostTrigger` record using the model.
-        *   [ ] Redirect the user back to the trigger list page after successful creation.
-    *   [ ] **Blade View (`resources/views/livewire/create-trigger.blade.php`):**
-        *   [ ] Create an HTML form with input fields for `instagram_post_id`, `keyword`, `dm_message`, and a checkbox for `is_active`.
-        *   [ ] Bind the input fields to the Livewire component properties using `wire:model`.
-        *   [ ] Add a submit button with `wire:click="submitForm"`.
-        *   [ ] Include validation error messages using Blade directives (`@error`).
-*   [x] **4.4. Implement `EditTrigger` Component:** @cline
-    *   [ ] **PHP Class (`app/Http/Livewire/EditTrigger.php`):**
-        *   [ ] Add a public property for the trigger ID (e.g., `$triggerId`).
-        *   [ ] Add public properties for form inputs (e.g., `$instagram_post_id`, `$keyword`, `$dm_message`, `$is_active`).
-        *   [ ] In the `mount()` method, fetch the `PostTrigger` record based on `$triggerId` and populate the form input properties.
-        *   [ ] Implement an `updateForm()` method to validate the input data.
-        *   [ ] If validation passes, update the existing `PostTrigger` record.
-        *   [ ] Redirect the user back to the trigger list page after successful update.
-    *   [ ] **Blade View (`resources/views/livewire/edit-trigger.blade.php`):**
-        *   [ ] Create an HTML form similar to the create form, pre-populated with the existing trigger data.
-        *   [ ] Bind input fields using `wire:model`.
-        *   [ ] Add an update button with `wire:click="updateForm"`.
-        *   [ ] Include validation error messages.
+*   [ ] **8.1. Refactor `handle()` method to use Database Triggers:** — @cline
+    *   [ ] Remove reliance on `.env` variables like `TARGET_INSTAGRAM_POST_ID` and `TRIGGER_KEYWORD` for core trigger logic. — @cline
+    *   [ ] After extracting `mediaId` (from webhook, e.g., `entry[0].changes[0].value.media.id` or `entry[0].changes[0].value.post.id` for comments on posts; `entry[0].messaging[0].message.reply_to.story.id` for story replies) and `commentText` (e.g. `entry[0].changes[0].value.text`):
+        *   Query the `PostTrigger` model:
+            ```php
+            $triggers = PostTrigger::where('instagram_post_id', $mediaId)
+                                ->where('is_active', true)
+                                ->get();
 
-## 5. Routing
-
-*   [x] **5.1. Define Web Routes:** @cline
-    *   [x] Open `routes/web.php`.
-    *   [x] Define routes to map URLs to your Livewire components:
+            foreach ($triggers as $trigger) {
+                // Ensure keyword matching is case-insensitive and handles partial matches if needed
+                if (str_contains(strtolower($commentText), strtolower($trigger->keyword))) {
+                    // Keyword matched for this trigger
+                    $commenterId = $payload['entry'][0]['changes'][0]['value']['from']['id']; // Adjust path as needed
+                    $this->sendConfiguredDm($commenterId, $trigger); // Pass the whole trigger
+                    // Decide if multiple keyword matches on one comment should send multiple DMs or break;
+                    break; 
+                }
+            }
+            ```
+            — @cline
+*   [ ] **8.2. Create/Modify `sendConfiguredDm(string $recipientId, PostTrigger $trigger)` method:** — @cline
+    *   [ ] This method should accept the `$recipientId` and the `$trigger` (PostTrigger model instance).
+    *   [ ] Fetch DM content from the `$trigger->dm_message` (which should be an array due to the cast):
         ```php
-        use Illuminate\Support\Facades\Route;
-        use App\Http\Livewire\TriggerList;
-        use App\Http\Livewire\CreateTrigger;
-        use App\Http\Livewire\EditTrigger;
-
-        Route::get('/admin/triggers', TriggerList::class)->name('admin.triggers.index');
-        Route::get('/admin/triggers/create', CreateTrigger::class)->name('admin.triggers.create');
-        Route::get('/admin/triggers/{trigger}/edit', EditTrigger::class)->name('admin.triggers.edit');
+        // Inside sendConfiguredDm($recipientId, PostTrigger $trigger)
+        $dmContent = $trigger->dm_message; // Already an array
+        $mediaUrl = $dmContent['media_url'] ?? null;
+        $mediaType = $dmContent['media_type'] ?? 'image'; // Default or derive
+        $descriptionText = $dmContent['description_text'] ?? '';
+        $ctaText = $dmContent['cta_text'] ?? 'Learn More';
+        $ctaUrl = $dmContent['cta_url'] ?? null; // This will be the Telegram URL
         ```
-    *   [ ] (Optional) Add basic authentication middleware to protect these routes.
+        — @cline
+    *   [ ] Adapt the existing Guzzle call logic in the old `sendDm` method to use these variables to construct the message payload (text, media, CTA button). — @cline
+    *   [ ] Ensure the CTA button points to the `$ctaUrl` (Telegram post URL).
 
-## 6. Basic UI Layout
+## 9. Admin Panel Enhancements
 
-*   [x] **6.1. Create a Layout File:** @cline
-    *   [x] Create a master layout Blade file (e.g., `resources/views/layouts/admin.blade.php`).
-    *   [x] Include necessary HTML structure, Livewire styles and scripts (`@livewireStyles`, `@livewireScripts`), and a placeholder for content (`@yield('content')`).
-*   [x] **6.2. Extend Layout in Component Views:**
-    *   [x] In your Livewire component Blade views (`.blade.php` files), extend the master layout:
-        ```blade
-        @extends('layouts.admin')
-
-        @section('content')
-            {{-- Component content here --}}
-        @endsection
+*   [ ] **9.1. Implement Authentication:** — @cline
+    *   [ ] Install Laravel Breeze or Jetstream: `php artisan breeze:install` (choose appropriate stack, e.g., Blade). Or implement custom auth. — @cline
+    *   [ ] Run migrations for auth tables: `php artisan migrate`. — @cline
+    *   [ ] Protect admin routes in `routes/web.php` with `auth` middleware:
+        ```php
+        Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+            Route::get('/triggers', TriggerList::class)->name('triggers.index');
+            Route::get('/triggers/create', CreateTrigger::class)->name('triggers.create');
+            Route::get('/triggers/{trigger}/edit', EditTrigger::class)->name('triggers.edit');
+        });
         ```
+        — @cline
+*   [ ] **9.2. UI/UX Improvements:** — @cline
+    *   [ ] **Styling:** Consistently apply Tailwind CSS classes to `admin.blade.php` and Livewire views for a professional look. — @cline
+    *   [ ] **Navigation:** Add a simple navigation bar in `layouts/admin.blade.php` (e.g., link to Triggers, Logout). — @cline
+    *   [ ] **Feedback Messages:** Style the `session()->flash('message')` display more effectively (e.g., using Tailwind alerts). — @cline
+    *   [ ] **Input Validation Messages:** Improve display of validation messages in forms. — @cline
+    *   [ ] **Pagination:** In `app/Livewire/TriggerList.php`, change `PostTrigger::all()` to `PostTrigger::latest()->paginate(15);`. Update `trigger-list.blade.php` to display pagination links (`{{ $triggers->links() }}`). — @cline
+*   [ ] **9.3. Advanced Input Validation:** — @cline
+    *   [ ] In Livewire components (`CreateTrigger`, `EditTrigger`), add more specific validation rules:
+        *   `media_url`: `nullable|url`
+        *   `media_type`: `nullable|string|in:image,video` (or other relevant types)
+        *   `description_text`: `nullable|string`
+        *   `cta_text`: `nullable|string|max:20` (Instagram CTA button text limit)
+        *   `cta_url`: `nullable|url`
+        *   `keyword`: `required|string|max:255`
+        *   `instagram_post_id`: `required|string|max:255`
+        — @cline
 
-## 7. Integrate Webhook Database Access (Conceptual)
+## 10. Environment Configuration
 
-*   [ ] **7.1. Install PostgreSQL Client in Python:**
-    *   [ ] In your webhook project, execute `pip install psycopg2-binary`.
-*   [ ] **7.2. Update Webhook Database Connection:**
-    *   [ ] Modify `webhook_server.py` to establish a connection to the same PostgreSQL database using `psycopg2`.
-    *   [ ] Ensure database credentials are loaded securely (e.g., from environment variables or a separate config file).
-*   [ ] **7.3. Implement Trigger Lookup Logic:**
-    *   [ ] Write a function in `webhook_server.py` to query the `post_triggers` table based on the Instagram post ID and comment text.
-    *   [ ] Use SQL queries to find an active trigger where the comment text contains the keyword (using `LIKE` or `ILIKE`).
-    *   [ ] Retrieve the `dm_message` if a match is found.
+*   [ ] **10.1. Update `.env.example` and `.env`:** — @cline
+    *   [ ] Add `INSTAGRAM_WEBHOOK_VERIFY_TOKEN` (used for webhook verification). — @cline
+    *   [ ] Add `FACEBOOK_APP_SECRET` (used for webhook signature verification). — @cline
+    *   [ ] Add `INSTAGRAM_PAGE_ACCESS_TOKEN` (used for sending DMs via Graph API). — @cline
+    *   [ ] Review and remove/deprecate old `.env` variables if they are no longer used by the bot's core logic (e.g., `TARGET_INSTAGRAM_POST_ID`, `TRIGGER_KEYWORD`, `MEDIA_URL`, `DESCRIPTION_TEXT`, `TELEGRAM_POST_URL` if they were for the static bot). — @cline
 
-## 8. Testing
+## 11. General Considerations & Future Enhancements
 
-*   [ ] **8.1. Run Laravel Development Server:**
-    *   [ ] Execute `php artisan serve` in the admin panel project directory.
-    *   [ ] Access the admin panel in a web browser (usually `http://127.0.0.1:8000/admin/triggers`).
-*   [ ] **8.2. Test CRUD Operations:**
-    *   [ ] Use the admin interface to create, view, edit, and delete triggers.
-*   [ ] **8.3. Test Webhook Integration (Requires Instagram Setup):**
-    *   [ ] Ensure the webhook service is running and accessible to Instagram.
-    *   [ ] Create a test post on Instagram.
-    *   [ ] Use the admin panel to create a trigger for that test post with a specific keyword and DM message.
+*   [ ] **11.1. Error Handling & Logging:** — @cline
+    *   [ ] Enhance logging in `InstagramWebhookController` for API calls, database interactions, and unexpected webhook payloads. Use `Log::error()`, `Log::info()`. — @cline
+*   [ ] **11.2. Job Queues for Sending DMs (Recommended for Production):** — @cline
+    *   [ ] Create a Job (e.g., `SendInstagramDmJob`): `php artisan make:job SendInstagramDmJob`. — @cline
+    *   [ ] The job should accept necessary data (recipient ID, DM content details from the trigger).
+    *   [ ] Move the DM sending logic (Guzzle call) into the job's `handle()` method.
+    *   [ ] Dispatch this job from `InstagramWebhookController` instead of calling `sendConfiguredDm` directly: `SendInstagramDmJob::dispatch($commenterId, $trigger->dm_message);`. — @cline
+    *   [ ] Configure and run queue workers: `php artisan queue:work`.
+*   [ ] **11.3. API Versioning for Instagram Graph API:** — @cline
+    *   [ ] Ensure Graph API calls use a specific version (e.g., `v19.0`) in the URL to avoid unexpected breaking changes.
+
+## 12. Testing
+
+*   [x] **12.1. Run Laravel Development Server:**
+    *   [x] Execute `php artisan serve`.
+    *   [x] Access admin panel: `http://127.0.0.1:8000/admin/triggers`.
+*   [x] **12.2. Test Admin Panel CRUD Operations:**
+    *   [x] Create, view, edit, and delete triggers, including the new rich DM content fields.
+*   [ ] **12.3. Test Webhook Integration (Requires Instagram Setup & App Review for `instagram_manage_messages`):** — @cline
+    *   [ ] Ensure webhook URL is correctly set up in Facebook Developer App and subscribed to the page.
+    *   [ ] Create a test post on the linked Instagram page.
+    *   [ ] Use the admin panel to create a trigger for that test post (correct `instagram_post_id`), a specific keyword, and DM content (including media, text, CTA).
     *   [ ] Comment on the Instagram test post with the trigger keyword.
-    *   [ ] Verify that the webhook processes the comment and sends the correct DM.
+    *   [ ] Verify:
+        *   [ ] Webhook is received by `InstagramWebhookController`.
+        *   [ ] Correct trigger is fetched from the database.
+        *   [ ] Correct DM (with media, text, CTA) is sent to the commenter.
+        *   [ ] Check logs for any errors.
+*   [ ] **12.4. Write Automated Tests:** — @cline
+    *   [ ] **Feature Tests (Admin Panel):**
+        *   [ ] Test authentication (login, redirect if not logged in).
+        *   [ ] Test CRUD operations for triggers (e.g., `tests/Feature/Admin/TriggerManagementTest.php`).
+    *   [ ] **Feature/Unit Tests (Webhook Controller):**
+        *   [ ] Test webhook signature verification.
+        *   [ ] Test webhook event processing (mock incoming webhook data).
+        *   [ ] Test trigger lookup logic (mock `PostTrigger` model).
+        *   [ ] Test DM sending logic (mock Guzzle HTTP client and Graph API calls).
+        (e.g., `tests/Feature/Webhook/InstagramWebhookTest.php`)
 
-This detailed plan provides a roadmap for implementing the Laravel admin panel and integrating it with the existing Python webhook via the shared PostgreSQL database.
-
-## 9. Rewrite Instagram Webhooks and Bot
-
-*   [ ] **9.1. Rewrite Instagram webhooks and bot in Laravel** - @cline
-    *   [ ] Create a new route to handle incoming Instagram webhook notifications.
-    *   [ ] Implement a controller method to process webhook data and verify the signature.
-    *   [ ] Implement the bot logic to respond to comments and send DMs using the Instagram Graph API.
-    *   [ ] Update documentation (`documentation/webhook_documentation.md`, `documentation/instagram_telegram_integration_guide.md`) to reflect the Laravel implementation.
+This updated plan should provide a clear roadmap for the next development phase.

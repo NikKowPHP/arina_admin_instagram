@@ -4,16 +4,19 @@ This document provides documentation for the Laravel implementation of the Insta
 
 ## 1. Purpose
 
-The webhook service acts as the bridge between the Instagram platform and the bot's DM sending capability. It listens for specific events (like comments on a post) and initiates the automated response process.
+The webhook service, implemented in `app/Http/Controllers/InstagramWebhookController.php`, acts as the bridge between the Instagram platform and the bot's DM sending capability. It listens for specific events (like comments on a post or story replies) and initiates the automated response process based on triggers defined in the `post_triggers` database table.
 
 ## 2. Webhook Endpoint
 
-*   **URL:** This is the public URL where Instagram will send POST requests containing comment data. The exact URL will depend on your deployment environment.
-*   **Method:** `POST`
+*   **URL:** Configured in the Facebook Developer App, pointing to the Laravel application's API route (e.g., `https://your-app-domain.com/api/webhook/instagram`).
+*   **Method:** `GET` (for webhook verification) and `POST` (for event notifications).
+*   **Controller:** `App\Http\Controllers\InstagramWebhookController`
+    *   `verify()`: Handles `GET` requests for `hub.mode=subscribe` verification.
+    *   `handle()`: Handles `POST` requests with event data.
 
-## 3. Instagram Webhook Payload (Comments)
+## 3. Instagram Webhook Payload (Comments & Other Events)
 
-When a user comments on an Instagram post that your bot is subscribed to, Instagram sends a POST request to your configured webhook URL. The request body will contain a JSON payload with details about the event. The structure is part of the Instagram Graph API webhook documentation, but key relevant fields for a comment might include:
+When an event occurs (e.g., a user comments on a subscribed Instagram post), Instagram sends a `POST` request to your configured webhook URL. The request body contains a JSON payload. Key relevant fields for a **comment** event (`entry[0].changes[0].field == 'comments'`) typically include:
 
 *   `object`: Type of object (e.g., "instagram").
 *   `entry`: An array of entries.
@@ -22,14 +25,14 @@ When a user comments on an Instagram post that your bot is subscribed to, Instag
     *   `changes`: An array of changes.
         *   `field`: The type of change (e.g., "comments").
         *   `value`: An object containing details about the comment.
-            *   `id`: The comment ID.
-            *   `from`: An object with the user's ID and username who made the comment.
-            *   `media`: An object with the media (post) ID and owner ID.
-            *   `text`: The content of the comment.
+            *   `id`: The comment ID (e.g., `entry[0].changes[0].value.id`).
+            *   `from`: An object with the user's Instagram Scoped ID (IGSID) and username who made the comment (e.g., `entry[0].changes[0].value.from.id`).
+            *   `media`: An object with the media (post) ID (e.g., `entry[0].changes[0].value.media.id`).
+            *   `text`: The content of the comment (e.g., `entry[0].changes[0].value.text`).
             *   `timestamp`: Timestamp of the comment.
             *   `parent_id`: (If it's a reply to another comment).
 
-The webhook needs to parse this JSON payload to extract the `media` (post) ID, the `text` of the comment, and the `from` user's ID.
+The `handle()` method in `InstagramWebhookController` parses this JSON payload to extract the `media.id` (or equivalent for other event types like story replies), the `text` of the comment/message, and the commenter's/sender's IGSID.
 
 ## 4. Expected Webhook Response
 
@@ -44,23 +47,52 @@ This signals to Instagram that the notification was received successfully.
 When the Laravel application receives a POST request from the Instagram webhook:
 
 1.  **Receive and Parse Payload:** A dedicated route and controller method receive the JSON payload and parse it to extract relevant information, particularly the Instagram `post_id`, the `comment_text`, and the commenting `user_id`.
-2.  **Verify Signature:** The controller verifies the request signature (`X-Hub-Signature-256`) using the Facebook App Secret to ensure the request is legitimate.
-3.  **Database Lookup:** The application uses the Eloquent model (`App\Models\PostTrigger`) to query the `post_triggers` table. It searches for an active trigger where the `instagram_post_id` matches the post ID from the webhook and the `comment_text` contains the `keyword` defined in the trigger.
-4.  **Retrieve DM Message:** If a matching active trigger is found, the application retrieves the associated `dm_message` from the database using the Eloquent model.
-5.  **Send Direct Message:** Using a suitable HTTP client (like Guzzle) and the Instagram Graph API, the application sends the retrieved `dm_message` as a direct message to the `user_id` who made the comment. This requires authentication with the Instagram API using an access token and making a POST request to the appropriate API endpoint.
-6.  **Respond to Instagram:** The controller returns a `200 OK` status code to the Instagram webhook endpoint.
+2.  **Verify Signature:** The `handle()` method verifies the `X-Hub-Signature-256` header using the `FACEBOOK_APP_SECRET` environment variable.
+3.  **Database Lookup for Triggers:**
+    *   The controller queries the `PostTrigger` model (`App\Models\PostTrigger`).
+    *   It searches for active triggers (`is_active = true`) where `instagram_post_id` matches the `media.id` from the webhook.
+    *   It iterates through these triggers and checks if the comment `text` (case-insensitively) contains the trigger's `keyword`.
+4.  **Retrieve Structured DM Content:**
+    *   If a matching active trigger is found, the controller accesses the `dm_message` attribute of the `PostTrigger` model.
+    *   Since `dm_message` is cast to an `array` in the model, it directly provides structured data:
+        ```php
+        $dmContent = $trigger->dm_message; // e.g., ['media_url' => '...', 'media_type' => 'image', ...]
+        $mediaUrl = $dmContent['media_url'] ?? null;
+        $mediaType = $dmContent['media_type'] ?? 'image';
+        $descriptionText = $dmContent['description_text'] ?? '';
+        $ctaText = $dmContent['cta_text'] ?? 'Learn More';
+        $ctaUrl = $dmContent['cta_url'] ?? null;
+        ```
+5.  **Send Direct Message (via `sendConfiguredDm` method):**
+    *   The `sendConfiguredDm(string $recipientId, PostTrigger $trigger)` private method is called.
+    *   It uses Guzzle HTTP client to make a `POST` request to the Instagram Graph API (`https://graph.facebook.com/vXX.X/me/messages`).
+    *   It constructs the message payload using the structured DM content retrieved in the previous step (media, description, CTA).
+    *   The `INSTAGRAM_PAGE_ACCESS_TOKEN` environment variable is used for authentication.
+6.  **Respond to Instagram:** The controller returns a `200 OK` status code.
 
 ## 6. Interaction with Instagram Graph API
 
-The webhook service interacts with the Instagram Graph API primarily to send direct messages. This involves:
+The `sendConfiguredDm` method in `InstagramWebhookController` interacts with the Instagram Graph API to send DMs. This involves:
 
-*   **Authentication:** Using an access token with the necessary permissions to send messages.
-*   **API Endpoint:** Making a POST request to the appropriate API endpoint for sending messages (refer to the official Instagram Graph API documentation for the exact endpoint and required parameters).
-*   **Parameters:** Including the recipient user ID and the message content in the API request.
+*   **Authentication:** Using the `INSTAGRAM_PAGE_ACCESS_TOKEN`.
+*   **API Endpoint:** `POST https://graph.facebook.com/vXX.X/me/messages` (ensure `XX.X` is a current API version).
+*   **Parameters:**
+    *   `recipient`: `{ "id": "<IGSID_OF_COMMENTER>" }`
+    *   `message`: A complex object that can include:
+        *   `text`: The main textual part of the message (e.g., `description_text`).
+        *   `attachment`: For sending media.
+            *   `type`: e.g., 'image', 'video', 'audio'.
+            *   `payload`: `{ "url": "<publicly_accessible_media_url>" }`.
+        *   `quick_replies` or other button structures for CTAs, if applicable. Often, the CTA is included as a link within the `text`.
+          Example for text with embedded CTA:
+          `"text": "Check this out: {$descriptionText}\n\n{$ctaText}: {$ctaUrl}"`
 
-## 7. Database Interaction
+## 7. Database Interaction (`post_triggers` table)
 
-The webhook service reads from the `post_triggers` table in the shared PostgreSQL database. It does **not** write to or modify this table; that is the responsibility of the Admin Panel.
+*   The webhook controller **reads** from the `post_triggers` table to find matching triggers and retrieve DM content.
+*   It uses the `App\Models\PostTrigger` Eloquent model.
+*   The `dm_message` column is expected to store a JSON string, which is automatically cast to an array by Eloquent due to the `$casts` property in the model.
+*   The Admin Panel is responsible for writing to and managing records in this table.
 
 ## 8. Key Dependencies
 

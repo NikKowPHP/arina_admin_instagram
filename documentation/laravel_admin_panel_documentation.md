@@ -8,14 +8,12 @@ The admin panel will function as a distinct application from the core bot webhoo
 
 The system is composed of two primary, independent applications:
 
-*   **1.1. Admin Panel (Laravel):**
-    *   **Function:** Web interface for administrators.
-    *   **Core Task:** Perform CRUD operations on `PostTrigger` data.
-    *   **Technology:** Laravel (PHP), Blade, Livewire.
-*   **1.2. Webhook Service (Python):**
-    *   **Function:** Background process for real-time event handling.
-    *   **Core Task:** Receive Instagram comments via webhooks, look up triggers in the database, and send DMs via the Instagram API.
-    *   **Technology:** Python (with a PostgreSQL client library).
+*   **1.1. Admin Panel & Webhook Service (Laravel):**
+    *   **Function:**
+        *   Admin Panel: Web interface for administrators to perform CRUD operations on `PostTrigger` data.
+        *   Webhook Service: Handles incoming Instagram webhook notifications (comments, messages), looks up triggers in the database, and sends DMs via the Instagram API.
+    *   **Technology:** Laravel (PHP), Blade, Livewire, Guzzle (for API calls).
+    *   **Key Controller for Webhook:** `App\Http\Controllers\InstagramWebhookController`.
 
 ## 2. Technology Stack Details
 
@@ -52,7 +50,7 @@ A single table is required in the PostgreSQL database to store trigger informati
     *   `id`: Primary Key, Auto-incrementing Integer.
     *   `instagram_post_id`: String, Stores the unique identifier of the Instagram post. Indexed for efficient lookups.
     *   `keyword`: String, Stores the specific keyword that triggers the DM.
-    *   `dm_message`: Text, Stores the content of the direct message to be sent.
+    *   `dm_message`: Text, Stores a JSON object containing structured data for the direct message (e.g., `media_url`, `media_type`, `description_text`, `cta_text`, `cta_url`).
     *   `is_active`: Boolean, Default: `TRUE`. Indicates if the trigger is currently active.
     *   `created_at`: Timestamp, Automatically managed by Laravel.
     *   `updated_at`: Timestamp, Automatically managed by Laravel.
@@ -77,18 +75,28 @@ The following steps outline the high-level process for building the Laravel admi
     *   Implement the logic within these components to interact with the `PostTrigger` model for CRUD operations.
     *   Develop the associated Blade views for each Livewire component to define the user interface.
 *   **Step 4.5. Routing:**
-    *   Define web routes in `routes/web.php` to map URLs to the Livewire components or relevant controllers.
-*   **Step 4.6. Database Integration for Webhook:**
-    *   Ensure the Python webhook service has the necessary PostgreSQL client library (`psycopg2`).
-    *   Modify the webhook code to connect to the same PostgreSQL database.
-    *   Implement logic in the webhook to query the `post_triggers` table based on incoming Instagram comment data.
+    *   Define web routes in `routes/web.php` for the admin panel Livewire components.
+    *   Define API routes in `routes/api.php` for the Instagram webhook endpoint, pointing to `InstagramWebhookController`.
+*   **Step 4.6. Webhook Logic (InstagramWebhookController):**
+    *   Implement webhook verification (`verify` method).
+    *   Implement event handling (`handle` method):
+        *   Verify webhook signature.
+        *   Parse incoming payload (comment data, user ID, media ID).
+        *   Query `PostTrigger` model based on `instagram_post_id` and `keyword` from the comment.
+        *   Retrieve structured `dm_message` content.
+        *   Call a method (e.g., `sendConfiguredDm`) to send the DM using the Instagram Graph API (via Guzzle).
 
-## 6. Integration Point
+## 6. Integration Point & Data Flow
 
-The key integration point between the Admin Panel and the Webhook Service is the **shared PostgreSQL database**. The Admin Panel writes to and updates the `post_triggers` table, while the Webhook Service reads from it to determine if a DM should be sent.
+*   **Admin Panel:** Administrators use the web interface (Livewire components) to create, read, update, and delete `PostTrigger` records in the PostgreSQL database. This includes defining the `instagram_post_id`, `keyword`, and the structured `dm_message` (media, description, CTA).
+*   **Webhook Service (`InstagramWebhookController`):**
+    1.  Receives event notifications from Instagram.
+    2.  Reads from the `post_triggers` table in the PostgreSQL database to find matching active triggers.
+    3.  Uses the structured `dm_message` from the found trigger to compose and send a DM via the Instagram Graph API.
+*   The **shared PostgreSQL database** remains the central integration point.
 
 ## 7. Deployment Consideration
 
-Both the Laravel Admin Panel and the Python Webhook Service should be deployed as separate applications, ensuring they can both securely access the shared PostgreSQL database.
+The Laravel application, which now includes both the Admin Panel and the Instagram Webhook Service, should be deployed to a server environment that supports PHP and can handle incoming HTTPS requests for the webhook. The application must have secure access to the PostgreSQL database and be able to make outbound HTTPS requests to the Instagram Graph API.
 
 This document provides the necessary structure and high-level steps for an AI to proceed with the detailed implementation planning and subsequent development of the Laravel admin panel.

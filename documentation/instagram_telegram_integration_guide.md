@@ -4,7 +4,7 @@ This document outlines the steps required to create a bot that automatically sen
 
 ## Goal
 
-When a user comments on a specific Instagram post with a particular keyword, a bot should automatically send that user a Direct Message (DM) containing predefined media (image, audio, or video), a description, and a Call to Action (CTA) related to a specific post within a Telegram channel.
+When a user comments on an Instagram post with a keyword defined in the admin panel, a bot should automatically send that user a Direct Message (DM). The DM content (media, description, CTA) is also managed via the admin panel and stored in the database, allowing for dynamic responses per trigger.
 
 ## Prerequisites
 
@@ -12,12 +12,9 @@ When a user comments on a specific Instagram post with a particular keyword, a b
 2.  **Facebook App:** Create a new Facebook App within the Developer Dashboard.
 3.  **Instagram Business or Creator Account:** The Instagram account that will receive the DMs must be a Business or Creator account.
 4.  **Facebook Page:** A Facebook Page linked to the Instagram Business/Creator account.
-5.  **Permissions:** Your Facebook App needs the `instagram_manage_comments`, `instagram_manage_messages`, and potentially `pages_messaging` permissions granted through the App Review process (though you can test with developers/admins before full review).
-6.  **Publicly Accessible HTTPS URL:** You need a server or service (like Cloud Run, Heroku, AWS Lambda, etc.) with a stable HTTPS URL to receive webhook notifications from Instagram/Facebook.
-7.  **Target Instagram Post ID:** The ID of the specific Instagram post you want to monitor for comments. You can usually find this in the post's URL or via API tools.
-8.  **Trigger Keyword:** The specific word or phrase users must include in their comment to trigger the bot.
-9.  **Telegram Post Link:** The full URL to the specific Telegram post (e.g., `https://t.me/YourChannelUsername/12345`).
-10. **Media URL:** A publicly accessible URL for the image, audio, or video you want to send in the DM.
+5.  **Permissions:** Your Facebook App needs the `instagram_manage_comments`, `instagram_manage_messages`, and potentially `pages_messaging` permissions granted through the App Review process.
+6.  **Publicly Accessible HTTPS URL:** Your Laravel application needs to be hosted on a server with a stable HTTPS URL to receive webhook notifications.
+7.  **Laravel Admin Panel:** A functional Laravel admin panel (as described in `laravel_admin_panel_documentation.md`) for managing `PostTrigger` records, which define the Instagram post ID, keyword, and the structured DM content (media URL, media type, description, CTA text, CTA URL).
 
 ## Technical Steps
 
@@ -29,31 +26,39 @@ When a user comments on a specific Instagram post with a particular keyword, a b
 
 2.  **Set Up Webhooks:**
     *   In the Messenger -> Instagram Messaging settings, configure Webhooks.
-    *   Provide your publicly accessible HTTPS endpoint URL (e.g., `https://your-service-url.com/webhook`).
-    *   Create a **Verify Token**. This is a secret string you define. **Store this securely!** (e.g., `INSTAGRAM_WEBHOOK_VERIFY_TOKEN`). Facebook will use this to verify your endpoint.
-    *   Subscribe to the `comments` webhook field for your linked Facebook Page. **Important:** Ensure you are subscribing to the *Instagram* comments field, not Facebook comments if both are options.
+    *   Provide your publicly accessible HTTPS endpoint URL (e.g., `https://your-app-domain.com/api/webhook/instagram`).
+    *   Create a **Verify Token**. This is a secret string you define. **Store this securely!** (e.g., in `.env` as `INSTAGRAM_WEBHOOK_VERIFY_TOKEN`). Facebook will use this to verify your endpoint.
+    *   Subscribe to the `comments` (for post comments) and/or `messages` (for story replies, if applicable) webhook fields for your linked Facebook Page.
 
-3.  **Set Up Laravel Route and Controller:**
-    *   Define a route in your Laravel application (e.g., in `routes/api.php`) to handle incoming POST requests from the Instagram webhook (e.g., `/webhook/instagram`).
-    *   Create a dedicated controller (e.g., `InstagramWebhookController`) with a method to handle the incoming request.
+3.  **Laravel Route and Controller (`InstagramWebhookController`):**
+    *   A route is defined (e.g., in `routes/api.php`) that points to `App\Http\Controllers\InstagramWebhookController@handle`.
+    *   This controller handles webhook verification (`verify` method) and incoming comment/message processing (`handle` method).
 
-4.  **Handle Incoming Comments (Laravel Controller):**
-    *   **Verify Signature (Security):** In your controller method, verify the `X-Hub-Signature-256` header using your Facebook App Secret to ensure the request genuinely came from Facebook. Laravel's `Illuminate\Http\Request` object provides access to headers and the request body.
-    *   **Parse Payload:** Access the JSON request body using `$request->json()` and parse the `entry[].changes[].value` structure. Extract:
-        *   The comment ID (`id`).
-        *   The comment text (`text`).
-        *   The ID of the post the comment was made on (`media.id`).
-        *   The ID of the user who made the comment (`from.id`). This will be the Instagram Scoped User ID (IGSID).
-    *   **Filter by Post ID:** Check if the extracted `media.id` matches your `TARGET_INSTAGRAM_POST_ID` (stored in your environment variables). Ignore comments on other posts.
-    *   **Check for Keyword:** Check if the comment `text` contains your predefined `TRIGGER_KEYWORD` (case-insensitive check recommended).
+4.  **Handle Incoming Comments/Messages (in `InstagramWebhookController@handle`):**
+    *   **Verify Signature:** The `handle` method verifies the `X-Hub-Signature-256` header using your `FACEBOOK_APP_SECRET` (from `.env`).
+    *   **Parse Payload:** The JSON request body is parsed to extract:
+        *   Comment text (e.g., `entry[0].changes[0].value.text`).
+        *   The ID of the media the comment was made on (e.g., `entry[0].changes[0].value.media.id` for post comments).
+        *   The Instagram Scoped User ID (IGSID) of the commenter (e.g., `entry[0].changes[0].value.from.id`).
+    *   **Lookup Triggers in Database:**
+        *   The controller queries the `post_triggers` table using the extracted `media.id`.
+        *   It iterates through active triggers (`is_active = true`) for that `media.id`.
+        *   For each trigger, it checks if the comment `text` contains the trigger's `keyword` (case-insensitive).
+    *   **Prepare DM Content from Database:**
+        *   If a keyword match is found for a `PostTrigger` record:
+            *   The structured DM content is retrieved from the `dm_message` field of the matched `$trigger` (which is stored as JSON and cast to an array in the `PostTrigger` model). This includes:
+                *   `media_url`
+                *   `media_type` (e.g., 'image', 'video')
+                *   `description_text`
+                *   `cta_text`
+                *   `cta_url` (this will be the Telegram post URL or other link)
     *   **Avoid Loops:** Ensure the comment is not from your own page/bot ID.
-    *   **Prepare DM Content:** Retrieve the description text, the `MEDIA_URL` (which can be an image, audio, or video URL), and the `TELEGRAM_POST_URL` (this will be your CTA link) from your environment variables or configuration.
 
-5.  **Send DM via Messenger Platform API (Laravel Implementation):**
-    *   Use the commenter's ID (`from.id` from the webhook payload) as the `recipient.id`. Note: This is an IGSID.
-    *   Use an HTTP client like Guzzle (install with `composer require guzzlehttp/guzzle`) to make a `POST` request to the Facebook Graph API endpoint: `https://graph.facebook.com/v19.0/me/messages` (use the latest stable API version).
-    *   Include your `INSTAGRAM_PAGE_ACCESS_TOKEN` (stored securely in your environment variables) in the request (e.g., as a query parameter `access_token=YOUR_TOKEN`).
-    *   The request body should be JSON, specifying the recipient and the message attachment (image, audio, or video) and text (description and CTA leading to the Telegram post).
+5.  **Send DM via Messenger Platform API (Laravel Implementation using `sendConfiguredDm`):**
+    *   The `sendConfiguredDm` method in `InstagramWebhookController` is called with the commenter's IGSID and the matched `$trigger` object.
+    *   It uses an HTTP client (like Guzzle) to make a `POST` request to the Facebook Graph API: `https://graph.facebook.com/vXX.X/me/messages` (use a specific API version).
+    *   The `INSTAGRAM_PAGE_ACCESS_TOKEN` (from `.env`) is included.
+    *   The request body is JSON, constructed using the details from the `$trigger->dm_message`:
         ```json
         {
           "recipient": {
@@ -61,27 +66,51 @@ When a user comments on a specific Instagram post with a particular keyword, a b
           },
           "message": {
             "attachment": {
-              "type": "<media_type>",  // 'image', 'audio', or 'video'
+              "type": "<media_type_from_trigger>", // e.g., 'image', 'video'
               "payload": {
-                "url": "YOUR_PUBLIC_MEDIA_URL_HERE",
-                "is_reusable": true // Optional: set to true if sending the same media often
+                "url": "<media_url_from_trigger>",
+                "is_reusable": true
               }
             },
-            "text": "YOUR_DESCRIPTION_TEXT_HERE\n\nYOUR_CTA_TEXT_HERE: YOUR_TELEGRAM_POST_URL_HERE"
+            "text": "<description_text_from_trigger>",
+            "quick_replies": [ // Or use Call to Action buttons if preferred and supported for the context
+              {
+                "content_type": "text",
+                "title": "<cta_text_from_trigger>",
+                "payload": "cta_payload_optional" // Can be used for tracking, or simply make the CTA text itself the link if using in text.
+                                                 // For actual buttons, refer to Instagram Graph API docs for message templates.
+                                                 // A common approach is to include the CTA URL directly in the text.
+              }
+            ]
+            // Example with CTA in text:
+            // "text": "<description_text_from_trigger>\n\n<cta_text_from_trigger>: <cta_url_from_trigger>"
           }
         }
         ```
-    *   **Important:** Sending a message to an IGSID initiates a standard messaging conversation via the Messenger Platform. Ensure your app has the necessary permissions (`instagram_manage_messages`, `pages_messaging`). The Messenger Platform API supports sending various media types.
+        *Note: The exact structure for CTAs (buttons vs. text links) should be chosen based on desired UX and Instagram API capabilities for the message type. The example above shows a quick reply; for a persistent button, message templates might be needed. Often, embedding the link in the `text` is simplest.*
+    *   **Permissions:** Ensure your app has `instagram_manage_messages`.
 
-6.  **Deployment:**
-    *   Deploy your Laravel application to a platform that provides a public HTTPS URL (e.g., a web server with PHP support).
-    *   Configure necessary environment variables (`INSTAGRAM_PAGE_ACCESS_TOKEN`, `INSTAGRAM_WEBHOOK_VERIFY_TOKEN`, `FACEBOOK_APP_SECRET`, `TARGET_INSTAGRAM_POST_ID`, `TRIGGER_KEYWORD`, `MEDIA_URL`, `DESCRIPTION_TEXT`, `CTA_TEXT`, `TELEGRAM_POST_URL`).
+6.  **Deployment & Configuration:**
+    *   Deploy your Laravel application.
+    *   Configure necessary environment variables in your `.env` file:
+        *   `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`
+        *   `INSTAGRAM_PAGE_ACCESS_TOKEN`
+        *   `INSTAGRAM_WEBHOOK_VERIFY_TOKEN`
+        *   `FACEBOOK_APP_SECRET`
+        *   `APP_URL` (used by Laravel, should be your public HTTPS URL)
+    *   Ensure the admin panel is secured (e.g., via authentication).
 
 ## Next Steps
 
-1.  Follow the prerequisites to set up your Facebook App and Instagram connection.
-2.  Obtain the necessary tokens, IDs, keyword, and URLs (Telegram post, image).
-3.  Implement the Laravel route and controller to handle webhook requests and process comment data.
-4.  Implement the logic to send DMs using an HTTP client like Guzzle.
-5.  Deploy the application and configure the webhook (subscribing to `comments`) in the Facebook Developer Dashboard.
-6.  Test thoroughly by commenting on the target post with the keyword. Check application logs and verify the DM is received correctly.
+1.  Ensure your Laravel Admin Panel is set up and you can create/manage `PostTrigger` records with structured DM content (media URL, type, description, CTA text & URL).
+2.  Set up your Facebook App, Instagram account, and Facebook Page as per prerequisites.
+3.  Obtain `INSTAGRAM_PAGE_ACCESS_TOKEN`, `INSTAGRAM_WEBHOOK_VERIFY_TOKEN`, and `FACEBOOK_APP_SECRET`.
+4.  Deploy your Laravel application to a publicly accessible HTTPS server.
+5.  Configure the Webhook in the Facebook Developer Dashboard, pointing to your Laravel app's webhook endpoint and subscribing to `comments`.
+6.  Use the Admin Panel to create a specific trigger:
+    *   Enter the `instagram_post_id` of a test post.
+    *   Set a `keyword`.
+    *   Fill in the `dm_message` details: `media_url`, `media_type`, `description_text`, `cta_text`, and `cta_url` (e.g., your Telegram link).
+    *   Ensure the trigger is `is_active`.
+7.  Test thoroughly by commenting on the target Instagram post with the specified keyword.
+8.  Check application logs (`storage/logs/laravel.log`) and verify the DM is received correctly with all parts of the structured message.
