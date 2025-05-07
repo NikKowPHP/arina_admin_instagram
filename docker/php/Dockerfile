@@ -47,7 +47,12 @@ RUN chown -R appuser:www-data storage bootstrap/cache \
 
 USER appuser
 
+# Copy the entrypoint script and make it executable
+COPY --chown=appuser:appuser docker/php/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Expose port 9000 for PHP-FPM
 EXPOSE 9000
 
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["php-fpm"]
