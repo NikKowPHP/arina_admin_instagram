@@ -2,7 +2,7 @@
 
 This document provides an AI-friendly overview and outlines actionable steps for building a separate admin panel using the Laravel framework, PostgreSQL database, Blade templating engine, and Livewire for dynamic components. The purpose of this panel is to enable administrators to manage Instagram post triggers, linking keywords to specific Instagram posts and defining automated direct messages (DMs) for the bot.
 
-The admin panel will function as a distinct application from the core bot webhook (`webhook_server.py`). Both applications will share and interact with a single PostgreSQL database to manage trigger data.
+Both applications will share and interact with a single PostgreSQL database to manage trigger data.
 
 ## 1. Architectural Components
 
