@@ -7,13 +7,13 @@ This document provides a detailed, step-by-step plan for implementing the Larave
 *   [ ] **1.1. Create New Laravel Project:**
     *   [x] Execute `composer create-project --prefer-dist laravel/laravel [project-name]` in the desired directory (e.g., `admin_panel`).
     *   [x] Navigate into the newly created project directory.
-*   [ ] **1.2. Configure Environment Variables:**
-    *   [x] Copy `.env.example` to `.env`.
-    *   [ ] Update the `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` variables in `.env` to connect to the PostgreSQL database.
-    *   [ ] Ensure `APP_KEY` is set (usually generated automatically).
-*   [ ] **1.3. Install Livewire:**
-    *   [ ] Execute `composer require livewire/livewire`.
-    *   [ ] Execute `php artisan livewire:install`.
+*   [x] **1.2. Configure Environment with Docker Compose:**
+    *   Environment configuration, including the database connection, is managed via the `docker-compose.yml` file. Ensure your `.env` file is copied from `.env.example` and the database variables match the docker compose configuration.
+*   [x] **1.3. Start Docker Containers:**
+    *   [ ] Execute `docker compose up -d` to build and run the environment containers.
+*   [x] **1.4. Install Livewire:**
+    *   [x] Execute `docker compose exec app composer require livewire/livewire` inside the container.
+    *   [x] Execute `docker compose exec app php artisan livewire:install` inside the container.
 
 ## 2. Database Migration
 

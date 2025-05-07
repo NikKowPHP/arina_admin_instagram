@@ -24,7 +24,26 @@ The system is composed of two primary, independent applications:
 *   **2.3. Blade (Templating Engine):** Laravel's default templating engine for defining the structure of web pages.
 *   **2.4. Livewire (Full-Stack Framework):** Used to build dynamic user interfaces with minimal JavaScript, handling front-end interactions via server-side PHP.
 
-## 3. Database Schema
+## 3. Environment Setup with Docker Compose
+
+The application environment, including the PHP application server, Nginx web server, PostgreSQL database, and Redis cache, can be easily set up using the provided `docker-compose.yml` file.
+
+1.  **Copy Environment File:** Copy the `.env.example` file to `.env` in the project root.
+2.  **Configure .env:** Update the `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` variables in the `.env` file to match the PostgreSQL service configuration in `docker-compose.yml`. The default values in `docker-compose.yml` are:
+    *   `DB_CONNECTION=pgsql`
+    *   `DB_HOST=db`
+    *   `DB_PORT=5432`
+    *   `DB_DATABASE=huberman_db`
+    *   `DB_USERNAME=sail`
+    *   `DB_PASSWORD=password`
+    Ensure these match or update them in your `.env` file if you've customized the docker compose configuration.
+3.  **Build and Run:** From the project root, run the following command to build the images and start the containers in detached mode:
+    ```bash
+    docker compose up -d
+    ```
+4.  **Access the Application:** The application will be accessible via the port specified in the `APP_PORT` variable in your `.env` file (default is 8000).
+
+## 4. Database Schema
 
 A single table is required in the PostgreSQL database to store trigger information:
 
@@ -38,7 +57,7 @@ A single table is required in the PostgreSQL database to store trigger informati
     *   `created_at`: Timestamp, Automatically managed by Laravel.
     *   `updated_at`: Timestamp, Automatically managed by Laravel.
 
-## 4. Actionable Implementation Steps (High-Level)
+## 5. Actionable Implementation Steps (High-Level)
 
 The following steps outline the high-level process for building the Laravel admin panel:
 
@@ -64,11 +83,11 @@ The following steps outline the high-level process for building the Laravel admi
     *   Modify the webhook code to connect to the same PostgreSQL database.
     *   Implement logic in the webhook to query the `post_triggers` table based on incoming Instagram comment data.
 
-## 5. Integration Point
+## 6. Integration Point
 
 The key integration point between the Admin Panel and the Webhook Service is the **shared PostgreSQL database**. The Admin Panel writes to and updates the `post_triggers` table, while the Webhook Service reads from it to determine if a DM should be sent.
 
-## 6. Deployment Consideration
+## 7. Deployment Consideration
 
 Both the Laravel Admin Panel and the Python Webhook Service should be deployed as separate applications, ensuring they can both securely access the shared PostgreSQL database.
 
