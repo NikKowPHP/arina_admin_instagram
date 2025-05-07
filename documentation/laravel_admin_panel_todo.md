@@ -73,7 +73,7 @@ This document provides a detailed, step-by-step plan for implementing the Larave
         *   [ ] Bind the input fields to the Livewire component properties using `wire:model`.
         *   [ ] Add a submit button with `wire:click="submitForm"`.
         *   [ ] Include validation error messages using Blade directives (`@error`).
-*   [ ] **4.4. Implement `EditTrigger` Component:**
+*   [x] **4.4. Implement `EditTrigger` Component:** @cline
     *   [ ] **PHP Class (`app/Http/Livewire/EditTrigger.php`):**
         *   [ ] Add a public property for the trigger ID (e.g., `$triggerId`).
         *   [ ] Add public properties for form inputs (e.g., `$instagram_post_id`, `$keyword`, `$dm_message`, `$is_active`).
