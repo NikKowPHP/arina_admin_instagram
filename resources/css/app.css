@@ -1,8 +1,2 @@
 @import 'tailwindcss';
 @import 'trix/dist/trix.css'; /* Add Trix CSS import */
-
-/* Keep theme definition if needed, or manage fonts via tailwind.config.js */
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
-}

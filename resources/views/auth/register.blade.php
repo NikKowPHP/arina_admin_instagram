@@ -1,69 +1,69 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">{{ __('Register') }}</div>
+<div class="mx-auto px-4 py-8">
+    <div class="flex justify-center">
+        <div class="w-full md:w-2/3">
+            <div class="border rounded shadow bg-white">
+                <div class="px-6 py-4 border-b text-lg font-semibold">{{ __('Register') }}</div>
 
-                <div class="card-body">
+                <div class="p-6">
                     <form method="POST" action="{{ route('register') }}">
                         @csrf
 
-                        <div class="row mb-3">
-                            <label for="name" class="col-md-4 col-form-label text-md-end">{{ __('Name') }}</label>
+                        <div class="flex flex-wrap mb-4">
+                            <label for="name" class="md:w-1/3 md:text-right pr-4 pl-0 py-2">{{ __('Name') }}</label>
 
-                            <div class="col-md-6">
-                                <input id="name" type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name') }}" required autocomplete="name" autofocus>
+                            <div class="md:w-2/3">
+                                <input id="name" type="text" class="border rounded px-3 py-2 w-full @error('name') border-red-500 @enderror" name="name" value="{{ old('name') }}" required autocomplete="name" autofocus>
 
                                 @error('name')
-                                    <span class="invalid-feedback" role="alert">
+                                    <span class="text-red-500 text-sm mt-1" role="alert">
                                         <strong>{{ $message }}</strong>
                                     </span>
                                 @enderror
                             </div>
                         </div>
 
-                        <div class="row mb-3">
-                            <label for="email" class="col-md-4 col-form-label text-md-end">{{ __('Email Address') }}</label>
+                        <div class="flex flex-wrap mb-4">
+                            <label for="email" class="md:w-1/3 md:text-right pr-4 pl-0 py-2">{{ __('Email Address') }}</label>
 
-                            <div class="col-md-6">
-                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email">
+                            <div class="md:w-2/3">
+                                <input id="email" type="email" class="border rounded px-3 py-2 w-full @error('email') border-red-500 @enderror" name="email" value="{{ old('email') }}" required autocomplete="email">
 
                                 @error('email')
-                                    <span class="invalid-feedback" role="alert">
+                                    <span class="text-red-500 text-sm mt-1" role="alert">
                                         <strong>{{ $message }}</strong>
                                     </span>
                                 @enderror
                             </div>
                         </div>
 
-                        <div class="row mb-3">
-                            <label for="password" class="col-md-4 col-form-label text-md-end">{{ __('Password') }}</label>
+                        <div class="flex flex-wrap mb-4">
+                            <label for="password" class="md:w-1/3 md:text-right pr-4 pl-0 py-2">{{ __('Password') }}</label>
 
-                            <div class="col-md-6">
-                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password">
+                            <div class="md:w-2/3">
+                                <input id="password" type="password" class="border rounded px-3 py-2 w-full @error('password') border-red-500 @enderror" name="password" required autocomplete="new-password">
 
                                 @error('password')
-                                    <span class="invalid-feedback" role="alert">
+                                    <span class="text-red-500 text-sm mt-1" role="alert">
                                         <strong>{{ $message }}</strong>
                                     </span>
                                 @enderror
                             </div>
                         </div>
 
-                        <div class="row mb-3">
-                            <label for="password-confirm" class="col-md-4 col-form-label text-md-end">{{ __('Confirm Password') }}</label>
+                        <div class="flex flex-wrap mb-4">
+                            <label for="password-confirm" class="md:w-1/3 md:text-right pr-4 pl-0 py-2">{{ __('Confirm Password') }}</label>
 
-                            <div class="col-md-6">
-                                <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password">
+                            <div class="md:w-2/3">
+                                <input id="password-confirm" type="password" class="border rounded px-3 py-2 w-full" name="password_confirmation" required autocomplete="new-password">
                             </div>
                         </div>
 
-                        <div class="row mb-0">
-                            <div class="col-md-6 offset-md-4">
-                                <button type="submit" class="btn btn-primary">
+                        <div class="flex flex-wrap mb-0">
+                            <div class="md:w-2/3 md:ml-1/3">
+                                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                                     {{ __('Register') }}
                                 </button>
                             </div>
