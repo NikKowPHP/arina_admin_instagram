@@ -18,6 +18,7 @@ class InstagramWebhookController extends Controller
      */
     public function verify(Request $request)
     {
+        Log::info('Instagram webhook verification request received.');
         $mode = $request->query('hub.mode');
         $token = $request->query('hub.verify_token');
         $challenge = $request->query('hub.challenge');
