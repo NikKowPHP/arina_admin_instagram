@@ -19,18 +19,34 @@ class InstagramWebhookController extends Controller
     public function verify(Request $request)
     {
         Log::info('Instagram webhook verification request received.');
-        $mode = $request->query('hub.mode');
-        $token = $request->query('hub.verify_token');
-        $challenge = $request->query('hub.challenge');
+        Log::info('Raw Query String: ' . $request->getQueryString()); // Log the raw string
+        Log::info('$_GET contents: ' . json_encode($_GET)); // Log the raw $_GET superglobal
 
-        if ($mode === 'subscribe' && $token === env('INSTAGRAM_WEBHOOK_VERIFY_TOKEN')) {
+        Log::info('Instagram webhook verification request received.'); // Keep this
+        $expectedToken = env('INSTAGRAM_WEBHOOK_VERIFY_TOKEN'); // This is what your .env says
+
+        $mode = $request->query('hub_mode'); // Use underscore
+        $token = $request->query('hub_verify_token'); // Use underscore
+        $challenge = $request->query('hub_challenge'); // Use underscore
+
+        Log::info('Webhook Verification Details:', [
+            'received_mode' => $mode,
+            'received_token' => $token,
+            'expected_token_from_env' => $expectedToken,
+            'challenge' => $challenge,
+            'mode_matches' => ($mode === 'subscribe'), // Log the boolean result
+            'token_matches' => ($token === $expectedToken) // Log the boolean result
+        ]);
+
+        if ($mode === 'subscribe' && $token === $expectedToken) { // Use the variable $expectedToken here
             Log::info('Webhook verification successful.');
             return Response::make($challenge, 200);
         }
 
-        Log::error('Webhook verification failed: Invalid mode or token.');
+        Log::error('Webhook verification failed: Conditions in IF statement not met.'); // Slightly more specific error
         return Response::make('Forbidden', 403);
     }
+
 
     /**
      * Handle incoming webhook events.
