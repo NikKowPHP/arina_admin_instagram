@@ -197,7 +197,7 @@ _Note: This is a significant task. A separate SPA frontend would be more common 
 File: ./src/main.ts
 
 - [x] Install Handlebars: `npm install hbs`
-- [ ] Configure templating engine in `main.ts`:
+- [x] Configure templating engine in `main.ts`:
     ```typescript
     // import { NestExpressApplication } from '@nestjs/platform-express';
     // import { join } from 'path';
@@ -206,12 +206,12 @@ File: ./src/main.ts
     // app.setBaseViewsDir(join(__dirname, '..', 'views'));
     // app.setViewEngine('hbs');
     ```
-- [ ] Create `views` directory in project root.
-- [ ] Create `public` directory in project root for static assets.
+- [x] Create `views` directory in project root.
+- [x] Create `public` directory in project root for static assets.
 
 File: ./views/layouts/admin.hbs
 
-- [ ] Create a main layout file `admin.hbs`:
+- [x] Create a main layout file `admin.hbs`:
     ```html
     <!DOCTYPE html>
     <html>
@@ -225,37 +225,37 @@ File: ./views/layouts/admin.hbs
         </body>
     </html>
     ```
-- [ ] Include placeholder for navigation (Login/Logout, Triggers link).
-- [ ] Verify layout renders basic HTML structure.
+- [x] Include placeholder for navigation (Login/Logout, Triggers link).
+- [x] Verify layout renders basic HTML structure.
 
 File: ./tailwind.config.js
 
-- [ ] Initialize Tailwind CSS: `npx tailwindcss init -p`
-- [ ] Configure `content` in `tailwind.config.js` to scan `.hbs` files: `['./views/**/*.hbs', './src/**/*.ts']` (ts for any dynamic classes if needed).
-- [ ] Create `./src/tailwind.css` (or `./public/css/tailwind-input.css`) with `@tailwind base; @tailwind components; @tailwind utilities;`.
-- [ ] Add script to `package.json` to build Tailwind: `"build:css": "tailwindcss -i ./src/tailwind.css -o ./public/css/tailwind.css --watch"` (or similar for input/output paths).
-- [ ] Run `npm run build:css` (or integrate into dev workflow).
+- [x] Initialize Tailwind CSS: `npx tailwindcss init -p`
+- [x] Configure `content` in `tailwind.config.js` to scan `.hbs` files: `['./views/**/*.hbs', './src/**/*.ts']` (ts for any dynamic classes if needed).
+- [x] Create `./src/tailwind.css` (or `./public/css/tailwind-input.css`) with `@tailwind base; @tailwind components; @tailwind utilities;`.
+- [x] Add script to `package.json` to build Tailwind: `"build:css": "tailwindcss -i ./src/tailwind.css -o ./public/css/tailwind.css --watch"` (or similar for input/output paths).
+- [x] Run `npm run build:css` (or integrate into dev workflow).
 
 File: ./src/admin/admin.controller.ts
 
-- [ ] Create an `AdminController` (`nest g controller admin --flat` or within an `admin` module).
-- [ ] Implement route for login page: `@Get('/login') @Render('auth/login') loginPage() { return {}; }`
-- [ ] Implement route for registration page (if needed): `@Get('/register') @Render('auth/register') registerPage() { return {}; }`
-- [ ] Create `views/auth/login.hbs` and `views/auth/register.hbs` with basic forms (Tailwind styled).
-- [ ] Test rendering of login/register pages.
+- [x] Create an `AdminController` (`nest g controller admin --flat` or within an `admin` module).
+- [x] Implement route for login page: `@Get('/login') @Render('auth/login') loginPage() { return {}; }`
+- [x] Implement route for registration page (if needed): `@Get('/register') @Render('auth/register') registerPage() { return {}; }`
+- [x] Create `views/auth/login.hbs` and `views/auth/register.hbs` with basic forms (Tailwind styled).
+- [x] Test rendering of login/register pages.
 
 File: ./src/post-triggers/post-triggers.controller.ts (Revisit)
 
-- [ ] Modify existing CRUD methods to render Handlebars views instead of returning JSON, or create new controller methods for the admin UI.
+- [x] Modify existing CRUD methods to render Handlebars views instead of returning JSON, or create new controller methods for the admin UI.
     - `@Get('/ui/triggers') @Render('admin/triggers/index') async listTriggersView() { const triggers = await this.service.findAll(); return { triggers }; }`
     - `@Get('/ui/triggers/create') @Render('admin/triggers/create') createTriggerView() { return {}; }`
     - `@Post('/ui/triggers/create') async handleCreateTrigger(@Body() dto, @Res() res) { await this.service.create(dto); res.redirect('/admin/ui/triggers'); }` (form handling will need Express-style req/res or specific NestJS patterns for redirects with server-rendered forms)
     - Similarly for edit and delete views/actions.
-- [ ] Verify data is passed to views correctly.
+- [x] Verify data is passed to views correctly.
 
 File: ./views/admin/triggers/index.hbs
 
-- [ ] Create `index.hbs` to list triggers in a table (Tailwind styled). Include "Create", "Edit", "Delete" links/buttons.
+- [x] Create `index.hbs` to list triggers in a table (Tailwind styled). Include "Create", "Edit", "Delete" links/buttons.
     ```html
     {{#each triggers}}
     <tr>
@@ -264,17 +264,17 @@ File: ./views/admin/triggers/index.hbs
     </tr>
     {{/each}}
     ```
-- [ ] Verify triggers are listed from the database.
+- [x] Verify triggers are listed from the database.
 
 File: ./views/admin/triggers/create.hbs
 
-- [ ] Create `create.hbs` with a form for new triggers (Tailwind styled). Fields: `instagramPostId`, `keyword`, `dmMessage.media_url`, etc.
-- [ ] Ensure form posts to the correct backend endpoint.
+- [x] Create `create.hbs` with a form for new triggers (Tailwind styled). Fields: `instagramPostId`, `keyword`, `dmMessage.media_url`, etc.
+- [x] Ensure form posts to the correct backend endpoint.
 
 File: ./views/admin/triggers/edit.hbs
 
-- [ ] Create `edit.hbs` similar to `create.hbs`, pre-filled with trigger data.
-- [ ] Ensure form posts to the update endpoint.
+- [x] Create `edit.hbs` similar to `create.hbs`, pre-filled with trigger data.
+- [x] Ensure form posts to the update endpoint.
 
 Phase 4: Instagram Webhook Logic (Est. 4-5 hours)
 
