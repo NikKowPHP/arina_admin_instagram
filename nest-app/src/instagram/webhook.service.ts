@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 import { PostTriggersService } from '../post-triggers.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { InstagramWebhookEntry } from './dto/instagram-webhook.dto';
@@ -8,6 +10,7 @@ export class WebhookService {
   constructor(
     private readonly postTriggersService: PostTriggersService,
     private readonly prisma: PrismaService,
+    @InjectQueue('instagram-dm-queue') private dmQueue: Queue,
   ) {}
 
   async handleWebhookEvent(payload: InstagramWebhookEntry[]) {
@@ -28,10 +31,11 @@ export class WebhookService {
 
           // Dispatch DM jobs for matching triggers
           for (const trigger of triggers) {
-            await this.postTriggersService.sendDmMessage({
-              triggerId: trigger.id,
-              recipientId: from.id,
-              message: trigger.message,
+            await this.dmQueue.add('send-dm-job', { 
+              recipientId: from.id, 
+              triggerData: { 
+                dmMessage: trigger.message 
+              } 
             });
           }
         }
