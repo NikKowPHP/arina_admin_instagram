@@ -82,3 +82,6 @@ Updated task list from your prompt:
                 *   [x] The `onAuthStateChange` listener in `UserProvider` should then handle clearing local app state and navigating to the login screen.
 - [ ] **Task 2.6: Implement Profile Picture Upload**
     *   Objective: Allow users to upload a profile picture.%     
+
+
+    after successful implementation update the file './nest-app/documentation/nestjs_migration.md'

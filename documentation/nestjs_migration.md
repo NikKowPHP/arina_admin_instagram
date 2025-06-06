@@ -7,7 +7,7 @@ Implementation Plan
 
 the nest js app placed in ./nest-app
 the laravel project that we need to migrate from is placed in ./ root directory 
-SKIP ALL THE MIGR
+SKIP ALL THE MIGRATIONS and code execution, just implementation . 
 Phase 1: Core NestJS Setup & Database with Prisma (Est. 4-5 hours)
 
 File: ./package.json
