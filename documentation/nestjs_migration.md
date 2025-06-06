@@ -104,19 +104,19 @@ File: ./src/prisma/prisma.module.ts
 
 File: ./src/app.module.ts
 
-- [ ] Import `PrismaModule` into the root `AppModule`.
+- [x] Import `PrismaModule` into the root `AppModule`.
     ```typescript
     // Add PrismaModule to imports array
     // import { PrismaModule } from './prisma/prisma.module';
     // @Module({ imports: [PrismaModule, ...], ... })
     ```
-- [ ] Test application still runs: `npm run start:dev`.
+- [x] Test application still runs: `npm run start:dev`.
 
 Phase 2: Admin Panel API - PostTriggers CRUD & Authentication Backend (Est. 5-6 hours)
 
 File: ./src/post-triggers/dto/create-post-trigger.dto.ts
 
-- [ ] Create `CreatePostTriggerDto` with validation (using `class-validator` and `class-transformer`, install them: `npm install class-validator class-transformer`):
+- [x] Create `CreatePostTriggerDto` with validation (using `class-validator` and `class-transformer`, install them: `npm install class-validator class-transformer`):
     ```typescript
     // Example:
     // import { IsString, IsBoolean, IsNotEmpty, IsObject, IsOptional, IsUrl } from 'class-validator';
@@ -128,63 +128,63 @@ File: ./src/post-triggers/dto/create-post-trigger.dto.ts
     //   @IsBoolean() @IsOptional() isActive?: boolean;
     // }
     ```
-- [ ] Define DTO for `dmMessage` structure (`media_url`, `media_type`, `description_text`, `cta_text`, `cta_url`).
-- [ ] Verify DTO reflects required and optional fields from Laravel's `CreateTrigger.php`.
+- [x] Define DTO for `dmMessage` structure (`media_url`, `media_type`, `description_text`, `cta_text`, `cta_url`).
+- [x] Verify DTO reflects required and optional fields from Laravel's `CreateTrigger.php`.
 
 File: ./src/post-triggers/dto/update-post-trigger.dto.ts
 
-- [ ] Create `UpdatePostTriggerDto` (similar to Create, but fields are optional using `@nestjs/mapped-types` or manual definition).
+- [x] Create `UpdatePostTriggerDto` (similar to Create, but fields are optional using `@nestjs/mapped-types` or manual definition).
     ```typescript
     // import { PartialType } from '@nestjs/mapped-types'; // npm install @nestjs/mapped-types
     // import { CreatePostTriggerDto } from './create-post-trigger.dto';
     // export class UpdatePostTriggerDto extends PartialType(CreatePostTriggerDto) {}
     ```
-- [ ] Verify DTO allows partial updates.
+- [x] Verify DTO allows partial updates.
 
 File: ./src/post-triggers/entities/post-trigger.entity.ts
 
-- [ ] Create `PostTriggerEntity` (optional, but good for consistency, can map Prisma types or define class structure).
-- [ ] Verify entity matches Prisma model.
+- [x] Create `PostTriggerEntity` (optional, but good for consistency, can map Prisma types or define class structure).
+- [x] Verify entity matches Prisma model.
 
 File: ./src/post-triggers/post-triggers.service.ts
 
-- [ ] Generate service: `nest g service post-triggers --flat` (or inside a `post-triggers` module).
-- [ ] Inject `PrismaService`.
-- [ ] Implement `create(createPostTriggerDto)` method.
-- [ ] Implement `findAll()` method with pagination (e.g., accept `skip`, `take` parameters).
-- [ ] Implement `findOne(id: number)` method.
-- [ ] Implement `update(id: number, updatePostTriggerDto)` method.
-- [ ] Implement `remove(id: number)` method.
-- [ ] Test service methods (manually or with stubs initially).
+- [x] Generate service: `nest g service post-triggers --flat` (or inside a `post-triggers` module).
+- [x] Inject `PrismaService`.
+- [x] Implement `create(createPostTriggerDto)` method.
+- [x] Implement `findAll()` method with pagination (e.g., accept `skip`, `take` parameters).
+- [x] Implement `findOne(id: number)` method.
+- [x] Implement `update(id: number, updatePostTriggerDto)` method.
+- [x] Implement `remove(id: number)` method.
+- [x] Test service methods (manually or with stubs initially).
 
 File: ./src/post-triggers/post-triggers.controller.ts
 
-- [ ] Generate controller: `nest g controller post-triggers --flat`.
-- [ ] Inject `PostTriggersService`.
-- [ ] Implement `@Post()` endpoint for creating triggers. Use `ValidationPipe`.
-- [ ] Implement `@Get()` endpoint for listing all triggers.
-- [ ] Implement `@Get(':id')` endpoint for fetching a single trigger.
-- [ ] Implement `@Patch(':id')` endpoint for updating a trigger. Use `ValidationPipe`.
-- [ ] Implement `@Delete(':id')` endpoint for deleting a trigger.
-- [ ] Test endpoints using Postman or curl.
+- [x] Generate controller: `nest g controller post-triggers --flat`.
+- [x] Inject `PostTriggersService`.
+- [x] Implement `@Post()` endpoint for creating triggers. Use `ValidationPipe`.
+- [x] Implement `@Get()` endpoint for listing all triggers.
+- [x] Implement `@Get(':id')` endpoint for fetching a single trigger.
+- [x] Implement `@Patch(':id')` endpoint for updating a trigger. Use `ValidationPipe`.
+- [x] Implement `@Delete(':id')` endpoint for deleting a trigger.
+- [x] Test endpoints using Postman or curl.
 
 File: ./src/post-triggers/post-triggers.module.ts
 
-- [ ] Generate module: `nest g module post-triggers`.
-- [ ] Declare `PostTriggersController` and `PostTriggersService` in this module. Import `PrismaModule`.
-- [ ] Import `PostTriggersModule` into `AppModule`.
-- [ ] Verify module dependencies and structure are correct.
+- [x] Generate module: `nest g module post-triggers`.
+- [x] Declare `PostTriggersController` and `PostTriggersService` in this module. Import `PrismaModule`.
+- [x] Import `PostTriggersModule` into `AppModule`.
+- [x] Verify module dependencies and structure are correct.
 
 File: ./src/auth/auth.module.ts
 
-- [ ] Generate `auth` module: `nest g module auth`.
-- [ ] Install JWT and Passport dependencies: `npm install @nestjs/passport passport passport-jwt @nestjs/jwt bcrypt` and `npm install --save-dev @types/passport-jwt @types/bcrypt`.
-- [ ] Create `UsersModule` and `UsersService` (basic version for now, using `PrismaService`).
-- [ ] Configure `JwtModule.registerAsync` with `secret` and `signOptions` from `.env`.
-- [ ] Implement `AuthService` with `validateUser()` and `login()` methods.
-- [ ] Implement `JwtStrategy` extending `PassportStrategy(Strategy)`.
-- [ ] Implement `AuthController` with `/login` endpoint.
-- [ ] Import `AuthModule` into `AppModule`.
+- [x] Generate `auth` module: `nest g module auth`.
+- [x] Install JWT and Passport dependencies: `npm install @nestjs/passport passport passport-jwt @nestjs/jwt bcrypt` and `npm install --save-dev @types/passport-jwt @types/bcrypt`.
+- [x] Create `UsersModule` and `UsersService` (basic version for now, using `PrismaService`).
+- [x] Configure `JwtModule.registerAsync` with `secret` and `signOptions` from `.env`.
+- [x] Implement `AuthService` with `validateUser()` and `login()` methods.
+- [x] Implement `JwtStrategy` extending `PassportStrategy(Strategy)`.
+- [x] Implement `AuthController` with `/login` endpoint.
+- [x] Import `AuthModule` into `AppModule`.
 
 File: ./src/post-triggers/post-triggers.controller.ts (Revisit)
 
