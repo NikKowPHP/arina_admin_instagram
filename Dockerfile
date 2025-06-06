@@ -6,8 +6,8 @@ COPY package*.json ./
 
 RUN npm install --production
 
-COPY dist ./dist
-COPY prisma ./prisma
+COPY nest-app/dist ./dist
+COPY nest-app/prisma ./prisma
 
 RUN npx prisma generate
 

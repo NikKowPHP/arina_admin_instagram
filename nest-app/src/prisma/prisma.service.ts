@@ -14,4 +14,3 @@ export class PrismaService
         await this.$disconnect(); // eslint-disable-line @typescript-eslint/no-unsafe-call
     }
 }
-⏎
