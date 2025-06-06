@@ -5,16 +5,18 @@ Files Affected: All new project files, Docker configuration files. (Approximatel
 
 Implementation Plan
 
+the nest js app placed in ./nest-app
+the laravel project that we need to migrate from is placed in ./ root directory 
 Phase 1: Core NestJS Setup & Database with Prisma (Est. 4-5 hours)
 
 File: ./package.json
 
-- [ ] Initialize new Node.js project: `npm init -y`
-- [ ] Install NestJS CLI globally: `npm install -g @nestjs/cli`
-- [ ] Create new NestJS project: `nest new .` (in the new project directory)
-- [ ] Install Prisma CLI and Client as dev dependencies: `npm install prisma --save-dev` and `npm install @prisma/client`
-- [ ] Install PostgreSQL driver `pg`: `npm install pg`
-- [ ] Verify `package.json` includes `@nestjs/core`, `@nestjs/platform-express`, `prisma`, `@prisma/client`, `pg`, `reflect-metadata`, `rxjs`.
+- [x] Initialize new Node.js project: `npm init -y`
+- [x] Install NestJS CLI globally: `npm install -g @nestjs/cli`
+- [x] Create new NestJS project: `nest new ./nest-app` (in the new project directory)
+- [x] Install Prisma CLI and Client as dev dependencies: `npm install prisma --save-dev` and `npm install @prisma/client`
+- [x] Install PostgreSQL driver `pg`: `npm install pg`
+- [rx] Verify `package.json` includes `@nestjs/core`, `@nestjs/platform-express`, `prisma`, `@prisma/client`, `pg`, `reflect-metadata`, `rxjs`.
 - [ ] Test basic NestJS app startup: `npm run start:dev` should run without errors.
 
 File: ./prisma/schema.prisma
