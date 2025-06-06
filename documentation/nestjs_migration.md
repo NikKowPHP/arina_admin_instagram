@@ -7,6 +7,7 @@ Implementation Plan
 
 the nest js app placed in ./nest-app
 the laravel project that we need to migrate from is placed in ./ root directory 
+SKIP ALL THE MIGR
 Phase 1: Core NestJS Setup & Database with Prisma (Est. 4-5 hours)
 
 File: ./package.json
@@ -17,13 +18,13 @@ File: ./package.json
 - [x] Install Prisma CLI and Client as dev dependencies: `npm install prisma --save-dev` and `npm install @prisma/client`
 - [x] Install PostgreSQL driver `pg`: `npm install pg`
 - [rx] Verify `package.json` includes `@nestjs/core`, `@nestjs/platform-express`, `prisma`, `@prisma/client`, `pg`, `reflect-metadata`, `rxjs`.
-- [ ] Test basic NestJS app startup: `npm run start:dev` should run without errors.
+- [x] Test basic NestJS app startup: `npm run start:dev` should run without errors.
 
 File: ./prisma/schema.prisma
 
-- [ ] Initialize Prisma: `npx prisma init --datasource-provider postgresql`
-- [ ] Configure database URL in `./.env` (created by `prisma init`): `DATABASE_URL="postgresql://user:password@localhost:5432/mydb?schema=public"` (adjust for Docker later)
-- [ ] Define `User` model (for authentication later):
+- [x] Initialize Prisma: `npx prisma init --datasource-provider postgresql`
+- [x] Configure database URL in `./.env` (created by `prisma init`): `DATABASE_URL="postgresql://user:password@localhost:5432/mydb?schema=public"` (adjust for Docker later)
+- [x] Define `User` model (for authentication later):
     ```prisma
     model User {
       id        Int      @id @default(autoincrement())
@@ -34,7 +35,7 @@ File: ./prisma/schema.prisma
       updatedAt DateTime @updatedAt
     }
     ```
-- [ ] Define `PostTrigger` model, mirroring Laravel's `post_triggers` table:
+- [x] Define `PostTrigger` model, mirroring Laravel's `post_triggers` table:
 
     ```prisma
     model PostTrigger {
@@ -50,18 +51,18 @@ File: ./prisma/schema.prisma
     }
     ```
 
-- [ ] Verify schema syntax is correct.
+- [x] Verify schema syntax is correct.
 
 File: Terminal / CLI
 
-- [ ] Create initial Prisma migration: `npx prisma migrate dev --name init`
-- [ ] This will create the database if it doesn't exist and apply the schema.
-- [ ] Generate Prisma Client: `npx prisma generate`
-- [ ] Verify migration files are created in `./prisma/migrations/` and Prisma client is updated in `node_modules/.prisma/client`.
+- [x] Create initial Prisma migration: `npx prisma migrate dev --name init`
+- [x] This will create the database if it doesn't exist and apply the schema.
+- [x] Generate Prisma Client: `npx prisma generate`
+- [x] Verify migration files are created in `./prisma/migrations/` and Prisma client is updated in `node_modules/.prisma/client`.
 
 File: ./src/prisma/prisma.service.ts
 
-- [ ] Create `PrismaService` to encapsulate Prisma Client:
+- [x] Create `PrismaService` to encapsulate Prisma Client:
 
     ```typescript
     import { Injectable, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
@@ -82,11 +83,11 @@ File: ./src/prisma/prisma.service.ts
     }
     ```
 
-- [ ] Ensure `PrismaService` connects and disconnects properly.
+- [x] Ensure `PrismaService` connects and disconnects properly.
 
 File: ./src/prisma/prisma.module.ts
 
-- [ ] Create `PrismaModule` to provide `PrismaService`:
+- [x] Create `PrismaModule` to provide `PrismaService`:
 
     ```typescript
     import { Module } from "@nestjs/common";
@@ -99,7 +100,7 @@ File: ./src/prisma/prisma.module.ts
     export class PrismaModule {}
     ```
 
-- [ ] Verify module structure is correct.
+- [x] Verify module structure is correct.
 
 File: ./src/app.module.ts
 
