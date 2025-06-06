@@ -196,7 +196,7 @@ _Note: This is a significant task. A separate SPA frontend would be more common 
 
 File: ./src/main.ts
 
-- [ ] Install Handlebars: `npm install hbs`
+- [x] Install Handlebars: `npm install hbs`
 - [ ] Configure templating engine in `main.ts`:
     ```typescript
     // import { NestExpressApplication } from '@nestjs/platform-express';
