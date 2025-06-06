@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { DmMessageDto } from './post-triggers/dto/dm-message.dto';
 import { PrismaService } from './prisma/prisma.service';
 import { CreatePostTriggerDto } from './post-triggers/dto/create-post-trigger.dto';
 import { UpdatePostTriggerDto } from './post-triggers/dto/update-post-trigger.dto';
