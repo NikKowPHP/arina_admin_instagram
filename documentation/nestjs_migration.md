@@ -188,8 +188,8 @@ File: ./src/auth/auth.module.ts
 
 File: ./src/post-triggers/post-triggers.controller.ts (Revisit)
 
-- [ ] Protect all `PostTrigger` CRUD endpoints using `@UseGuards(JwtAuthGuard)`. Create `JwtAuthGuard`.
-- [ ] Test authentication protection on CRUD endpoints.
+- [x] Protect all `PostTrigger` CRUD endpoints using `@UseGuards(JwtAuthGuard)`. Create `JwtAuthGuard`.
+- [x] Test authentication protection on CRUD endpoints.
 
 Phase 3: Admin Panel Frontend (Simple Server-Rendered with Handlebars) (Est. 6-7 hours)
 _Note: This is a significant task. A separate SPA frontend would be more common but is a larger undertaking. This plan focuses on a simpler server-rendered UI for now._

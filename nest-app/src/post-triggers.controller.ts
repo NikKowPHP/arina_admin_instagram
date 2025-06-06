@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, ValidationPipe, UseGuards } from '@nestjs/common';
 import { PostTriggersService } from './post-triggers.service';
 import { CreatePostTriggerDto } from './post-triggers/dto/create-post-trigger.dto';
 import { UpdatePostTriggerDto } from './post-triggers/dto/update-post-trigger.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('post-triggers')
 export class PostTriggersController {
   constructor(private readonly postTriggersService: PostTriggersService) {}
@@ -14,7 +16,7 @@ export class PostTriggersController {
 
   @Get()
   findAll(@Query('skip') skip?: string, @Query('take') take?: string) {
-    return this.postTriggersService.findAll(+skip, +take);
+    return this.postTriggersService.findAll(skip ? +skip : undefined, take ? +take : undefined);
   }
 
   @Get(':id')
