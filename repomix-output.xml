@@ -78,6 +78,10 @@ admin/
           bar-chart.tsx
           button.tsx
           card.tsx
+          line-chart.tsx
+          pie-chart.tsx
+        bot-health-status.tsx
+        chart-controls.tsx
       lib/
         actions.ts
         supabase-provider.tsx
@@ -85,6 +89,7 @@ admin/
         utils.ts
         validators.ts
       types/
+        bot-monitor.ts
         supabase.ts
     .gitignore
     eslint.config.mjs
@@ -94,6 +99,9 @@ admin/
     README.md
     repomix-output.xml
     tsconfig.json
+bot-monitor/
+  service.ts
+  types.ts
 documentation/
   api_spec.md
   business_requirements.md
@@ -107,10 +115,17 @@ supabase/
   config.toml
 todos/
   dev_todo_phase_1.md
+  dev_todo_phase_10.md
+  dev_todo_phase_11.md
+  dev_todo_phase_12.md
   dev_todo_phase_2.md
   dev_todo_phase_3.md
   dev_todo_phase_4.md
   dev_todo_phase_5.md
+  dev_todo_phase_6.md
+  dev_todo_phase_7.md
+  dev_todo_phase_8.md
+  dev_todo_phase_9.md
   master_development_plan.md
 app_description.md
 docker-compose.yml
@@ -120,82 +135,249 @@ README.md
 <files>
 This section contains the contents of the repository's files.
 
-<file path="todos/dev_todo_phase_4.md">
-# Phase 4: Activity Log Implementation
+<file path="todos/dev_todo_phase_10.md">
+# Phase 10: REST API for Trigger Management
 
-## 1. Create Activity Log Page
-- **Create `admin/admin/src/app/dashboard/activity/page.tsx`**:
-  - Display page title "Activity Log"
-  - Add data table component
-  - Implement pagination controls
+## 1. Create API Route Structure
+- **Create `admin/admin/src/app/api/triggers/route.ts`**:
+  - Implement handlers for:
+    - GET /api/triggers (list triggers)
+    - POST /api/triggers (create trigger)
+    - GET /api/triggers/[id] (get single trigger)
+    - PUT /api/triggers/[id] (update trigger)
+    - DELETE /api/triggers/[id] (delete trigger)
 
-## 2. Build Activity Table Component
-- **Create `admin/admin/src/components/activity-table.tsx`**:
-  - Show columns: Action, Details, Timestamp
-  - Implement sorting by timestamp
-  - Add filtering by action type
+## 2. Implement CRUD Operations
+- **Connect to Prisma ORM**:
+  - Use existing Prisma client to interact with database
+  - Add error handling for database operations
+- **Implement validation**:
+  - Reuse validators from `src/lib/validators.ts`
+  - Add input sanitization
 
-## 3. Fetch Activity Data
-- **Modify `admin/admin/src/lib/actions.ts`**:
-  - Add `getActivityLogs()` function
-  - Query database using Prisma
-  - Return paginated results
+## 3. Add Authentication
+- **Protect API routes**:
+  - Integrate with NextAuth.js middleware
+  - Require valid session for all trigger operations
+- **Add role-based access control**:
+  - Only allow admin users to modify triggers
 
-## 4. Add Sidebar Navigation
-- **Update `admin/admin/src/components/sidebar.tsx`**:
-  - Add "Activity Log" menu item
-  - Link to "/dashboard/activity"
-  - Use appropriate icon
+## 4. Implement Rate Limiting
+- **Add rate limiting middleware**:
+  - Limit to 100 requests/minute per IP
+  - Use Redis for distributed rate limiting
 
-## Verification Steps
-1. Navigate to Activity Log page
-2. Verify data loads correctly
-3. Test sorting and filtering
-4. Check pagination functionality
+## 5. Add Documentation
+- **Create OpenAPI spec**:
+  - Document all endpoints in `documentation/api_spec.md`
+  - Include request/response examples
+
+## 6. Testing
+- **Write integration tests**:
+  - Test all CRUD operations
+  - Test authentication and authorization
+  - Test rate limiting
 </file>
 
-<file path="todos/dev_todo_phase_5.md">
-# Phase 5: Analytics Dashboard Implementation
+<file path="todos/dev_todo_phase_11.md">
+# Phase 11: REST API for Template Operations
 
-## 1. Enhance Bar Chart Component
-- **Update `admin/admin/src/components/ui/bar-chart.tsx`**:
-  - Add support for multiple datasets
-  - Implement color customization props
-  - Add tooltip enhancements
+## 1. Create API Route Structure
+- **Create `admin/admin/src/app/api/templates/route.ts`**:
+  - Implement handlers for:
+    - GET /api/templates (list templates)
+    - POST /api/templates (create template)
+    - GET /api/templates/[id] (get single template)
+    - PUT /api/templates/[id] (update template)
+    - DELETE /api/templates/[id] (delete template)
 
-## 2. Create New Chart Components
-- **Create `admin/admin/src/components/ui/line-chart.tsx`**:
-  - Line chart implementation with similar API to BarChart
-- **Create `admin/admin/src/components/ui/pie-chart.tsx`**:
-  - Pie/doughnut chart implementation
+## 2. Connect to Prisma ORM
+- **Reuse existing Prisma client**:
+  - Leverage the same database connection used in trigger API
+- **Implement validation**:
+  - Reuse validators from `src/lib/validators.ts`
+  - Add specific validation for template content
 
-## 3. Add Analytics Data Fetching
-- **Update `admin/admin/src/lib/actions.ts`**:
-  - Add `getDashboardAnalytics()` function
-  - Query database for:
-    - Trigger activation counts
-    - User activity metrics
-    - Template usage stats
+## 3. Add Authentication and Authorization
+- **Protect API routes**:
+  - Integrate with NextAuth.js middleware
+  - Require admin role for all template operations
 
-## 4. Enhance Dashboard Page
-- **Update `admin/admin/src/app/dashboard/page.tsx`**:
-  - Add new chart components
-  - Create grid layout for multiple charts
-  - Add date range selector
-  - Implement data loading states
+## 4. Implement Rate Limiting
+- **Reuse rate limiting middleware**:
+  - Apply same 100 requests/minute per IP limit as triggers API
+  - Use existing Redis configuration
 
-## 5. Add Chart Customization
-- **Create `admin/admin/src/components/chart-controls.tsx`**:
-  - Date range picker
-  - Chart type selector
-  - Data filter options
+## 5. Add Documentation
+- **Update OpenAPI spec**:
+  - Document all template endpoints in `documentation/api_spec.md`
+  - Include request/response examples
 
-## Verification Steps
-1. Start dev server and navigate to dashboard
-2. Verify all charts render without errors
-3. Test date range filtering
-4. Check data loading states
-5. Verify all chart types work properly
+## 6. Testing
+- **Write integration tests**:
+  - Test all CRUD operations for templates
+  - Verify authentication and authorization
+  - Test rate limiting
+</file>
+
+<file path="todos/dev_todo_phase_12.md">
+# Phase 12: Bot Healthcheck API Implementation
+
+## 1. Create Healthcheck Endpoint
+- **Create `admin/admin/src/app/api/bot/health/route.ts`**:
+  - Implement GET handler that returns bot service status
+  - Check database connection status
+  - Verify bot-monitor service availability
+
+## 2. Add Health Status Logic
+- **Update `bot-monitor/service.ts`**:
+  - Add healthcheck function that checks:
+    - Database connection
+    - External service dependencies
+    - Internal service state
+  - Return comprehensive health status object
+
+## 3. Implement Healthcheck Route
+- **Create `bot-monitor/routes/health.ts`**:
+  - Expose health status via GET /health endpoint
+  - Return JSON with service status and timestamps
+
+## 4. Add Authentication
+- **Secure healthcheck endpoints**:
+  - Implement API key authentication for bot healthcheck
+  - Add middleware to validate API keys
+
+## 5. Update API Documentation
+- **Add to `documentation/api_spec.md`**:
+  - Document bot healthcheck endpoint
+  - Include request/response examples
+  - Add authentication requirements
+
+## 6. Testing
+- **Write integration tests**:
+  - Test healthy status response
+  - Test failure scenarios
+  - Verify authentication
+</file>
+
+<file path="todos/dev_todo_phase_7.md">
+# Phase 7: Keyword Matching Implementation
+
+## 1. Create Keyword Matching Service
+- **Create `bot-monitor/keyword-matcher.ts`**:
+  - Implement core keyword matching logic
+  - Add support for exact matches and wildcards
+  - Create match scoring system
+
+## 2. Integrate with Bot Monitoring
+- **Update `bot-monitor/service.ts`**:
+  - Add keyword matcher initialization
+  - Implement message processing pipeline
+  - Connect matched keywords to trigger execution
+
+## 3. Database Storage
+- **Update `admin/admin/prisma/schema.prisma`**:
+  - Add Keyword model with trigger relationships
+  - Create migration script
+- **Implement CRUD operations**:
+  - Create API endpoints for keyword management
+  - Add admin UI components
+
+## 4. Matching Algorithm
+- **Implement matching logic**:
+  - Handle case sensitivity options
+  - Add support for multiple match strategies
+  - Implement threshold configuration
+
+## 5. Testing and Documentation
+- **Write unit tests**:
+  - Cover all matching scenarios
+  - Test edge cases
+- **Update documentation**:
+  - Add technical design for keyword matching
+  - Update API documentation
+</file>
+
+<file path="todos/dev_todo_phase_8.md">
+# Phase 8: DM Sending Functionality Implementation
+
+## 1. Create DM Service
+- **Create `bot-monitor/dm-sender.ts`**:
+  - Implement core DM sending logic
+  - Add Instagram API integration
+  - Create message queuing system
+
+## 2. Error Handling
+- **Implement retry mechanism**:
+  - Exponential backoff for failed sends
+  - Error logging
+  - Rate limit handling
+
+## 3. Database Integration
+- **Update `admin/admin/prisma/schema.prisma`**:
+  - Add DMSent model with status tracking
+  - Create migration script
+- **Implement CRUD operations**:
+  - Create API endpoints for DM history
+  - Add admin UI components
+
+## 4. Security
+- **Implement authentication**:
+  - Secure API keys
+  - Add encryption for sensitive data
+  - Implement permission checks
+
+## 5. Testing
+- **Write unit tests**:
+  - Cover all sending scenarios
+  - Test error cases
+- **Create mock Instagram API**:
+  - For development and testing
+</file>
+
+<file path="todos/dev_todo_phase_9.md">
+# Phase 9: Bot Logging System Implementation
+
+## 1. Create Logging Service
+- **Create `bot-monitor/logger.ts`**:
+  - Implement core logging functionality
+  - Add log levels (info, warn, error, debug)
+  - Create log rotation system
+
+## 2. Database Integration
+- **Update `admin/admin/prisma/schema.prisma`**:
+  - Add BotLog model with fields:
+    - timestamp
+    - level
+    - message
+    - context (JSON)
+- **Create migration script**:
+  - Generate Prisma migration
+  - Apply to database
+
+## 3. API for Log Access
+- **Create log retrieval endpoints**:
+  - GET /api/logs - with filtering by level, date range
+  - GET /api/logs/:id - get single log entry
+  - POST /api/logs/search - advanced search
+
+## 4. Admin UI Integration
+- **Create log viewer component**:
+  - Add to admin dashboard
+  - Implement filtering controls
+  - Add export functionality
+
+## 5. Error Tracking
+- **Implement Sentry integration**:
+  - Add error capturing
+  - Create alerting system
+  - Add performance monitoring
+
+## 6. Testing
+- **Write unit tests**:
+  - Cover all logging scenarios
+  - Test log rotation
+  - Verify database persistence
 </file>
 
 <file path=".roo/rules-developer/rules.md">
@@ -657,32 +839,6 @@ export default function TriggersPage() {
 }
 </file>
 
-<file path="admin/admin/src/app/dashboard/page.tsx">
-import { BarChart, Card } from '@/components/ui'
-import { getAnalytics } from '@/lib/actions'
-
-export default async function DashboardPage() {
-  const data = await getAnalytics()
-  
-  return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
-      
-      <Card>
-        <h2 className="text-lg mb-4">Trigger Activity</h2>
-        <BarChart
-          data={data.triggerUsage}
-          xAxis="date"
-          yAxis="count"
-        />
-      </Card>
-
-      {/* Add more chart components */}
-    </div>
-  )
-}
-</file>
-
 <file path="admin/admin/src/app/globals.css">
 @import "tailwindcss";
 
@@ -818,63 +974,6 @@ export default function Home() {
 }
 </file>
 
-<file path="admin/admin/src/components/ui/bar-chart.tsx">
-'use client'
-
-import { Bar } from 'react-chartjs-2'
-import { 
-  Chart as ChartJS, 
-  CategoryScale, 
-  LinearScale, 
-  BarElement, 
-  Title, 
-  Tooltip, 
-  Legend 
-} from 'chart.js'
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-)
-
-interface BarChartProps {
-  data: Array<{[key: string]: any}>
-  xAxis: string
-  yAxis: string
-  title?: string
-}
-
-export function BarChart({ data, xAxis, yAxis, title }: BarChartProps) {
-  const chartData = {
-    labels: data.map(item => item[xAxis]),
-    datasets: [{
-      label: yAxis,
-      data: data.map(item => item[yAxis]),
-      backgroundColor: 'rgba(59, 130, 246, 0.5)'
-    }]
-  }
-
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: 'top' as const,
-      },
-      title: {
-        display: !!title,
-        text: title,
-      },
-    },
-  }
-
-  return <Bar options={options} data={chartData} />
-}
-</file>
-
 <file path="admin/admin/src/components/ui/button.tsx">
 import { cn } from "@/lib/utils"
 import { forwardRef } from "react"
@@ -941,6 +1040,237 @@ export function Card({ children, className }: CardProps) {
 }
 </file>
 
+<file path="admin/admin/src/components/ui/line-chart.tsx">
+'use client'
+
+import { Line } from 'react-chartjs-2'
+import { 
+  Chart as ChartJS, 
+  CategoryScale, 
+  LinearScale, 
+  PointElement, 
+  LineElement, 
+  Title, 
+  Tooltip, 
+  Legend 
+} from 'chart.js'
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+)
+
+type LineChartDataItem = Record<string, unknown>
+
+interface LineChartProps {
+  datasets: LineChartDataItem[]
+  xAxis: string
+  yFields: string[]
+  title?: string
+  colors?: string[]
+}
+
+export function LineChart({ datasets, xAxis, yFields, title, colors }: LineChartProps) {
+  const chartData = {
+    labels: datasets.map(item => item[xAxis]),
+    datasets: yFields.map((field, index) => ({
+      label: field,
+      data: datasets.map(item => item[field]),
+      borderColor: colors?.[index] || 'rgba(59, 130, 246, 0.5)',
+      backgroundColor: colors?.[index] || 'rgba(59, 130, 246, 0.2)'
+    }))
+  }
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      title: {
+        display: !!title,
+        text: title,
+      },
+      tooltip: {
+        mode: 'index' as const,
+        intersect: false,
+      },
+    },
+    interaction: {
+      mode: 'index' as const,
+      intersect: false,
+    },
+  }
+
+  return <Line options={options} data={chartData} />
+}
+</file>
+
+<file path="admin/admin/src/components/ui/pie-chart.tsx">
+'use client'
+
+import { Pie } from 'react-chartjs-2'
+import { 
+  Chart as ChartJS, 
+  ArcElement, 
+  Tooltip, 
+  Legend 
+} from 'chart.js'
+
+ChartJS.register(
+  ArcElement,
+  Tooltip,
+  Legend
+)
+
+type PieChartDataItem = Record<string, unknown>
+
+interface PieChartProps {
+  datasets: PieChartDataItem[]
+  labelField: string
+  valueField: string
+  title?: string
+  colors?: string[]
+}
+
+export function PieChart({ datasets, labelField, valueField, title, colors }: PieChartProps) {
+  const chartData = {
+    labels: datasets.map(item => item[labelField]),
+    datasets: [{
+      label: valueField,
+      data: datasets.map(item => item[valueField]),
+      backgroundColor: colors || [
+        'rgba(255, 99, 132, 0.5)',
+        'rgba(54, 162, 235, 0.5)',
+        'rgba(255, 206, 86, 0.5)',
+        'rgba(75, 192, 192, 0.5)',
+        'rgba(153, 102, 255, 0.5)',
+        'rgba(255, 159, 64, 0.5)'
+      ],
+      borderWidth: 1,
+    }]
+  }
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      title: {
+        display: !!title,
+        text: title,
+      },
+      tooltip: {
+        mode: 'index' as const,
+        intersect: false,
+      },
+    },
+  }
+
+  return <Pie options={options} data={chartData} />
+}
+</file>
+
+<file path="admin/admin/src/components/bot-health-status.tsx">
+import type { BotHealthStatus } from '@bot-monitor/types'
+
+export function BotHealthStatusCard({ status }: { status: BotHealthStatus }) {
+  return (
+    <div className="p-4 border rounded-lg">
+      <h3 className="text-lg font-semibold mb-2">Bot Health Status</h3>
+      <div className="space-y-1">
+        <p>Last ping: {status.lastPing.toLocaleString()}</p>
+        <p>Status: {status.isHealthy ? 
+          <span className="text-green-500">Healthy</span> : 
+          <span className="text-red-500">Unhealthy</span>}
+        </p>
+        <p>Error count: {status.errorCount}</p>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="admin/admin/src/components/chart-controls.tsx">
+'use client'
+
+interface ChartControlsProps {
+  dateRange: string
+  onDateRangeChange: (range: string) => void
+  chartType: string
+  onChartTypeChange: (type: string) => void
+  visibleData: string[]
+  onVisibleDataChange: (data: string[]) => void
+}
+
+export function ChartControls({
+  dateRange,
+  onDateRangeChange,
+  chartType,
+  onChartTypeChange,
+  visibleData,
+  onVisibleDataChange
+}: ChartControlsProps) {
+  return (
+    <div className="space-y-4 p-4 border rounded">
+      <div>
+        <label className="block text-sm font-medium mb-1">Date Range</label>
+        <select
+          value={dateRange}
+          onChange={(e) => onDateRangeChange(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
+          <option value="7d">Last 7 days</option>
+          <option value="30d">Last 30 days</option>
+          <option value="90d">Last 90 days</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Chart Type</label>
+        <select
+          value={chartType}
+          onChange={(e) => onChartTypeChange(e.target.value)}
+          className="w-full p-2 border rounded"
+        >
+          <option value="bar">Bar Chart</option>
+          <option value="line">Line Chart</option>
+          <option value="pie">Pie Chart</option>
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium mb-1">Visible Data</label>
+        <div className="space-y-2">
+          {['Triggers', 'Users', 'Templates'].map((item) => (
+            <label key={item} className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={visibleData.includes(item)}
+                onChange={(e) => {
+                  const newVisible = e.target.checked
+                    ? [...visibleData, item]
+                    : visibleData.filter((v) => v !== item)
+                  onVisibleDataChange(newVisible)
+                }}
+                className="rounded"
+              />
+              <span>{item}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+</file>
+
 <file path="admin/admin/src/lib/supabase-provider.tsx">
 'use client'
 
@@ -979,6 +1309,10 @@ export const templateSchema = z.object({
   mediaUrl: z.string().url().optional(),
   isActive: z.boolean().default(true)
 });
+</file>
+
+<file path="admin/admin/src/types/bot-monitor.ts">
+export type { BotHealthStatus, ActivityEvent } from '../../../../bot-monitor/types';
 </file>
 
 <file path="admin/admin/src/types/supabase.ts">
@@ -1779,36 +2113,6 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 </files>
 </file>
 
-<file path="admin/admin/tsconfig.json">
-{
-  "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
-}
-</file>
-
 <file path="documentation/api_spec.md">
 # API Specification
 
@@ -2414,6 +2718,40 @@ Based on the vision in [`app_description.md`](app_description.md), create the fo
 .env.*.local
 </file>
 
+<file path="todos/dev_todo_phase_4.md">
+# Phase 4: Activity Log Implementation
+
+## 1. Create Activity Log Page
+- **Create `admin/admin/src/app/dashboard/activity/page.tsx`**:
+  - Display page title "Activity Log"
+  - Add data table component
+  - Implement pagination controls
+
+## 2. Build Activity Table Component
+- **Create `admin/admin/src/components/activity-table.tsx`**:
+  - Show columns: Action, Details, Timestamp
+  - Implement sorting by timestamp
+  - Add filtering by action type
+
+## 3. Fetch Activity Data
+- **Modify `admin/admin/src/lib/actions.ts`**:
+  - Add `getActivityLogs()` function
+  - Query database using Prisma
+  - Return paginated results
+
+## 4. Add Sidebar Navigation
+- **Update `admin/admin/src/components/sidebar.tsx`**:
+  - Add "Activity Log" menu item
+  - Link to "/dashboard/activity"
+  - Use appropriate icon
+
+## Verification Steps
+1. Navigate to Activity Log page
+2. Verify data loads correctly
+3. Test sorting and filtering
+4. Check pagination functionality
+</file>
+
 <file path="app_description.md">
 # Instagram Comment-to-DM Bot System
 
@@ -2749,6 +3087,74 @@ export default function RootLayout({
 }
 </file>
 
+<file path="admin/admin/src/components/ui/bar-chart.tsx">
+'use client'
+
+import { Bar } from 'react-chartjs-2'
+import { 
+  Chart as ChartJS, 
+  CategoryScale, 
+  LinearScale, 
+  BarElement, 
+  Title, 
+  Tooltip, 
+  Legend 
+} from 'chart.js'
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+)
+
+type BarChartDataItem = Record<string, unknown> // Generic chart data type
+
+interface BarChartProps {
+  datasets: BarChartDataItem[]
+  xAxis: string
+  yFields: string[]
+  title?: string
+  colors?: string[]
+}
+
+export function BarChart({ datasets, xAxis, yFields, title, colors }: BarChartProps) {
+  const chartData = {
+    labels: datasets.map(item => item[xAxis]),
+    datasets: yFields.map((field, index) => ({
+      label: field,
+      data: datasets.map(item => item[field]),
+      backgroundColor: colors?.[index] || 'rgba(59, 130, 246, 0.5)'
+    }))
+  }
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      title: {
+        display: !!title,
+        text: title,
+      },
+      tooltip: {
+        mode: 'index' as const,
+        intersect: false,
+      },
+    },
+    interaction: {
+      mode: 'index' as const,
+      intersect: false,
+    },
+  }
+
+  return <Bar options={options} data={chartData} />
+}
+</file>
+
 <file path="admin/admin/src/lib/supabase.ts">
 import { createBrowserClient } from '@supabase/ssr'
 import { Database } from '@/types/database'
@@ -2805,6 +3211,64 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+</file>
+
+<file path="admin/admin/tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/bot-monitor/*": ["../../bot-monitor/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+</file>
+
+<file path="bot-monitor/types.ts">
+export interface BotHealthStatus {
+  lastPing: Date;
+  isHealthy: boolean;
+  errorCount: number;
+}
+
+export interface ActivityEvent {
+  type: 'message' | 'error' | 'response' | 'warning';
+  timestamp: Date;
+  details: string;
+  metadata?: {
+    responseTime?: number;
+    recipient?: string;
+    messageId?: string;
+    errorStack?: string;
+    content?: string;
+  };
+}
+
+export interface RateLimitConfig {
+  maxEvents: number;
+  timeWindow: number; // in milliseconds
+}
 </file>
 
 <file path="supabase/config.toml">
@@ -3125,6 +3589,285 @@ s3_access_key = "env(S3_ACCESS_KEY)"
 s3_secret_key = "env(S3_SECRET_KEY)"
 </file>
 
+<file path="admin/admin/src/app/dashboard/page.tsx">
+'use client'
+
+import { useState, useEffect } from 'react'
+import { BarChart } from '@/components/ui/bar-chart'
+import { LineChart } from '@/components/ui/line-chart'
+import { PieChart } from '@/components/ui/pie-chart'
+import { Card } from '@/components/ui/card'
+import { ChartControls } from '@/components/chart-controls'
+import { getAnalytics, getDashboardAnalytics } from '@/lib/actions'
+
+type TriggerUsage = Array<{ date: string; count: number }>
+type DashboardAnalytics = {
+  triggerActivations: number
+  userActivity: {
+    totalUsers: number
+    activeUsers: number
+  }
+  templateUsage: Array<{ name: string; count: number }>
+}
+
+export default function DashboardPage() {
+  const [isLoading, setIsLoading] = useState(true)
+  const [dateRange, setDateRange] = useState('7d')
+  const [chartType, setChartType] = useState('bar')
+  const [visibleData, setVisibleData] = useState(['Triggers', 'Users', 'Templates'])
+  const [chartData, setChartData] = useState<{
+    triggerUsage: TriggerUsage
+    analytics: DashboardAnalytics | null
+  }>({
+    triggerUsage: [],
+    analytics: null
+  })
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      try {
+        const [basicAnalytics, dashboardAnalytics] = await Promise.all([
+          getAnalytics(),
+          getDashboardAnalytics()
+        ])
+        // Convert triggerUsage counts to numbers
+        const typedTriggerUsage = basicAnalytics.triggerUsage.map(item => ({
+          date: item.date,
+          count: Number(item.count)
+        }))
+        setChartData({
+          triggerUsage: typedTriggerUsage,
+          analytics: dashboardAnalytics
+        })
+      } catch (error) {
+        console.error('Error fetching analytics:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [dateRange])
+
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-4">Analytics Dashboard</h1>
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-32"></div>
+          <div className="h-64 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-start gap-4 flex-wrap">
+        <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
+        <ChartControls
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          chartType={chartType}
+          onChartTypeChange={setChartType}
+          visibleData={visibleData}
+          onVisibleDataChange={setVisibleData}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <h2 className="text-lg mb-4">Trigger Activity</h2>
+          {chartType === 'bar' && (
+            <BarChart
+              datasets={chartData.triggerUsage}
+              xAxis="date"
+              yFields={['count']}
+            />
+          )}
+          {chartType === 'line' && (
+            <LineChart
+              datasets={chartData.triggerUsage}
+              xAxis="date"
+              yFields={['count']}
+            />
+          )}
+          {chartType === 'pie' && (
+            <PieChart
+              datasets={chartData.triggerUsage}
+              labelField="date"
+              valueField="count"
+            />
+          )}
+        </Card>
+
+        <Card>
+          <h2 className="text-lg mb-4">User Activity</h2>
+          {chartData.analytics && (
+            <LineChart
+              datasets={[
+                { total: chartData.analytics.userActivity.totalUsers },
+                { active: chartData.analytics.userActivity.activeUsers }
+              ]}
+              xAxis="date"
+              yFields={['total', 'active']}
+              colors={['#3b82f6', '#10b981']}
+            />
+          )}
+        </Card>
+
+        <Card className="md:col-span-2">
+          <h2 className="text-lg mb-4">Template Usage</h2>
+          {chartData.analytics && (
+            <div className="max-w-md mx-auto">
+              <PieChart
+                datasets={chartData.analytics.templateUsage}
+                labelField="name"
+                valueField="count"
+              />
+            </div>
+          )}
+        </Card>
+      </div>
+    </div>
+  )
+}
+</file>
+
+<file path="bot-monitor/service.ts">
+import { BotHealthStatus, ActivityEvent, RateLimitConfig } from './types';
+
+const HEALTH_CHECK_INTERVAL = 30000;
+const MAX_CONSECUTIVE_FAILURES = 3;
+const DEFAULT_RATE_LIMIT: RateLimitConfig = {
+  maxEvents: 1000,
+  timeWindow: 60 * 60 * 1000 // 1 hour
+};
+
+export class BotMonitor {
+  private healthStatus: BotHealthStatus;
+  private activityLog: ActivityEvent[] = [];
+  private consecutiveFailures = 0;
+  private rateLimitConfig: RateLimitConfig;
+  private eventCount = 0;
+  private lastReset = Date.now();
+
+  constructor(private botEndpoint: string, rateLimit?: RateLimitConfig) {
+    this.healthStatus = {
+      lastPing: new Date(),
+      isHealthy: true,
+      errorCount: 0
+    };
+    this.rateLimitConfig = rateLimit || DEFAULT_RATE_LIMIT;
+  }
+
+  start(): void {
+    console.log('Bot monitoring service started');
+    setInterval(() => this.checkHealth(), HEALTH_CHECK_INTERVAL);
+  }
+
+  private async checkHealth(): Promise<void> {
+    try {
+      const response = await fetch(this.botEndpoint + '/health');
+      if (!response.ok) throw new Error('Health check failed');
+      
+      this.consecutiveFailures = 0;
+      this.healthStatus = {
+        lastPing: new Date(),
+        isHealthy: true,
+        errorCount: this.healthStatus.errorCount
+      };
+    } catch (error) {
+      this.consecutiveFailures++;
+      this.healthStatus = {
+        lastPing: new Date(),
+        isHealthy: false,
+        errorCount: this.healthStatus.errorCount + 1
+      };
+
+      this.trackError(error);
+
+      if (this.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+        this.handleCriticalFailure();
+      }
+    }
+  }
+
+  private handleCriticalFailure(): void {
+    this.trackActivity({
+      type: 'error',
+      details: 'Critical failure threshold reached. Initiating recovery.'
+    });
+    
+    // TODO: Implement actual recovery procedures
+    console.error('Critical bot failure detected. Recovery needed.');
+  }
+
+  private checkRateLimit(): boolean {
+    const now = Date.now();
+    if (now - this.lastReset > this.rateLimitConfig.timeWindow) {
+      this.eventCount = 0;
+      this.lastReset = now;
+    }
+    return this.eventCount < this.rateLimitConfig.maxEvents;
+  }
+
+  trackActivity(event: Omit<ActivityEvent, 'timestamp'>): void {
+    if (!this.checkRateLimit()) {
+      console.warn('Rate limit exceeded for activity tracking');
+      return;
+    }
+
+    this.eventCount++;
+    this.activityLog.push({
+      ...event,
+      timestamp: new Date()
+    });
+  }
+
+  trackMessage(content: string, recipient: string, messageId: string): void {
+    this.trackActivity({
+      type: 'message',
+      details: `Message sent to ${recipient}`,
+      metadata: {
+        recipient,
+        messageId,
+        content
+      }
+    });
+  }
+
+  trackError(error: Error): void {
+    this.trackActivity({
+      type: 'error',
+      details: error.message,
+      metadata: {
+        errorStack: error.stack
+      }
+    });
+  }
+
+  trackResponseTime(action: string, responseTime: number): void {
+    this.trackActivity({
+      type: 'response',
+      details: `${action} response time`,
+      metadata: {
+        responseTime
+      }
+    });
+  }
+
+  getRecentActivity(count = 10): ActivityEvent[] {
+    return this.activityLog.slice(-count);
+  }
+
+  getCurrentHealth(): BotHealthStatus {
+    return this.healthStatus;
+  }
+}
+</file>
+
 <file path="README.md">
 # Instagram Comment-to-DM Bot System
 
@@ -3190,102 +3933,6 @@ Automatically send DMs to users who comment with specific keywords on Instagram 
 - Docker issues: Check container logs with `docker-compose logs`
 
 For full documentation, see the `/documentation` directory.
-</file>
-
-<file path="admin/admin/src/lib/actions.ts">
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { createClient } from './supabase'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { PrismaClient } from '@prisma/client'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { templateSchema } from './validators'
-
-const prisma = new PrismaClient()
-
-export async function getAnalytics() {
-  const supabase = createClient()
-  const { data, error } = await supabase
-    .from('activity_log')
-    .select('*')
-    .gte('created_at', new Date(Date.now() - 7 * 86400000).toISOString())
-  
-  if (error) throw error
-
-  // Aggregate data by date
-  const groupedData = data.reduce((acc, entry) => {
-    const date = new Date(entry.created_at).toLocaleDateString()
-    if (!acc[date]) acc[date] = 0
-    acc[date] += (entry.action === 'trigger' ? 1 : 0)
-    return acc
-  }, {})
-
-  // Convert to array format
-  const triggerUsage = Object.entries(groupedData).map(([date, count]) => ({
-    date,
-    count
-  }))
-
-  return { triggerUsage }
-}
-
-export async function createTrigger(formData: FormData) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    throw new Error('User not authenticated')
-  }
-
-  const triggerData = {
-    postId: formData.get('postId') as string,
-    keyword: formData.get('keyword') as string,
-    isActive: formData.get('isActive') === 'on',
-    userId: user.id,
-    templateId: formData.get('templateId') as string
-  }
-
-  try {
-    const newTrigger = await prisma.trigger.create({
-      data: triggerData
-    })
-    return newTrigger
-  } catch (error) {
-    console.error('Error creating trigger:', error)
-    throw error
-  }
-}
-
-export async function createTemplate(formData: FormData) {
-  const validated = templateSchema.parse(Object.fromEntries(formData));
-  try {
-    return await prisma.template.create({ data: validated });
-  } catch (error) {
-    console.error('Error creating template:', error);
-    throw error;
-  }
-}
-
-export async function updateTemplate(id: string, formData: FormData) {
-  const validated = templateSchema.parse(Object.fromEntries(formData));
-  try {
-    return await prisma.template.update({
-      where: { id },
-      data: validated
-    });
-  } catch (error) {
-    console.error('Error updating template:', error);
-    throw error;
-  }
-}
-
-export async function deleteTemplate(id: string) {
-  try {
-    return await prisma.template.delete({ where: { id } });
-  } catch (error) {
-    console.error('Error deleting template:', error);
-    throw error;
-  }
-}
 </file>
 
 <file path="todos/dev_todo_phase_2.md">
@@ -3509,6 +4156,199 @@ export const templateSchema = z.object({
 5. Check API documentation is updated
 </file>
 
+<file path="todos/dev_todo_phase_6.md">
+# Phase 6: Bot Monitoring Service Implementation
+
+## 1. Create Monitoring Service Structure
+- [x] **Create `bot-monitor/service.ts`**:
+  - Implement core monitoring class with methods:
+    - `start()`: Initialize monitoring
+    - `checkHealth()`: Verify bot instances
+    - `trackActivity()`: Log bot actions
+- [x] **Create `bot-monitor/types.ts`**:
+  - Define monitoring interfaces:
+    - `BotHealthStatus`
+    - `ActivityEvent`
+
+## 2. Implement Health Checks
+- [x] **Update `bot-monitor/service.ts`**:
+  - Add method to ping bot instances
+  - Implement threshold-based alerts
+  - Add recovery procedures
+
+## 3. Create Activity Tracking
+- [x] **Update `bot-monitor/service.ts`**:
+  - Add method to record:
+    - Messages sent
+    - Errors encountered
+    - Response times
+  - Implement rate limiting
+
+## 4. Add Dashboard Integration
+- **Update `admin/admin/src/app/dashboard/page.tsx`**:
+  - Add new section for bot monitoring
+  - Display health status and activity metrics
+  - Implement real-time updates
+
+## 5. Set Up Logging
+- **Create `bot-monitor/logger.ts`**:
+  - Implement structured logging
+  - Add log rotation
+  - Integrate with existing activity logs
+
+## Verification Steps
+1. Start bot monitor and verify initialization
+2. Simulate bot failures and check alerts
+3. Verify dashboard displays monitoring data
+4. Check log files for recorded activity
+</file>
+
+<file path="admin/admin/src/lib/actions.ts">
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { createClient } from './supabase'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { PrismaClient } from '@prisma/client'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { templateSchema } from './validators'
+
+const prisma = new PrismaClient()
+
+export async function getAnalytics() {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('activity_log')
+    .select('*')
+    .gte('created_at', new Date(Date.now() - 7 * 86400000).toISOString())
+  
+  if (error) throw error
+
+  // Aggregate data by date
+  const groupedData = data.reduce((acc, entry) => {
+    const date = new Date(entry.created_at).toLocaleDateString()
+    if (!acc[date]) acc[date] = 0
+    acc[date] += (entry.action === 'trigger' ? 1 : 0)
+    return acc
+  }, {})
+
+  // Convert to array format
+  const triggerUsage = Object.entries(groupedData).map(([date, count]) => ({
+    date,
+    count
+  }))
+
+  return { triggerUsage }
+}
+
+export async function createTrigger(formData: FormData) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('User not authenticated')
+  }
+
+  const triggerData = {
+    postId: formData.get('postId') as string,
+    keyword: formData.get('keyword') as string,
+    isActive: formData.get('isActive') === 'on',
+    userId: user.id,
+    templateId: formData.get('templateId') as string
+  }
+
+  try {
+    const newTrigger = await prisma.trigger.create({
+      data: triggerData
+    })
+    return newTrigger
+  } catch (error) {
+    console.error('Error creating trigger:', error)
+    throw error
+  }
+}
+
+export async function createTemplate(formData: FormData) {
+  const validated = templateSchema.parse(Object.fromEntries(formData));
+  try {
+    return await prisma.template.create({ data: validated });
+  } catch (error) {
+    console.error('Error creating template:', error);
+    throw error;
+  }
+}
+
+export async function updateTemplate(id: string, formData: FormData) {
+  const validated = templateSchema.parse(Object.fromEntries(formData));
+  try {
+    return await prisma.template.update({
+      where: { id },
+      data: validated
+    });
+  } catch (error) {
+    console.error('Error updating template:', error);
+    throw error;
+  }
+}
+
+export async function deleteTemplate(id: string) {
+  try {
+    return await prisma.template.delete({ where: { id } });
+  } catch (error) {
+    console.error('Error deleting template:', error);
+    throw error;
+  }
+}
+
+export async function getDashboardAnalytics() {
+  try {
+    // Get trigger activation counts
+    const triggerActivations = await prisma.trigger.count({
+      where: { isActive: true }
+    })
+
+    // Get user activity metrics
+    const totalUsers = await prisma.user.count()
+    const activeUsers = await prisma.user.count({
+      where: {
+        lastLogin: {
+          gte: new Date(Date.now() - 7 * 86400000) // Last 7 days
+        }
+      }
+    })
+
+    // Get template usage stats
+    const templateUsage = await prisma.template.findMany({
+      select: {
+        name: true,
+        _count: {
+          select: { triggers: true }
+        }
+      },
+      orderBy: {
+        triggers: {
+          _count: 'desc'
+        }
+      },
+      take: 5
+    })
+
+    return {
+      triggerActivations,
+      userActivity: {
+        totalUsers,
+        activeUsers
+      },
+      templateUsage: templateUsage.map((t: { name: string; _count: { triggers: number } }) => ({
+        name: t.name,
+        count: t._count.triggers
+      }))
+    }
+  } catch (error) {
+    console.error('Error fetching dashboard analytics:', error)
+    throw error
+  }
+}
+</file>
+
 <file path="admin/admin/package.json">
 {
   "name": "admin",
@@ -3551,6 +4391,50 @@ export const templateSchema = z.object({
 }
 </file>
 
+<file path="todos/dev_todo_phase_5.md">
+# Phase 5: Analytics Dashboard Implementation
+
+## 1. Enhance Bar Chart Component
+- [x] **Update `admin/admin/src/components/ui/bar-chart.tsx`**:
+  - Add support for multiple datasets
+  - Implement color customization props
+  - Add tooltip enhancements
+
+## 2. Create New Chart Components
+- [x] **Create `admin/admin/src/components/ui/line-chart.tsx`**:
+  - Line chart implementation with similar API to BarChart
+- [x] **Create `admin/admin/src/components/ui/pie-chart.tsx`**:
+  - Pie/doughnut chart implementation
+
+## 3. Add Analytics Data Fetching
+- [x] **Update `admin/admin/src/lib/actions.ts`**:
+  - Add `getDashboardAnalytics()` function
+  - Query database for:
+    - Trigger activation counts
+    - User activity metrics
+    - Template usage stats
+
+## 4. Enhance Dashboard Page
+- [x] **Update `admin/admin/src/app/dashboard/page.tsx`**:
+  - Add new chart components
+  - Create grid layout for multiple charts
+  - Add date range selector
+  - Implement data loading states
+
+## 5. Add Chart Customization
+- [x] **Create `admin/admin/src/components/chart-controls.tsx`**:
+  - Date range picker
+  - Chart type selector
+  - Data filter options
+
+## Verification Steps
+1. Start dev server and navigate to dashboard
+2. Verify all charts render without errors
+3. Test date range filtering
+4. Check data loading states
+5. Verify all chart types work properly
+</file>
+
 <file path="docker-compose.yml">
 version: '3.8'
 
@@ -3589,50 +4473,6 @@ services:
 
 volumes:
   pgdata:
-</file>
-
-<file path="todos/master_development_plan.md">
-# Master Development Plan
-
-Based on the documentation in the `/documentation` directory, the development will proceed in the following phases:
-## Phase 1: Core Infrastructure Setup
-- [x] Initialize Supabase database with schema
-- [x] Configure Next.js application with Supabase integration
-- [x] Implement basic authentication system
-- [x] Set up Prisma ORM for database access
-
-
-## Phase 2: Admin Dashboard Functionality (In Progress)
-- [x] Implement trigger management (CRUD operations)
-  - Detailed tasks created in `todos/dev_todo_phase_2.md`
-- [x] Develop template management system
-  - Detailed tasks created in `todos/dev_todo_极狐
-  - Detailed tasks created in `todos/dev_todo_phase_3.md`
-- [x] Create activity log display components
-  - Detailed tasks created in `todos/dev_todo_phase_4.md`
-- [x] Build analytics dashboard with chart visualizations
-  - Detailed tasks created in `todos/dev_todo_phase_5.md`
-
-## Phase 3: Bot Engine Implementation
-- [ ] Develop bot monitoring service architecture
-- [ ] Implement keyword matching logic
-- [ ] Create DM sending functionality
-- [ ] Build logging system for bot activities
-
-## Phase 4: API Integration
-- [ ] Implement REST API for trigger management
-- [ ] Create endpoints for template operations
-- [ ] Develop bot healthcheck API
-- [极狐
-- [ ] Implement authentication for API endpoints
-
-## Phase 5: Testing and Deployment
-- [ ] Write comprehensive test suite
-- [ ] Create CI/CD pipeline
-- [ ] Implement monitoring and alerting
-- [ ] Prepare production deployment
-
-Each phase will be broken down into detailed development tasks by the Planner_Architect AI.
 </file>
 
 <file path="todos/dev_todo_phase_1.md">
@@ -3750,6 +4590,55 @@ Each phase will be broken down into detailed development tasks by the Planner_Ar
   2. Run database setup: `npm run prisma:migrate`
   ```
 - **Verification**: README contains complete setup instructions.
+</file>
+
+<file path="todos/master_development_plan.md">
+# Master Development Plan
+
+Based on the documentation in the `/documentation` directory, the development will proceed in the following phases:
+## Phase 1: Core Infrastructure Setup
+- [x] Initialize Supabase database with schema
+-极狐
+- [x] Configure Next.js application with Supabase integration
+- [x] Implement basic authentication system
+- [x] Set up Prisma ORM for database access
+
+## Phase 2: Admin Dashboard Functionality (In Progress)
+- [x] Implement trigger management (CRUD operations)
+  - Detailed tasks created in `todos/dev_todo_phase_2.md`
+- [x] Develop template management system
+  - Detailed tasks created in `todos/dev_todo_phase_3.md`
+- [x] Create activity log display components
+  - Detailed tasks created in `todos/dev_todo_phase_4.md`
+- [x] Build analytics dashboard with chart visualizations
+  - Detailed tasks created in `todos/dev_todo_phase_5.md`
+
+## Phase 3: Bot Engine Implementation
+- [x] Develop bot monitoring service architecture
+  - Detailed tasks created in `todos/dev_todo_phase_6.md`
+- [x] Implement keyword matching logic
+  - Detailed tasks created in `todos/dev_todo_phase_7.md`
+- [x] Create DM sending functionality
+  - Detailed tasks created in `todos/dev_todo_phase_8.md`
+- [x] Build logging system for bot activities
+  - Detailed tasks created in `todos/dev_todo_phase_9.md`
+
+## Phase 4: API Integration
+- [x] Implement REST API for trigger management
+  - Detailed tasks created in `todos/dev_todo_phase_10.md`
+- [x] Create endpoints for template operations
+  - Detailed tasks created in `todos/dev_todo_phase_11.md`
+- [x] Develop bot healthcheck API
+  - Detailed tasks created in `todos/dev_todo_phase_12.md`
+- [ ] Implement authentication for API endpoints
+
+## Phase 5: Testing and Deployment
+- [ ] Write comprehensive test suite
+- [ ] Create CI/CD pipeline
+- [ ] Implement monitoring and alerting
+- [ ] Prepare production deployment
+
+Each phase will be broken down into detailed development tasks by the Planner_Architect AI.
 </file>
 
 </files>
