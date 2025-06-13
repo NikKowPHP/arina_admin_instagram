@@ -13,7 +13,7 @@
   - Pie/doughnut chart implementation
 
 ## 3. Add Analytics Data Fetching
-- **Update `admin/admin/src/lib/actions.ts`**:
+- [x] **Update `admin/admin/src/lib/actions.ts`**:
   - Add `getDashboardAnalytics()` function
   - Query database for:
     - Trigger activation counts

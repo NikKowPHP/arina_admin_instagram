@@ -91,3 +91,53 @@ export async function deleteTemplate(id: string) {
     throw error;
   }
 }
+
+export async function getDashboardAnalytics() {
+  try {
+    // Get trigger activation counts
+    const triggerActivations = await prisma.trigger.count({
+      where: { isActive: true }
+    })
+
+    // Get user activity metrics
+    const totalUsers = await prisma.user.count()
+    const activeUsers = await prisma.user.count({
+      where: {
+        lastLogin: {
+          gte: new Date(Date.now() - 7 * 86400000) // Last 7 days
+        }
+      }
+    })
+
+    // Get template usage stats
+    const templateUsage = await prisma.template.findMany({
+      select: {
+        name: true,
+        _count: {
+          select: { triggers: true }
+        }
+      },
+      orderBy: {
+        triggers: {
+          _count: 'desc'
+        }
+      },
+      take: 5
+    })
+
+    return {
+      triggerActivations,
+      userActivity: {
+        totalUsers,
+        activeUsers
+      },
+      templateUsage: templateUsage.map((t: { name: string; _count: { triggers: number } }) => ({
+        name: t.name,
+        count: t._count.triggers
+      }))
+    }
+  } catch (error) {
+    console.error('Error fetching dashboard analytics:', error)
+    throw error
+  }
+}
