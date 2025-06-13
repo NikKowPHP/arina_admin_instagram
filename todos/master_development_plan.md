@@ -8,8 +8,9 @@ Based on the documentation in the `/documentation` directory, the development wi
 - [x] Set up Prisma ORM for database access
 
 
-## Phase 2: Admin Dashboard Functionality
-- [ ] Implement trigger management (CRUD operations)
+## Phase 2: Admin Dashboard Functionality (In Progress)
+- [x] Implement trigger management (CRUD operations)
+  - Detailed tasks created in `todos/dev_todo_phase_2.md`
 - [ ] Develop template management system
 - [ ] Create activity log display components
 - [ ] Build analytics dashboard with chart visualizations
