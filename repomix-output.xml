@@ -56,6 +56,28 @@ The content is organized as follows:
   rules-planner-orchestrator/
     rules.md
   custom_modes.yaml
+admin/
+  admin/
+    prisma/
+      schema.prisma
+    public/
+      file.svg
+      globe.svg
+      next.svg
+      vercel.svg
+      window.svg
+    src/
+      app/
+        globals.css
+        layout.tsx
+        page.tsx
+    .gitignore
+    eslint.config.mjs
+    next.config.ts
+    package.json
+    postcss.config.mjs
+    README.md
+    tsconfig.json
 documentation/
   api_spec.md
   business_requirements.md
@@ -64,711 +86,18 @@ documentation/
   functional_requirements.md
   master_plan.md
   technical_design.md
+supabase/
+  config.toml
 todos/
+  dev_todo_phase_1.md
   master_development_plan.md
 app_description.md
 BLUEPRINT_COMPLETE.md
+docker-compose.yml
 </directory_structure>
 
 <files>
 This section contains the contents of the repository's files.
-
-<file path="documentation/api_spec.md">
-# API Specification
-
-## Admin Panel API (Next.js Routes)
-
-### Authentication
-- All routes require valid JWT from Supabase Auth
-- Token passed in `Authorization` header
-
-### Trigger Management
-`POST /api/triggers`
-```json
-{
-  "post_id": "INSTAGRAM_POST_ID",
-  "keyword": "WIN",
-  "template_id": "UUID",
-  "is_active": true
-}
-```
-Response:
-```json
-{
-  "id": "UUID",
-  "created_at": "ISO8601"
-}
-```
-
-`GET /api/triggers?post_id=INSTAGRAM_POST_ID`
-```json
-[
-  {
-    "id": "UUID",
-    "keyword": "WIN",
-    "template": { /* template object */ },
-    "is_active": true
-  }
-]
-```
-
-### Template Management
-`POST /api/templates`
-```json
-{
-  "content": "Congrats! You won!",
-  "media_url": "https://storage.example.com/prize.jpg"
-}
-```
-
-## Bot Service API (Python)
-
-### Health Check
-`GET /bot/health`
-```json
-{
-  "status": "ok",
-  "last_check": "ISO8601",
-  "queued_messages": 5
-}
-```
-
-### Configuration
-`GET /bot/config`
-```json
-{
-  "active_triggers": [
-    {
-      "post_id": "INSTAGRAM_POST_ID",
-      "keyword": "WIN",
-      "template": { /* template object */ }
-    }
-  ]
-}
-```
-
-## Supabase Integration
-
-### Authentication
-`POST /auth/v1/token?grant_type=password`
-```json
-{
-  "email": "admin@example.com",
-  "password": "secret"
-}
-```
-
-### Storage
-`POST /storage/v1/object/templates/{filename}`
-- Requires Bearer token
-- Max file size: 10MB
-- Allowed types: image/jpeg, image/png, video/mp4
-
-## Error Responses
-Common error formats:
-```json
-{
-  "error": "ERROR_CODE",
-  "message": "Human-readable description"
-}
-```
-
-### Status Codes
-- 401 Unauthorized - Invalid/missing token
-- 403 Forbidden - Insufficient permissions
-- 429 Too Many Requests - Rate limit exceeded
-</file>
-
-<file path="documentation/business_requirements.md">
-# Business Requirements Document
-
-## Project Overview
-Automated Instagram engagement system that:
-- Sends DMs to users who comment with specific keywords
-- Provides admins with web-based control panel for configuration
-- Runs locally via Docker for easy testing
-
-## Key Objectives
-1. Increase user engagement through automated responses
-2. Simplify campaign management for admins
-3. Ensure system reliability and scalability
-4. Maintain secure access to admin features
-
-## Stakeholders
-- **Instagram Users**: Receive automated DMs based on comments
-- **Marketing Admins**: Manage trigger keywords and DM content
-- **Developers**: Maintain and extend system functionality
-
-## User Stories
-
-### Instagram User Perspective
-- As a user, I want to receive relevant DMs when I comment with specific keywords
-- As a user, I want the DM content to match the keyword I used
-- As a user, I want to receive media attachments in DMs when available
-
-### Admin Perspective
-- As an admin, I want to:
-  - Create/edit/delete trigger keywords
-  - Manage DM templates (text + media)
-  - Monitor bot activity
-  - Toggle triggers on/off
-- As an admin, I need secure login to the control panel
-- As an admin, I want to see statistics on trigger usage
-
-## Success Metrics
-1. 80% of keyword comments receive DMs within 5 minutes
-2. Admin can configure new triggers in under 2 minutes
-3. System uptime of 99.9% during campaign periods
-4. Zero unauthorized access to admin panel
-
-## Key Features
-### Instagram Bot
-- Real-time comment monitoring
-- Keyword matching logic
-- DM template selection
-- Media attachment handling
-
-### Admin Panel
-- User authentication
-- CRUD operations for:
-  - Trigger keywords
-  - DM templates
-- Activity dashboard
-- System health monitoring
-
-## Constraints
-- Must run in Docker environment
-- Instagram API rate limits
-- 2FA requirements for admin access
-- Local development focus initially
-</file>
-
-<file path="documentation/database_schema.md">
-# Database Schema
-
-## Tables Overview
-```mermaid
-erDiagram
-    users ||--o{ triggers : "manages"
-    triggers }o--|| templates : "uses"
-    users ||--o{ activity_log : "performs"
-    
-    users {
-        uuid id
-        string email
-        timestamp created_at
-    }
-    
-    triggers {
-        uuid id
-        uuid user_id
-        uuid template_id
-        string post_id
-        string keyword
-        boolean is_active
-        timestamp created_at
-    }
-    
-    templates {
-        uuid id
-        string content
-        string media_url
-        json metadata
-        timestamp created_at
-    }
-    
-    activity_log {
-        uuid id
-        uuid user_id
-        string action
-        json details
-        timestamp created_at
-    }
-```
-
-## Table Details
-
-### `users` (Supabase Auth)
-- Extends default Supabase auth.users table
-- Stores admin panel users
-- **Relationships**:
-  - Has many `triggers`
-  - Has many `activity_log` entries
-
-### `triggers`
-- Stores Instagram post/keyword configurations
-- **Fields**:
-  - `post_id`: Instagram post ID to monitor
-  - `keyword`: Trigger word/phrase
-  - `is_active`: Enable/disable toggle
-- **Indexes**:
-  - `idx_triggers_post_id` (post_id)
-  - `idx_triggers_keyword` (keyword)
-
-### `templates`
-- Stores DM response content
-- **Fields**:
-  - `content`: Message text (supports variables)
-  - `media_url`: Optional image/video URL
-  - `metadata`: Additional config (e.g., buttons)
-  
-### `activity_log`
-- Tracks system events
-- **Fields**:
-  - `action`: Event type (e.g., "dm_sent")
-  - `details`: JSON payload with context
-
-## Sample Queries
-
-1. Get active triggers for a post:
-```sql
-SELECT * FROM triggers 
-WHERE post_id = 'INSTAGRAM_POST_ID' 
-AND is_active = true;
-```
-
-2. Get template for a keyword:
-```sql
-SELECT t.* FROM templates t
-JOIN triggers tr ON tr.template_id = t.id
-WHERE tr.keyword = 'WIN'
-LIMIT 1;
-```
-
-3. Recent admin activity:
-```sql
-SELECT * FROM activity_log
-WHERE user_id = 'ADMIN_UUID'
-ORDER BY created_at DESC
-LIMIT 10;
-</file>
-
-<file path="documentation/deployment_guide.md">
-# Deployment Guide
-
-## Prerequisites
-- Docker 20.10+
-- Docker Compose 2.20+
-- 4GB RAM minimum
-
-## Quick Start
-```bash
-# Clone repository
-git clone https://github.com/your-repo/instagram-bot.git
-cd instagram-bot
-
-# Start services
-docker-compose up -d
-```
-
-## Docker Compose Configuration
-```yaml
-version: '3.8'
-
-services:
-  admin-panel:
-    image: node:18
-    working_dir: /app
-    volumes:
-      - ./admin:/app
-    ports:
-      - "3000:3000"
-    environment:
-      - DATABASE_URL=postgres://postgres:password@db:5432/postgres
-    depends_on:
-      - db
-
-  bot-service:
-    image: python:3.10
-    working_dir: /app
-    volumes:
-      - ./bot:/app
-    environment:
-      - INSTAGRAM_USER=your_username
-      - INSTAGRAM_PASSWORD=your_password
-    depends_on:
-      - db
-
-  db:
-    image: supabase/postgres:15
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_PASSWORD=password
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-
-volumes:
-  pgdata:
-```
-
-## Environment Variables
-
-### Admin Panel (Next.js)
-```env
-NEXT_PUBLIC_SUPABASE_URL=http://db:5432
-NEXT_PUBLIC_SUPABASE_KEY=your-anon-key
-```
-
-### Bot Service
-```env
-INSTAGRAM_USER=your_instagram_username
-INSTAGRAM_PASSWORD=your_instagram_password
-POLL_INTERVAL=60 # seconds
-```
-
-## Initial Setup
-1. Create admin user:
-```bash
-docker-compose exec admin-panel npm run create-admin
-```
-
-2. Import initial triggers (optional):
-```bash
-docker-compose exec admin-panel npm run import-triggers triggers.csv
-```
-
-## Testing
-1. Verify services are running:
-```bash
-docker-compose ps
-```
-
-2. Check admin panel:
-```bash
-curl http://localhost:3000/api/health
-```
-
-3. Test bot service:
-```bash
-docker-compose exec bot-service python test_bot.py
-```
-
-## Troubleshooting
-Common issues:
-- Instagram API limits: Check bot logs
-```bash
-docker-compose logs bot-service
-```
-- Database connection issues: Verify credentials
-- Admin panel not loading: Check Next.js build
-```bash
-docker-compose exec admin-panel npm run build
-</file>
-
-<file path="documentation/functional_requirements.md">
-# Functional Requirements
-
-## Instagram Bot Functionality
-
-### Comment Monitoring
-- Continuously polls Instagram API for new comments
-- Filters comments based on:
-  - Post ID (configured triggers only)
-  - Keyword matches (exact and partial matches)
-  - User eligibility (exclude blocked users)
-
-### Keyword Matching
-- Supports:
-  - Exact match triggers (e.g., "WIN")
-  - Partial match triggers (e.g., "promo*")
-  - Case-insensitive matching
-- Priority system for multiple matches
-
-### DM Response System
-- Selects appropriate template based on:
-  - Matched keyword
-  - User history (avoid duplicates)
-- Sends DM containing:
-  - Preconfigured text
-  - Optional media attachment
-  - Tracking pixel for analytics
-- Rate limiting: Max 1 DM per user per hour
-
-## Admin Panel Features
-
-### Authentication
-- Supabase email/password login
-- Session management (30min timeout)
-- Role-based access (Admin/Viewer)
-
-### Trigger Management
-- CRUD operations for:
-  - Post IDs to monitor
-  - Trigger keywords
-  - Response templates
-- Activation toggle per trigger
-- Bulk import/export via CSV
-
-### Template Management
-- Create/edit DM templates with:
-  - Text content (markdown supported)
-  - Media attachments (images/videos)
-  - Tracking parameters
-- Preview functionality
-- Version history
-
-### Dashboard
-- Real-time metrics:
-  - Total triggers activated
-  - DMs sent (success/failure)
-  - Popular keywords
-- System health monitoring
-
-## System Constraints
-- Instagram API rate limits:
-  - Max 200 comments/min
-  - Max 30 DMs/min
-- Local storage limits:
-  - 1GB media cache
-  - 7d activity logs
-- Performance targets:
-  - <2s response time for admin panel
-  - <5s DM delivery after comment
-
-## Error Handling
-- Failed DM retries (3 attempts)
-- Invalid comment skipping
-- API outage recovery:
-  - 15min backoff period
-  - Local queue for pending DMs
-- Admin alerts for:
-  - Continuous failures
-  - Storage limits
-  - Auth breaches
-</file>
-
-<file path="documentation/master_plan.md">
-# Master Documentation Plan
-
-Based on the vision in [`app_description.md`](app_description.md), create the following documents:
-
-- [x] **1. Business Requirements Document** (`documentation/business_requirements.md`)
-  - Project overview and objectives
-  - Stakeholder analysis
-  - User stories for:
-    - Instagram users receiving DMs
-    - Admin users managing triggers
-  - Success metrics
-
-- [x] **2. Functional Requirements** (`documentation/functional_requirements.md`)
-  - Instagram bot functionality:
-    - Comment monitoring workflow
-    - Keyword matching logic
-    - DM sending process
-  - Admin panel features:
-    - Authentication flow
-    - CRUD operations for triggers
-    - DM template management
-  - System constraints and edge cases
-
-- [x] **3. Technical Design Specification** (`documentation/technical_design.md`)
-  - System architecture diagram
-  - Component breakdown:
-    - Instagram bot service
-    - Admin panel (Next.js)
-    - Database layer
-  - API specifications:
-    - Internal bot-admin communication
-    - Supabase integration points
-  - Security considerations
-
-- [x] **4. Database Schema** (`documentation/database_schema.md`)
-  - Supabase tables:
-    - `users` (Supabase Auth)
-    - `triggers` (keyword configurations)
-    - `dm_templates` (response content)
-    - `activity_log` (bot operations)
-  - Relationships and indexes
-  - Sample queries
-
-- [x] **5. API Documentation** (`documentation/api_spec.md`)
-  - Admin panel API routes:
-    - /api/triggers (CRUD)
-    - /api/templates (CRUD)
-  - Bot healthcheck endpoints
-  - Authentication requirements
-  - Request/response examples
-
-- [x] **6. Deployment Guide** (`documentation/deployment_guide.md`)
-  - Docker compose configuration
-  - Environment variables
-  - Initial setup steps
-  - Local development workflow
-  - Testing procedures
-</file>
-
-<file path="documentation/technical_design.md">
-# Technical Design Specification
-
-## System Architecture
-```text
-[Instagram Users] <-> [Instagram API] <-> [Python Bot Service]
-                             ^
-                             |
-                             v
-[Admin Users] <-> [Next.js Admin Panel] <-> [Supabase Database]
-```
-
-### Components
-1. **Instagram Bot Service** (Python)
-   - Comment polling every 60s
-   - Keyword matching engine
-   - DM sending queue
-   - Error handling and retries
-
-2. **Admin Panel** (Next.js 14)
-   - App Router structure:
-     - `/app/login` - Auth page
-     - `/app/dashboard` - Main interface
-     - `/app/triggers` - CRUD operations
-   - API Routes:
-     - `/api/triggers` - Manage keywords
-     - `/api/templates` - Handle DM content
-
-3. **Database** (Supabase)
-   - Tables:
-     - `triggers` (post_id, keyword, template_id, is_active)
-     - `templates` (content, media_url, metadata)
-     - `activity_log` (timestamp, user_id, action)
-
-## API Specifications
-
-### Bot Service API
-- POST `/bot/healthcheck` - Monitoring endpoint
-- GET `/bot/config` - Retrieve active triggers
-
-### Admin Panel API
-- CRUD endpoints for all database tables
-- JWT authentication via Supabase
-
-### Supabase Integration
-- Auth: Email/password with sessions
-- Storage: Media files for DM templates
-- Realtime: Updates to trigger configurations
-
-## Security Design
-- Rate limiting on public endpoints
-- JWT validation for admin API
-- Encrypted database connections
-- Regular security audits
-
-## Infrastructure
-- Docker Compose setup:
-  - `admin-panel` service (Next.js)
-  - `bot-service` service (Python)
-  - `supabase` service (local emulator)
-- Environment variables for configuration
-- Health monitoring endpoints
-
-## Performance Considerations
-- Caching of frequent API calls
-- Bulk operations for trigger updates
-- Async processing for DM delivery
-</file>
-
-<file path="todos/master_development_plan.md">
-# Master Development Plan
-
-## Phase 1: Project Setup and Infrastructure
-- [ ] Set up Docker Compose environment
-- [ ] Configure Supabase local instance
-- [ ] Initialize Next.js admin panel
-- [ ] Create Python bot service skeleton
-
-## Phase 2: Admin Panel Core Functionality
-- [ ] Implement Supabase authentication
-- [ ] Build trigger management CRUD
-- [ ] Create DM template editor
-- [ ] Develop activity dashboard
-
-## Phase 3: Instagram Bot Implementation
-- [ ] Set up Instagram API integration
-- [ ] Implement comment monitoring system
-- [ ] Build keyword matching engine
-- [ ] Create DM sending queue
-
-## Phase 4: Integration and Testing
-- [ ] Connect bot to admin panel API
-- [ ] Implement end-to-end testing
-- [ ] Set up monitoring and alerts
-- [ ] Create deployment pipeline
-</file>
-
-<file path="app_description.md">
-# Instagram Comment-to-DM Bot System
-
-## Project Vision
-Create an automated system where:
-1. Users commenting with specific keywords on Instagram posts receive automated DMs
-2. Admins can manage triggers and DM content through a web panel
-3. Entire system runs locally via Docker for easy testing
-
-## Core Components
-### Instagram Bot
-- Python-based service monitoring Instagram comments
-- Matches comments against admin-defined keywords
-- Sends pre-configured DM responses (text/media) to matching users
-- Runs in background 24/7
-
-### Admin Panel
-- Next.js 14 application with App Router
-- Authentication via Supabase Auth
-- CRUD operations for:
-  - Instagram post triggers (keywords)
-  - DM response templates (text/media)
-  - Activation status
-- Dashboard showing trigger statistics
-- Tailwind CSS for styling
-
-### Database & Storage
-- Supabase PostgreSQL for:
-  - User accounts (Supabase Auth)
-  - Trigger configurations
-  - DM templates
-- Supabase Storage for media files in DMs
-
-## Tech Stack
-### Backend Services
-- Instagram Bot: Python + Instagram API wrapper
-- Admin API: Next.js API routes
-
-### Frontend
-- Next.js 14
-- Tailwind CSS
-- Prisma ORM
-
-### Infrastructure
-- Docker Compose for local development
-- Supabase for:
-  - Authentication
-  - Database
-  - File storage
-
-## Key Requirements
-1. Single-command startup: `docker-compose up`
-2. Isolated services:
-   - Admin panel (Next.js)
-   - Instagram bot (Python)
-   - Database (Supabase local)
-3. Secure admin authentication
-4. Configurable triggers/DM content
-</file>
-
-<file path="BLUEPRINT_COMPLETE.md">
-# Blueprint Completion Signal
-
-All documentation tasks from `documentation/master_plan.md` have been completed:
-
-- [x] Business Requirements
-- [x] Functional Requirements
-- [x] Technical Design Specification
-- [x] Database Schema
-- [x] API Documentation
-- [x] Deployment Guide
-
-The project is now ready for development planning phase.
-</file>
 
 <file path=".roo/rules-architect-senior/rules.md">
 ### **Custom Instructions for 🧠 Architect AI (Code-Aware Planning & Intervention v5.0)**
@@ -1401,6 +730,1317 @@ customModes:
       - command
       - mcp
     source: global
+</file>
+
+<file path="admin/admin/prisma/schema.prisma">
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  createdAt    DateTime   @default(now()) @map("created_at")
+  triggers     Trigger[]
+  activityLogs ActivityLog[]
+  
+  @@map("users")
+}
+
+model Trigger {
+  id         String   @id @default(uuid())
+  postId     String   @map("post_id")
+  keyword    String
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  userId     String   @map("user_id")
+  templateId String   @map("template_id")
+  
+  user     User     @relation(fields: [userId], references: [id])
+  template Template @relation(fields: [templateId], references: [id])
+  
+  @@index([postId], name: "idx_triggers_post_id")
+  @@index([keyword], name: "idx_triggers_keyword")
+  @@map("triggers")
+}
+
+model Template {
+  id        String   @id @default(uuid())
+  content   String
+  mediaUrl  String?  @map("media_url")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  triggers  Trigger[]
+  
+  @@map("templates")
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  action    String
+  details   Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  userId    String   @map("user_id")
+  
+  user User @relation(fields: [userId], references: [id])
+  
+  @@map("activity_log")
+}
+</file>
+
+<file path="admin/admin/public/file.svg">
+<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
+</file>
+
+<file path="admin/admin/public/globe.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
+</file>
+
+<file path="admin/admin/public/next.svg">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
+</file>
+
+<file path="admin/admin/public/vercel.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
+</file>
+
+<file path="admin/admin/public/window.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
+</file>
+
+<file path="admin/admin/src/app/globals.css">
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+</file>
+
+<file path="admin/admin/src/app/layout.tsx">
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Create Next App",
+  description: "Generated by create next app",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        {children}
+      </body>
+    </html>
+  );
+}
+</file>
+
+<file path="admin/admin/src/app/page.tsx">
+import Image from "next/image";
+
+export default function Home() {
+  return (
+    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
+        <Image
+          className="dark:invert"
+          src="/next.svg"
+          alt="Next.js logo"
+          width={180}
+          height={38}
+          priority
+        />
+        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
+          <li className="mb-2 tracking-[-.01em]">
+            Get started by editing{" "}
+            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
+              src/app/page.tsx
+            </code>
+            .
+          </li>
+          <li className="tracking-[-.01em]">
+            Save and see your changes instantly.
+          </li>
+        </ol>
+
+        <div className="flex gap-4 items-center flex-col sm:flex-row">
+          <a
+            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
+            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Image
+              className="dark:invert"
+              src="/vercel.svg"
+              alt="Vercel logomark"
+              width={20}
+              height={20}
+            />
+            Deploy now
+          </a>
+          <a
+            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
+            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Read our docs
+          </a>
+        </div>
+      </main>
+      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
+        <a
+          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
+          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Image
+            aria-hidden
+            src="/file.svg"
+            alt="File icon"
+            width={16}
+            height={16}
+          />
+          Learn
+        </a>
+        <a
+          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
+          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Image
+            aria-hidden
+            src="/window.svg"
+            alt="Window icon"
+            width={16}
+            height={16}
+          />
+          Examples
+        </a>
+        <a
+          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
+          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Image
+            aria-hidden
+            src="/globe.svg"
+            alt="Globe icon"
+            width={16}
+            height={16}
+          />
+          Go to nextjs.org →
+        </a>
+      </footer>
+    </div>
+  );
+}
+</file>
+
+<file path="admin/admin/eslint.config.mjs">
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+import { FlatCompat } from "@eslint/eslintrc";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+});
+
+const eslintConfig = [
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
+];
+
+export default eslintConfig;
+</file>
+
+<file path="admin/admin/next.config.ts">
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+
+export default nextConfig;
+</file>
+
+<file path="admin/admin/postcss.config.mjs">
+const config = {
+  plugins: ["@tailwindcss/postcss"],
+};
+
+export default config;
+</file>
+
+<file path="admin/admin/README.md">
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+</file>
+
+<file path="admin/admin/tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+</file>
+
+<file path="documentation/api_spec.md">
+# API Specification
+
+## Admin Panel API (Next.js Routes)
+
+### Authentication
+- All routes require valid JWT from Supabase Auth
+- Token passed in `Authorization` header
+
+### Trigger Management
+`POST /api/triggers`
+```json
+{
+  "post_id": "INSTAGRAM_POST_ID",
+  "keyword": "WIN",
+  "template_id": "UUID",
+  "is_active": true
+}
+```
+Response:
+```json
+{
+  "id": "UUID",
+  "created_at": "ISO8601"
+}
+```
+
+`GET /api/triggers?post_id=INSTAGRAM_POST_ID`
+```json
+[
+  {
+    "id": "UUID",
+    "keyword": "WIN",
+    "template": { /* template object */ },
+    "is_active": true
+  }
+]
+```
+
+### Template Management
+`POST /api/templates`
+```json
+{
+  "content": "Congrats! You won!",
+  "media_url": "https://storage.example.com/prize.jpg"
+}
+```
+
+## Bot Service API (Python)
+
+### Health Check
+`GET /bot/health`
+```json
+{
+  "status": "ok",
+  "last_check": "ISO8601",
+  "queued_messages": 5
+}
+```
+
+### Configuration
+`GET /bot/config`
+```json
+{
+  "active_triggers": [
+    {
+      "post_id": "INSTAGRAM_POST_ID",
+      "keyword": "WIN",
+      "template": { /* template object */ }
+    }
+  ]
+}
+```
+
+## Supabase Integration
+
+### Authentication
+`POST /auth/v1/token?grant_type=password`
+```json
+{
+  "email": "admin@example.com",
+  "password": "secret"
+}
+```
+
+### Storage
+`POST /storage/v1/object/templates/{filename}`
+- Requires Bearer token
+- Max file size: 10MB
+- Allowed types: image/jpeg, image/png, video/mp4
+
+## Error Responses
+Common error formats:
+```json
+{
+  "error": "ERROR_CODE",
+  "message": "Human-readable description"
+}
+```
+
+### Status Codes
+- 401 Unauthorized - Invalid/missing token
+- 403 Forbidden - Insufficient permissions
+- 429 Too Many Requests - Rate limit exceeded
+</file>
+
+<file path="documentation/business_requirements.md">
+# Business Requirements Document
+
+## Project Overview
+Automated Instagram engagement system that:
+- Sends DMs to users who comment with specific keywords
+- Provides admins with web-based control panel for configuration
+- Runs locally via Docker for easy testing
+
+## Key Objectives
+1. Increase user engagement through automated responses
+2. Simplify campaign management for admins
+3. Ensure system reliability and scalability
+4. Maintain secure access to admin features
+
+## Stakeholders
+- **Instagram Users**: Receive automated DMs based on comments
+- **Marketing Admins**: Manage trigger keywords and DM content
+- **Developers**: Maintain and extend system functionality
+
+## User Stories
+
+### Instagram User Perspective
+- As a user, I want to receive relevant DMs when I comment with specific keywords
+- As a user, I want the DM content to match the keyword I used
+- As a user, I want to receive media attachments in DMs when available
+
+### Admin Perspective
+- As an admin, I want to:
+  - Create/edit/delete trigger keywords
+  - Manage DM templates (text + media)
+  - Monitor bot activity
+  - Toggle triggers on/off
+- As an admin, I need secure login to the control panel
+- As an admin, I want to see statistics on trigger usage
+
+## Success Metrics
+1. 80% of keyword comments receive DMs within 5 minutes
+2. Admin can configure new triggers in under 2 minutes
+3. System uptime of 99.9% during campaign periods
+4. Zero unauthorized access to admin panel
+
+## Key Features
+### Instagram Bot
+- Real-time comment monitoring
+- Keyword matching logic
+- DM template selection
+- Media attachment handling
+
+### Admin Panel
+- User authentication
+- CRUD operations for:
+  - Trigger keywords
+  - DM templates
+- Activity dashboard
+- System health monitoring
+
+## Constraints
+- Must run in Docker environment
+- Instagram API rate limits
+- 2FA requirements for admin access
+- Local development focus initially
+</file>
+
+<file path="documentation/database_schema.md">
+# Database Schema
+
+## Tables Overview
+```mermaid
+erDiagram
+    users ||--o{ triggers : "manages"
+    triggers }o--|| templates : "uses"
+    users ||--o{ activity_log : "performs"
+    
+    users {
+        uuid id
+        string email
+        timestamp created_at
+    }
+    
+    triggers {
+        uuid id
+        uuid user_id
+        uuid template_id
+        string post_id
+        string keyword
+        boolean is_active
+        timestamp created_at
+    }
+    
+    templates {
+        uuid id
+        string content
+        string media_url
+        json metadata
+        timestamp created_at
+    }
+    
+    activity_log {
+        uuid id
+        uuid user_id
+        string action
+        json details
+        timestamp created_at
+    }
+```
+
+## Table Details
+
+### `users` (Supabase Auth)
+- Extends default Supabase auth.users table
+- Stores admin panel users
+- **Relationships**:
+  - Has many `triggers`
+  - Has many `activity_log` entries
+
+### `triggers`
+- Stores Instagram post/keyword configurations
+- **Fields**:
+  - `post_id`: Instagram post ID to monitor
+  - `keyword`: Trigger word/phrase
+  - `is_active`: Enable/disable toggle
+- **Indexes**:
+  - `idx_triggers_post_id` (post_id)
+  - `idx_triggers_keyword` (keyword)
+
+### `templates`
+- Stores DM response content
+- **Fields**:
+  - `content`: Message text (supports variables)
+  - `media_url`: Optional image/video URL
+  - `metadata`: Additional config (e.g., buttons)
+  
+### `activity_log`
+- Tracks system events
+- **Fields**:
+  - `action`: Event type (e.g., "dm_sent")
+  - `details`: JSON payload with context
+
+## Sample Queries
+
+1. Get active triggers for a post:
+```sql
+SELECT * FROM triggers 
+WHERE post_id = 'INSTAGRAM_POST_ID' 
+AND is_active = true;
+```
+
+2. Get template for a keyword:
+```sql
+SELECT t.* FROM templates t
+JOIN triggers tr ON tr.template_id = t.id
+WHERE tr.keyword = 'WIN'
+LIMIT 1;
+```
+
+3. Recent admin activity:
+```sql
+SELECT * FROM activity_log
+WHERE user_id = 'ADMIN_UUID'
+ORDER BY created_at DESC
+LIMIT 10;
+</file>
+
+<file path="documentation/deployment_guide.md">
+# Deployment Guide
+
+## Prerequisites
+- Docker 20.10+
+- Docker Compose 2.20+
+- 4GB RAM minimum
+
+## Quick Start
+```bash
+# Clone repository
+git clone https://github.com/your-repo/instagram-bot.git
+cd instagram-bot
+
+# Start services
+docker-compose up -d
+```
+
+## Docker Compose Configuration
+```yaml
+version: '3.8'
+
+services:
+  admin-panel:
+    image: node:18
+    working_dir: /app
+    volumes:
+      - ./admin:/app
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgres://postgres:password@db:5432/postgres
+    depends_on:
+      - db
+
+  bot-service:
+    image: python:3.10
+    working_dir: /app
+    volumes:
+      - ./bot:/app
+    environment:
+      - INSTAGRAM_USER=your_username
+      - INSTAGRAM_PASSWORD=your_password
+    depends_on:
+      - db
+
+  db:
+    image: supabase/postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
+```
+
+## Environment Variables
+
+### Admin Panel (Next.js)
+```env
+NEXT_PUBLIC_SUPABASE_URL=http://db:5432
+NEXT_PUBLIC_SUPABASE_KEY=your-anon-key
+```
+
+### Bot Service
+```env
+INSTAGRAM_USER=your_instagram_username
+INSTAGRAM_PASSWORD=your_instagram_password
+POLL_INTERVAL=60 # seconds
+```
+
+## Initial Setup
+1. Create admin user:
+```bash
+docker-compose exec admin-panel npm run create-admin
+```
+
+2. Import initial triggers (optional):
+```bash
+docker-compose exec admin-panel npm run import-triggers triggers.csv
+```
+
+## Testing
+1. Verify services are running:
+```bash
+docker-compose ps
+```
+
+2. Check admin panel:
+```bash
+curl http://localhost:3000/api/health
+```
+
+3. Test bot service:
+```bash
+docker-compose exec bot-service python test_bot.py
+```
+
+## Troubleshooting
+Common issues:
+- Instagram API limits: Check bot logs
+```bash
+docker-compose logs bot-service
+```
+- Database connection issues: Verify credentials
+- Admin panel not loading: Check Next.js build
+```bash
+docker-compose exec admin-panel npm run build
+</file>
+
+<file path="documentation/functional_requirements.md">
+# Functional Requirements
+
+## Instagram Bot Functionality
+
+### Comment Monitoring
+- Continuously polls Instagram API for new comments
+- Filters comments based on:
+  - Post ID (configured triggers only)
+  - Keyword matches (exact and partial matches)
+  - User eligibility (exclude blocked users)
+
+### Keyword Matching
+- Supports:
+  - Exact match triggers (e.g., "WIN")
+  - Partial match triggers (e.g., "promo*")
+  - Case-insensitive matching
+- Priority system for multiple matches
+
+### DM Response System
+- Selects appropriate template based on:
+  - Matched keyword
+  - User history (avoid duplicates)
+- Sends DM containing:
+  - Preconfigured text
+  - Optional media attachment
+  - Tracking pixel for analytics
+- Rate limiting: Max 1 DM per user per hour
+
+## Admin Panel Features
+
+### Authentication
+- Supabase email/password login
+- Session management (30min timeout)
+- Role-based access (Admin/Viewer)
+
+### Trigger Management
+- CRUD operations for:
+  - Post IDs to monitor
+  - Trigger keywords
+  - Response templates
+- Activation toggle per trigger
+- Bulk import/export via CSV
+
+### Template Management
+- Create/edit DM templates with:
+  - Text content (markdown supported)
+  - Media attachments (images/videos)
+  - Tracking parameters
+- Preview functionality
+- Version history
+
+### Dashboard
+- Real-time metrics:
+  - Total triggers activated
+  - DMs sent (success/failure)
+  - Popular keywords
+- System health monitoring
+
+## System Constraints
+- Instagram API rate limits:
+  - Max 200 comments/min
+  - Max 30 DMs/min
+- Local storage limits:
+  - 1GB media cache
+  - 7d activity logs
+- Performance targets:
+  - <2s response time for admin panel
+  - <5s DM delivery after comment
+
+## Error Handling
+- Failed DM retries (3 attempts)
+- Invalid comment skipping
+- API outage recovery:
+  - 15min backoff period
+  - Local queue for pending DMs
+- Admin alerts for:
+  - Continuous failures
+  - Storage limits
+  - Auth breaches
+</file>
+
+<file path="documentation/master_plan.md">
+# Master Documentation Plan
+
+Based on the vision in [`app_description.md`](app_description.md), create the following documents:
+
+- [x] **1. Business Requirements Document** (`documentation/business_requirements.md`)
+  - Project overview and objectives
+  - Stakeholder analysis
+  - User stories for:
+    - Instagram users receiving DMs
+    - Admin users managing triggers
+  - Success metrics
+
+- [x] **2. Functional Requirements** (`documentation/functional_requirements.md`)
+  - Instagram bot functionality:
+    - Comment monitoring workflow
+    - Keyword matching logic
+    - DM sending process
+  - Admin panel features:
+    - Authentication flow
+    - CRUD operations for triggers
+    - DM template management
+  - System constraints and edge cases
+
+- [x] **3. Technical Design Specification** (`documentation/technical_design.md`)
+  - System architecture diagram
+  - Component breakdown:
+    - Instagram bot service
+    - Admin panel (Next.js)
+    - Database layer
+  - API specifications:
+    - Internal bot-admin communication
+    - Supabase integration points
+  - Security considerations
+
+- [x] **4. Database Schema** (`documentation/database_schema.md`)
+  - Supabase tables:
+    - `users` (Supabase Auth)
+    - `triggers` (keyword configurations)
+    - `dm_templates` (response content)
+    - `activity_log` (bot operations)
+  - Relationships and indexes
+  - Sample queries
+
+- [x] **5. API Documentation** (`documentation/api_spec.md`)
+  - Admin panel API routes:
+    - /api/triggers (CRUD)
+    - /api/templates (CRUD)
+  - Bot healthcheck endpoints
+  - Authentication requirements
+  - Request/response examples
+
+- [x] **6. Deployment Guide** (`documentation/deployment_guide.md`)
+  - Docker compose configuration
+  - Environment variables
+  - Initial setup steps
+  - Local development workflow
+  - Testing procedures
+</file>
+
+<file path="documentation/technical_design.md">
+# Technical Design Specification
+
+## System Architecture
+```text
+[Instagram Users] <-> [Instagram API] <-> [Python Bot Service]
+                             ^
+                             |
+                             v
+[Admin Users] <-> [Next.js Admin Panel] <-> [Supabase Database]
+```
+
+### Components
+1. **Instagram Bot Service** (Python)
+   - Comment polling every 60s
+   - Keyword matching engine
+   - DM sending queue
+   - Error handling and retries
+
+2. **Admin Panel** (Next.js 14)
+   - App Router structure:
+     - `/app/login` - Auth page
+     - `/app/dashboard` - Main interface
+     - `/app/triggers` - CRUD operations
+   - API Routes:
+     - `/api/triggers` - Manage keywords
+     - `/api/templates` - Handle DM content
+
+3. **Database** (Supabase)
+   - Tables:
+     - `triggers` (post_id, keyword, template_id, is_active)
+     - `templates` (content, media_url, metadata)
+     - `activity_log` (timestamp, user_id, action)
+
+## API Specifications
+
+### Bot Service API
+- POST `/bot/healthcheck` - Monitoring endpoint
+- GET `/bot/config` - Retrieve active triggers
+
+### Admin Panel API
+- CRUD endpoints for all database tables
+- JWT authentication via Supabase
+
+### Supabase Integration
+- Auth: Email/password with sessions
+- Storage: Media files for DM templates
+- Realtime: Updates to trigger configurations
+
+## Security Design
+- Rate limiting on public endpoints
+- JWT validation for admin API
+- Encrypted database connections
+- Regular security audits
+
+## Infrastructure
+- Docker Compose setup:
+  - `admin-panel` service (Next.js)
+  - `bot-service` service (Python)
+  - `supabase` service (local emulator)
+- Environment variables for configuration
+- Health monitoring endpoints
+
+## Performance Considerations
+- Caching of frequent API calls
+- Bulk operations for trigger updates
+- Async processing for DM delivery
+</file>
+
+<file path="supabase/config.toml">
+[api]
+port = 5433
+
+[auth]
+site_url = "http://localhost:3000"
+</file>
+
+<file path="todos/master_development_plan.md">
+# Master Development Plan
+
+- [x] **Phase 1: Project Setup and Infrastructure**
+- [ ] Set up Docker Compose environment
+- [ ] Configure Supabase local instance
+- [ ] Initialize Next.js admin panel
+- [ ] Create Python bot service skeleton
+
+## Phase 2: Admin Panel Core Functionality
+- [ ] Implement Supabase authentication
+- [ ] Build trigger management CRUD
+- [ ] Create DM template editor
+- [ ] Develop activity dashboard
+
+## Phase 3: Instagram Bot Implementation
+- [ ] Set up Instagram API integration
+- [ ] Implement comment monitoring system
+- [ ] Build keyword matching engine
+- [ ] Create DM sending queue
+
+## Phase 4: Integration and Testing
+- [ ] Connect bot to admin panel API
+- [ ] Implement end-to-end testing
+- [ ] Set up monitoring and alerts
+- [ ] Create deployment pipeline
+</file>
+
+<file path="app_description.md">
+# Instagram Comment-to-DM Bot System
+
+## Project Vision
+Create an automated system where:
+1. Users commenting with specific keywords on Instagram posts receive automated DMs
+2. Admins can manage triggers and DM content through a web panel
+3. Entire system runs locally via Docker for easy testing
+
+## Core Components
+### Instagram Bot
+- Python-based service monitoring Instagram comments
+- Matches comments against admin-defined keywords
+- Sends pre-configured DM responses (text/media) to matching users
+- Runs in background 24/7
+
+### Admin Panel
+- Next.js 14 application with App Router
+- Authentication via Supabase Auth
+- CRUD operations for:
+  - Instagram post triggers (keywords)
+  - DM response templates (text/media)
+  - Activation status
+- Dashboard showing trigger statistics
+- Tailwind CSS for styling
+
+### Database & Storage
+- Supabase PostgreSQL for:
+  - User accounts (Supabase Auth)
+  - Trigger configurations
+  - DM templates
+- Supabase Storage for media files in DMs
+
+## Tech Stack
+### Backend Services
+- Instagram Bot: Python + Instagram API wrapper
+- Admin API: Next.js API routes
+
+### Frontend
+- Next.js 14
+- Tailwind CSS
+- Prisma ORM
+
+### Infrastructure
+- Docker Compose for local development
+- Supabase for:
+  - Authentication
+  - Database
+  - File storage
+
+## Key Requirements
+1. Single-command startup: `docker-compose up`
+2. Isolated services:
+   - Admin panel (Next.js)
+   - Instagram bot (Python)
+   - Database (Supabase local)
+3. Secure admin authentication
+4. Configurable triggers/DM content
+</file>
+
+<file path="BLUEPRINT_COMPLETE.md">
+# Blueprint Completion Signal
+
+All documentation tasks from `documentation/master_plan.md` have been completed:
+
+- [x] Business Requirements
+- [x] Functional Requirements
+- [x] Technical Design Specification
+- [x] Database Schema
+- [x] API Documentation
+- [x] Deployment Guide
+
+The project is now ready for development planning phase.
+</file>
+
+<file path="admin/admin/.gitignore">
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+/src/generated/prisma
+</file>
+
+<file path="admin/admin/package.json">
+{
+  "name": "admin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.9.0",
+    "next": "15.3.3",
+    "prisma": "^6.9.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.3.3",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+</file>
+
+<file path="todos/dev_todo_phase_1.md">
+# Development Tasks: Phase 1 - Project Setup and Infrastructure
+
+## 1. Set up Docker Compose environment
+- [x] **Task: Docker Compose Setup**
+**Modify [`docker-compose.yml`](docker-compose.yml)**: Create a new Docker Compose file with the following content:
+```yaml
+version: '3.8'
+
+services:
+  admin-panel:
+    build: 
+      context: ./admin
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgres://postgres:password@db:5432/postgres
+    depends_on:
+      - db
+    volumes:
+      - ./admin:/app
+
+  bot-service:
+    build: 
+      context: ./bot
+    environment:
+      - INSTAGRAM_USER=${INSTAGRAM_USER:-testuser}
+      - INSTAGRAM_PASSWORD=${INSTAGRAM_PASSWORD:-testpass}
+    depends_on:
+      - db
+    volumes:
+      - ./bot:/app
+
+  db:
+    image: supabase/postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
+```
+**Verification:** Confirm the file exists with the correct content.
+
+## 2. Configure Supabase local instance
+- [x] **Task: Supabase Configuration**
+**Create [`supabase/config.toml`](supabase/config.toml)**: Add basic configuration:
+```toml
+[api]
+port = 5432
+
+[auth]
+site_url = "http://localhost:3000"
+```
+**Execute Command:** 
+```bash
+docker-compose up -d db
+```
+**Verification:** Check that the Supabase container is running with `docker-compose ps`.
+
+## 3. Initialize Next.js admin panel
+- [x] **Task: Next.js Setup**
+**Execute Command in `admin` directory:**
+```bash
+npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"
+```
+**Modify [`admin/.env`](admin/.env)**: Add environment variables:
+```env
+NEXT_PUBLIC_SUPABASE_URL=http://db:5432
+NEXT_PUBLIC_SUPABASE_KEY=your-anon-key
+```
+**Verification:** Confirm Next.js app structure exists in `admin` directory.
+
+## 4. Set up Prisma ORM
+- [x] **Task: Prisma Configuration**
+**Execute Command in `admin/admin` directory:**
+```bash
+npm install prisma @prisma/client
+npx prisma init
+npx prisma generate
+```
+**Modify [`admin/admin/prisma/schema.prisma`](admin/admin/prisma/schema.prisma)**: Add data models for User, Trigger, Template, and ActivityLog.
+**Modify [`admin/admin/.env`](admin/admin/.env)**: Add database connection URL.
+**Verification:** Confirm Prisma client is generated in `admin/admin/src/generated/prisma`.
+
+## 5. Create Python bot service skeleton
+**Create [`bot/requirements.txt`](bot/requirements.txt)**:
+```
+instagram-private-api==1.6.0
+python-dotenv==1.0.0
+```
+**Create [`bot/main.py`](bot/main.py)**:
+```python
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+INSTAGRAM_USER = os.getenv("INSTAGRAM_USER")
+INSTAGRAM_PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
+
+print(f"Bot service started for user: {INSTAGRAM_USER}")
+```
+**Create [`bot/Dockerfile`](bot/Dockerfile)**:
+```dockerfile
+FROM python:3.10-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+CMD ["python", "main.py"]
+```
+**Verification:** Confirm all bot files exist with correct content.
+</file>
+
+<file path="docker-compose.yml">
+version: '3.8'
+
+services:
+  admin-panel:
+    build: 
+      context: ./admin
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgres://postgres:password@db:5433/postgres
+    depends_on:
+      - db
+    volumes:
+      - ./admin:/app
+
+  bot-service:
+    build: 
+      context: ./bot
+    environment:
+      - INSTAGRAM_USER=${INSTAGRAM_USER:-testuser}
+      - INSTAGRAM_PASSWORD=${INSTAGRAM_PASSWORD:-testpass}
+    depends_on:
+      - db
+    volumes:
+      - ./bot:/app
+
+  db:
+    image: postgres:15
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
 </file>
 
 </files>
