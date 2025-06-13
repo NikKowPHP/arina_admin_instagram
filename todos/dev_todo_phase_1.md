@@ -73,7 +73,19 @@ NEXT_PUBLIC_SUPABASE_KEY=your-anon-key
 ```
 **Verification:** Confirm Next.js app structure exists in `admin` directory.
 
-## 4. Create Python bot service skeleton
+## 4. Set up Prisma ORM
+- [x] **Task: Prisma Configuration**
+**Execute Command in `admin/admin` directory:**
+```bash
+npm install prisma @prisma/client
+npx prisma init
+npx prisma generate
+```
+**Modify [`admin/admin/prisma/schema.prisma`](admin/admin/prisma/schema.prisma)**: Add data models for User, Trigger, Template, and ActivityLog.
+**Modify [`admin/admin/.env`](admin/admin/.env)**: Add database connection URL.
+**Verification:** Confirm Prisma client is generated in `admin/admin/src/generated/prisma`.
+
+## 5. Create Python bot service skeleton
 **Create [`bot/requirements.txt`](bot/requirements.txt)**:
 ```
 instagram-private-api==1.6.0
