@@ -1,4 +1,7 @@
 import { createClient } from './supabase'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 export async function getAnalytics() {
   const supabase = createClient()
@@ -24,4 +27,31 @@ export async function getAnalytics() {
   }))
 
   return { triggerUsage }
+}
+
+export async function createTrigger(formData: FormData) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('User not authenticated')
+  }
+
+  const triggerData = {
+    postId: formData.get('postId') as string,
+    keyword: formData.get('keyword') as string,
+    isActive: formData.get('isActive') === 'on',
+    userId: user.id,
+    templateId: formData.get('templateId') as string
+  }
+
+  try {
+    const newTrigger = await prisma.trigger.create({
+      data: triggerData
+    })
+    return newTrigger
+  } catch (error) {
+    console.error('Error creating trigger:', error)
+    throw error
+  }
 }
