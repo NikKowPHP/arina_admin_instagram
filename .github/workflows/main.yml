@@ -9,6 +9,20 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
     - uses: actions/checkout@v3
@@ -21,6 +35,14 @@ jobs:
 
     - name: Install dependencies
       run: npm ci
+
+    - name: Run database migrations
+      run: npx prisma migrate dev --name ci-setup --schema=./admin/admin/prisma/schema.prisma
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test
+
+    - name: Generate Prisma client
+      run: npx prisma generate --schema=./admin/admin/prisma/schema.prisma
 
     - name: Run linting
       run: npm run lint
