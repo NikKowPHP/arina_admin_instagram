@@ -12,6 +12,7 @@ Based on the documentation in the `/documentation` directory, the development wi
 - [x] Implement trigger management (CRUD operations)
   - Detailed tasks created in `todos/dev_todo_phase_2.md`
 - [ ] Develop template management system
+  - Detailed tasks created in `todos/dev_todo_phase_3.md`
 - [ ] Create activity log display components
 - [ ] Build analytics dashboard with chart visualizations
 
