@@ -45,6 +45,7 @@ volumes:
 **Verification:** Confirm the file exists with the correct content.
 
 ## 2. Configure Supabase local instance
+- [x] **Task: Supabase Configuration**
 **Create [`supabase/config.toml`](supabase/config.toml)**: Add basic configuration:
 ```toml
 [api]

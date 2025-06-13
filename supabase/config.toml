@@ -1,0 +1,5 @@
+[api]
+port = 5433
+
+[auth]
+site_url = "http://localhost:3000"
