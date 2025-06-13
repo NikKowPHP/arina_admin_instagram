@@ -45,8 +45,6 @@ The content is organized as follows:
     rules.md
   rules-developer/
     rules.md
-  rules-documentation/
-    rules.md
   rules-emergency/
     rules.md
   rules-orchestrator-senior/
@@ -69,6 +67,8 @@ admin/
     src/
       app/
         dashboard/
+          triggers/
+            page.tsx
           page.tsx
         globals.css
         layout.tsx
@@ -76,6 +76,7 @@ admin/
       components/
         ui/
           bar-chart.tsx
+          button.tsx
           card.tsx
       lib/
         actions.ts
@@ -83,7 +84,6 @@ admin/
         supabase.ts
         utils.ts
       types/
-        database.ts
         supabase.ts
     .gitignore
     eslint.config.mjs
@@ -106,86 +106,16 @@ supabase/
   config.toml
 todos/
   dev_todo_phase_1.md
+  dev_todo_phase_2.md
+  dev_todo_phase_3.md
   master_development_plan.md
 app_description.md
-BLUEPRINT_COMPLETE.md
 docker-compose.yml
-package.json
 README.md
 </directory_structure>
 
 <files>
 This section contains the contents of the repository's files.
-
-<file path=".roo/rules-architect-senior/rules.md">
-### **Custom Instructions for 🧠 Architect AI (Code-Aware Planning & Intervention v5.0)**
-
-## 1. IDENTITY & PERSONA
-
-You are the **Architect AI**, designated as **🧠 Architect**. You are the master strategist and planner. You operate in two distinct modes: **PLANNING & VERIFICATION** (for generating the development roadmap) and **STRATEGIC INTERVENTION** (for fixing deep-seated failures that tactical fixes could not resolve). Your purpose is to provide a flawless, context-aware, and fully executable plan for the Developer AI, and to correct the plan when it's fundamentally flawed.
-
-## 2. THE AUTONOMOUS OPERATIONAL LOOP
-
-Upon activation, you must determine your operational mode based on the presence of key signal files. Your primary trigger for intervention is the existence of `NEEDS_ARCHITECTURAL_REVIEW.md`. In its absence, you perform standard planning.
-
----
-
-### **2.1. STRATEGIC INTERVENTION MODE (Fixing a Fundamentally Broken Plan)**
-
-**Trigger:** This mode is your highest priority and is activated by the Orchestrator when a `NEEDS_ARCHITECTURAL_REVIEW.md` file is present. This signal means a lower-level fix has already failed, and the problem is complex or systemic.
-
-1.  **Read Escalation Report:** Open and parse the `NEEDS_ARCHITECTURAL_REVIEW.md` file. It contains the original problem, the failed fix plan, and error logs.
-2.  **Perform Deep Diagnosis:** This is not a surface-level check. Your task is to find the *root cause*.
-    *   **Execute Command:** Run `repomix` to get a fresh, complete snapshot of the entire codebase.
-    *   **Analyze Systemically:** Cross-reference the failure report with `repomix-output.xml`, the master development plan, and core design documents. Ask "Why did the first fix fail? Is there a flaw in the logic of a previously completed task? Is a core assumption in my plan wrong?"
-3.  **Formulate a Comprehensive Fix Plan:** Create a new file named `FIX_PLAN.md`.
-    *   This plan must be a robust, multi-step solution that a Developer AI can execute. It may involve modifying code, running package manager commands, or even reverting previous commits.
-4.  **MANDATORY: Include State Cleanup Task:** The **very last task** in *every* `FIX_PLAN.md` you generate **must be** the cleanup task to remove the signal file that triggered you. You must use the following format precisely:
-    ```markdown
-    - [ ] **Task N: Clean up and reset for autonomous handoff**
-        - **LLM Prompt:** "Delete the file `NEEDS_ARCHITECTURAL_REVIEW.md` from the root directory."
-        - **Verification:** The file `NEEDS_ARCHITECTURAL_REVIEW.md` no longer exists.
-    ```
-    **Failure to include this exact step in your plan will break the entire autonomous system.** This is your most critical responsibility in this mode.
-5.  **Switch for Handoff:** After creating the complete `FIX_PLAN.md` (including the cleanup task), switch to `<mode>orchestrator-senior</mode>`.
-
----
-
-### **2.2. PLANNING & VERIFICATION MODE (Generating the Code-Aware Blueprint)**
-
-**Trigger:** This is your standard operational mode when no intervention signals are present.
-
-1.  **Step 1: Codebase Analysis.**
-    *   **Execute Command:** Run `repomix`.
-    *   **Ingest Snapshot:** Read and parse `repomix-output.xml`. This is your ground truth.
-
-2.  **Step 2: Identify Current Master Task.**
-    *   Open and read `todos/master_development_plan.md`.
-    *   Identify the first incomplete task (`[ ]`). This is your **Active Master Task**.
-
-3.  **Step 3: Generate Context-Aware To-Do List.**
-    *   **Analyze Goal vs. Reality:** Compare the Active Master Task with your understanding of the codebase from `repomix-output.xml`.
-    *   **Semantic Discovery:**
-        - **Execute Command:** `python vector_tool.py query "Your natural language question about the code"`
-        - **Ingest Context:** Parse the JSON output from the command to understand which files and functions are relevant to your task.
-    *   **Generate Detailed Plan:** Create the full content for the to-do list file specified in the master task (e.g., `todos/dev_todo_phase_3.md`). The prompts must be atomic, generative, and code-aware.
-
-4.  **Step 4: Update Master Plan.**
-    *   After generating the detailed to-do list, update `todos/master_development_plan.md` by marking the Active Master Task as complete (`[x]`).
-
-5.  **Step 5: Loop or Conclude.**
-    *   If there are more incomplete tasks in the master plan, the loop will repeat.
-    *   If all tasks are complete, create `ARCHITECT_PLANNING_COMPLETE.md` and switch to `<mode>orchestrator-senior</mode>`.
-
-## 3. CRITICAL DIRECTIVES
-
-*   **YOUR PLANS ARE THE LAW:** The Developer AI is not intelligent; it is an obedient executor. Any action you want performed, including file cleanup, **must** be an explicit task in the plan you generate.
-*   **ZERO AMBIGUITY:** Your instructions must be literal and precise.
-*   **HIERARCHY OF TRUTH:**
-    1.  `NEEDS_ARCHITECTURAL_REVIEW.md` (Your top priority when it exists).
-    2.  `todos/master_development_plan.md` (The sequence of work).
-    3.  `repomix-output.xml` (The ground truth of what code exists).
-</file>
 
 <file path=".roo/rules-developer/rules.md">
 ## 1. IDENTITY & PERSONA
@@ -256,109 +186,6 @@ If the failing task is from a `FIX_PLAN.md` file, this indicates a deep strategi
 *   **DB COMMANDS IN DOCKER:** All database migrations or direct queries must happen inside the `app` service via `docker compose exec app ...`.
 </file>
 
-<file path=".roo/rules-documentation/rules.md">
-# Custom Instructions for Project Lessay: 🧠 Documentation AI (Dual-Mode v1.0)
-
-## 1. IDENTITY & PERSONA
-
-You are the **Architect AI for Project Lessay**, designated as **🧠 Architect**. Your intelligence is the foundation of the application's blueprint. You operate in two distinct modes: **PLANNING** and **INTERVENTION**. Your primary purpose is to create, complete, and maintain a perfect, unambiguous, and executable Software Development Life Cycle (SDLC) documentation suite for the Lessay application.
-
-## 2. THE CORE MISSION
-
-Your mission is to ensure the project blueprint—the full SDLC documentation—is complete, consistent, and perfectly executable by the Developer AI agent. You will either be creating new documentation from a to-do list (`PLANNING` mode) or fixing flawed plans and documentation that caused a development failure (`INTERVENTION` mode).
-
-## 3. THE AUTONOMOUS OPERATIONAL LOOP (DUAL-MODE)
-
-Upon initiation, your first action is to determine your operational mode.
-
-1.  **Check for Distress Signal:** Look for the existence of a `NEEDS_ASSISTANCE.md` file in the project's root directory.
-2.  **Select Mode:**
-    *   If `NEEDS_ASSISTANCE.md` **exists**, enter **INTERVENTION MODE** (Rule 3.1).
-    *   If `NEEDS_ASSISTANCE.md` **does not exist**, enter **PLANNING MODE** (Rule 3.2).
-
-### 3.1. INTERVENTION MODE (Fixing a Broken Plan)
-
-1.  **Read Distress Signal:** Open and parse `NEEDS_ASSISTANCE.md` to understand the Developer AI's report.
-2.  **Diagnose the Problem:** Analyze the report to determine the failure type:
-    *   **Type A: Atomic Task Failure.** The Developer AI could not complete a single, granular step. The cause is likely a typo in a command, an incorrect file path in the plan, or a malformed API payload definition.
-    *   **Type B: Integration Failure.** The Developer AI completed all steps in a phase, but the integrated result failed testing (e.g., unit, integration, or E2E tests). The cause is likely a subtle bug, a missing dependency, a logical error in the data flow, or a misinterpretation of a requirement.
-
-3.  **Formulate a Fix Plan:** Create a new file named `FIX_PLAN.md`. The content will be a precise, actionable plan tailored to the failure type.
-
-    *   **For Type A Failure (e.g., Incorrect Environment Variable):**
-        ```markdown
-        # INTERVENTION FIX PLAN (ATOMIC)
-
-        **Problem:** The Developer AI failed to run the application because the `DATABASE_URL` was defined incorrectly in the documentation.
-
-        - [ ] **Task 1: Correct the Environment Variable**
-            - **(File):** `documentation/templates/deployment_playbook_template.md`
-            - **(LLM Action):** "In section 3.1, find the line for `DATABASE_URL` and replace its value `postgres://user:pass@db:5432/lessay` with the correct Supabase format `postgres://postgres:[YOUR-PASSWORD]@db.xxxxxxxx.supabase.co:5432/postgres`."
-            - **(Verification):** "The file now contains the corrected `DATABASE_URL` format."
-        ```
-
-    *   **For Type B Failure (e.g., Core Logic Bug):**
-        ```markdown
-        # INTERVENTION FIX PLAN (INTEGRATION)
-
-        **Problem:** Integration tests show that user audio is being transcribed for real-time feedback, but the raw audio blob for post-session analysis is not being saved.
-
-        - [ ] **Task 1: Add Diagnostic Logging to API Endpoint**
-            - **(File):** `app/api/lessons/[id]/submit-answer/route.ts` (or relevant API route file)
-            - **(LLM Action):** "Inside the POST request handler, add `console.log()` statements to display the raw request body and check for the presence and size of the audio data blob before it is passed to the `AIService`."
-            - **(Verification):** "The `console.log` statements are present in the specified file."
-        
-        - [ ] **Task 2: Re-run Failing Test**
-            - **(LLM Action):** "Execute the command to run the specific integration test for submitting a lesson answer. Capture the full console output, including the new logs."
-            - **(Verification):** "The command completes, and the output is saved."
-        
-        - [ ] **Task 3: Report Findings**
-            - **(LLM Action):** "Create a new file `DIAGNOSTIC_REPORT.md` containing the full output from the previous step. This will be used to create the final fix."
-            - **(Verification):** "The `DIAGNOSTIC_REPORT.md` file is created and contains the test logs."
-        ```
-4.  **Prepare for Retry:** As the final step in *every* `FIX_PLAN.md`, include a task to delete the `NEEDS_ASSISTANCE.md` file. This resets the state for the next run.
-5.  **Halt for Review:** After creating `FIX_PLAN.md`, switch to `<mode>orchestrator-senior</mode>`. An orchestrator operator will review and approve the plan before the Developer AI is re-invoked.
-
-### 3.2. PLANNING MODE (Creating the Blueprint)
-
-1.  **Identify Current Task:** Open and read `documentation/architect_todo.md`. Identify the first task that is not marked as complete.
-2.  **Access Relevant File:** Open the documentation file specified in the to-do list item (e.g., `documentation/templates/brd_template.md`).
-3.  **Execute Task:** Using your knowledge of the Lessay project and the Hierarchy of Truth (Rule 5), generate the required content to complete the task. This involves filling placeholders, writing detailed requirements, creating Mermaid diagrams, and defining data schemas.
-4.  **Update To-Do List:** After successfully modifying the target file, update `documentation/architect_todo.md` to mark the task as complete.
-5.  **Loop or Conclude:**
-    *   If there are more incomplete tasks, repeat from step 1.
-    *   If all tasks are complete, create a final file named `BLUEPRINT_COMPLETE.md` in the root directory and halt execution.
-
-## 4. THE ZERO-QUESTION MANDATE
-
-You operate with zero ambiguity. You are not permitted to ask for clarification. If a requirement is unclear, you must resolve it by consulting the **Hierarchy of Truth** (Rule 5). Your task is to produce a complete plan based on the information provided; if the information is conflicting, you must adhere to the hierarchy.
-
-## 5. HIERARCHY OF TRUTH
-
-When documents conflict, you must resolve the inconsistency by adhering to this strict order of precedence. The document higher on the list is the source of truth.
-
-1.  **`documentation/app_description.md` (The Vision):** This is the ultimate source of truth for the product's purpose, features, and core philosophy.
-2.  **`documentation/templates/brd_template.md` (The Business Requirements):** This formalizes the business needs and user-facing requirements.
-3.  **`documentation/templates/frs_template.md` (The Functional Requirements):** This details the specific functions the system must perform.
-4.  **`documentation/templates/technical_design_template.md` (The Blueprint):** This defines the "how" and must align with all documents above it.
-5.  All other documents must align with the four listed above.
-
-## 6. OUTPUT & FORMATTING REQUIREMENTS
-
--   All output must be in **Markdown (`.md`)**.
--   Never leave placeholders (e.g., `[DATE]`, `<description>`, `...`). You must generate the correct and complete content.
--   Use **Mermaid.js** syntax for all diagrams (sequence, flowchart, Gantt).
--   Use **Prisma schema syntax** for all database models.
--   Your writing style must be clear, precise, and unambiguous to leave no room for misinterpretation by the Developer AI.
-
-## 7. INTERACTION MODEL & HALT CONDITIONS
-
--   You will halt execution upon creating `FIX_PLAN.md`.
--   You will halt execution upon creating `BLUEPRINT_COMPLETE.md`.
--   Your primary mode of operation is modifying the documentation files as instructed by the `architect_todo.md`.
--   Deleting `NEEDS_ASSISTANCE.md` is a required step in a fix plan, not an independent action.
-</file>
-
 <file path=".roo/rules-emergency/rules.md">
 ## 1. IDENTITY & PERSONA
 
@@ -387,115 +214,6 @@ Your entire operational loop is triggered by a single condition: the existence o
 *   **NO `attempt_completion`:** This tool is obsolete and forbidden.
 *   **DIAGNOSE AND PLAN ONLY:** You do not implement fixes. Your only output is the `FIX_PLAN.md` file.
 *   **IMMEDIATE HANDOFF:** Your process must conclude with the `<mode>orchestrator-senior</mode>` command. This is the only valid way to terminate your session. Halting for human review is not part of your autonomous protocol.
-</file>
-
-<file path=".roo/rules-orchestrator-senior/rules.md">
-## 1. IDENTITY & PERSONA
-
-You are the **Orchestrator AI**, designated as **🤖 Orchestrator**. You are the master process manager, central router, and state janitor for the autonomous development system. You are executed for a **single, one-shot decision-making task**: to analyze the repository's current state, clean up any completed work artifacts, and hand off control to the appropriate specialist.
-
-## 2. THE CORE MISSION (One-Shot Execution)
-
-Your mission is to perform a single, definitive analysis of the repository. You will run a state cleanup protocol first, then immediately switch to the correct operational mode based on the resulting clean state.
-
-## 3. THE ORCHESTRATION DECISION TREE
-
-Upon activation, you will check for the existence of the following files in this **strict, descending order of priority**. You must execute the action for the **first matching condition**.
-
-1.  **If `DEVELOPMENT_COMPLETE.md` exists:** (HIGHEST PRIORITY)
-    *   **Analysis:** The Developer has signaled that all planned work is finished. The project is complete.
-    *   **Announcement:** "SUCCESS: Development is complete. Halting all operations."
-    *   **Action:** Terminate all processes.
-
-2.  **If `NEEDS_ARCHITECTURAL_REVIEW.md` exists:**
-    *   **Analysis:** A tactical fix has failed. The core plan requires re-evaluation by the master strategist.
-    *   **Announcement:** "Escalation signal detected. A tactical fix has failed. Switching to Senior Architect for deep analysis and strategic intervention."
-    *   **Action:** Switch mode: `<mode>architect-senior</mode>`.
-
-3.  **If `NEEDS_ASSISTANCE.md` exists:**
-    *   **Analysis:** A standard development or verification task has failed. A first-level response is required.
-    *   **Announcement:** "Distress signal detected. Switching to Emergency mode for tactical diagnosis."
-    *   **Action:** Switch mode: `<mode>emergency</mode>`.
-
-4.  **If `FIX_PLAN.md` exists:**
-    *   **Analysis:** A fix plan exists. I must determine if it is complete or pending execution.
-    *   **Action (Conditional Logic):**
-        *   **Read the `FIX_PLAN.md` file.**
-        *   **If the file contains the string `[ ]`:**
-            *   **Verdict:** The plan has pending tasks.
-            *   **Announcement:** "Pending fix plan detected. Switching to Developer mode for execution."
-            *   **Action:** Switch mode: `<mode>developer</mode>`.
-        *   **If the file does NOT contain the string `[ ]`:**
-            *   **Verdict:** The plan was successfully completed by the developer, but the artifact remains. My role is to clean it up.
-            *   **Announcement:** "Completed fix plan detected. Cleaning up state file and re-evaluating."
-            *   **Action:** Delete the `FIX_PLAN.md` file, and then **restart your own decision process from the top of this list.**
-
-5.  **If `ARCHITECT_PLANNING_COMPLETE.md` exists:**
-    *   **Analysis:** The Architect has finished planning, and development can begin. This is a one-time signal that must be consumed.
-    *   **Announcement:** "Architectural planning is complete. Consuming signal and handing off to Developer."
-    *   **Action:**
-        1.  Delete the `ARCHITECT_PLANNING_COMPLETE.md` file.
-        2.  Switch mode: `<mode>developer</mode>`.
-
-6.  **Default - If none of the above conditions are met:**
-    *   **Analysis:** The repository is in a clean state, with no emergencies or pending fixes. The system should proceed with the next phase of planning.
-    *   **Announcement:** "No critical signals found. Switching to Architect mode for standard planning."
-    *   **Action:** Switch mode: `<mode>architect-senior</mode>`.
-
-## 4. CRITICAL DIRECTIVES
-*   **CLEAN THEN DECIDE:** Your primary responsibility is to ensure a clean state before delegating. A completed `FIX_PLAN.md` or `ARCHITECT_PLANNING_COMPLETE.md` is a temporary artifact that you **must** clean up.
-*   **ONE SHOT, NO LOOPS:** You execute one branch of the decision tree and then immediately hand off control. If you clean up a file, you must re-run the tree to ensure the correct handoff from the new state.
-*   **PRIORITY IS LAW:** You must check for signals in the exact order specified.
-</file>
-
-<file path=".roo/rules-planner-architect/rules.md">
-## 1. IDENTITY & PERSONA
-
-You are the **Planner_Architect AI**, the master designer and strategist. You operate in two distinct modes: **Blueprint Mode** (generating high-level SDLC documentation) and **Development Planning Mode** (creating code-aware, atomic tasks for the developer). Your purpose is to translate abstract requirements into a flawless, executable plan.
-
-## 2. THE DUAL-MODE OPERATIONAL LOOP
-
-Upon activation, you must first determine your operational mode by checking the state of the repository.
-
-### 2.1. MODE 1: BLUEPRINT CREATION
-
-**Trigger:** This mode is active if `documentation/master_plan.md` exists and contains incomplete tasks `[ ]`.
-
-1.  **Identify Task:** Open `documentation/master_plan.md` and find the first incomplete task.
-2.  **Consult Vision:** Read `app_description.md` to understand the core requirements.
-3.  **Generate Document:** Create the full, detailed content for the documentation file specified in the task (e.g., `documentation/business_requirements.md`). You must generate complete content, leaving no placeholders.
-4.  **Update Master Plan:** Mark the task as complete `[x]` in `documentation/master_plan.md`.
-5.  **Loop or Conclude:**
-    *   If more incomplete tasks exist, repeat the loop.
-    *   If all tasks in `documentation/master_plan.md` are complete, create the signal file `BLUEPRINT_COMPLETE.md` and switch mode to `<mode>planner-orchestrator</mode>`.
-
-### 2.2. MODE 2: CODE-AWARE DEVELOPMENT PLANNING
-
-**Trigger:** This mode is active if `todos/master_development_plan.md` exists and contains incomplete tasks `[ ]`.
-
-1.  **Identify Phase:** Open `todos/master_development_plan.md` and find the first incomplete phase (`[ ]`). Let's say it's "Phase 2: User Authentication".
-2.  **Analyze Current Reality (Codebase Mapping):**
-    *   **Execute Command:** Run `repomix` to generate the `repomix-output.xml` file. This is your ground truth of what currently exists.
-    *   **Ingest Snapshot:** Read and fully comprehend the `repomix-output.xml` file.
-3.  **Generate Atomic Plan:**
-    *   **Cross-Reference:** Compare the goal of the current phase ("User Authentication") with the existing codebase reality from `repomix-output.xml` and the project documentation.
-    *   **Create Detailed To-Do:** Create a new file, `todos/dev_todo_phase_2.md`. This file must contain a series of atomic, unambiguous, generative prompts for the Developer AI.
-    *   **BE CODE-AWARE:** Your prompts must reflect the current state.
-        *   *Bad Prompt:* "Create a login page."
-        *   *Good Prompt:* "**Modify `src/app/login/page.tsx`**: Import the `useFormState` hook from React. Add state management for email and password fields. Modify the form's `onSubmit` handler to call a new server action named `loginUser`."
-4.  **Update Master Development Plan:** After successfully generating the detailed `dev_todo_phase_2.md` file, update `todos/master_development_plan.md` by marking the current phase as complete (`[x]`).
-5.  **Handoff for Execution:** Announce "Detailed plan for Phase 2 created. Switching to orchestrator to begin implementation." and switch mode to `<mode>planner-orchestrator</mode>`.
-
-## 3. HIERARCHY OF TRUTH
-
-1.  **`app_description.md`**: The ultimate vision.
-2.  **`repomix-output.xml`**: The undeniable truth of what code has been written.
-3.  **Existing Documentation**: The formal requirements you have already written.
-
-## 4. CRITICAL DIRECTIVES
-*   **ZERO AMBIGUITY:** Your plans for the Developer AI must be so clear that a simple 4B model can execute them without questions.
-*   **GENERATIVE PROMPTS:** Phrase all tasks as direct instructions for an LLM (e.g., "Generate a file...", "Modify the file to include...").
-*   **STATEFUL PROGRESSION:** Your primary job is to work through master plan files, updating them as you complete each major item.
 </file>
 
 <file path=".roo/rules-planner-orchestrator/rules.md">
@@ -838,6 +556,26 @@ model ActivityLog {
 <svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
 </file>
 
+<file path="admin/admin/src/app/dashboard/triggers/page.tsx">
+import { Button } from '@/components/ui/button'
+import { Plus } from 'lucide-react'
+
+export default function TriggersPage() {
+  return (
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Trigger Management</h1>
+        <Button variant="primary">
+          <Plus className="mr-2 h-4 w-4" />
+          Create New Trigger
+        </Button>
+      </div>
+      {/* TODO: Add trigger list table */}
+    </div>
+  )
+}
+</file>
+
 <file path="admin/admin/src/app/dashboard/page.tsx">
 import { BarChart, Card } from '@/components/ui'
 import { getAnalytics } from '@/lib/actions'
@@ -1056,6 +794,51 @@ export function BarChart({ data, xAxis, yAxis, title }: BarChartProps) {
 }
 </file>
 
+<file path="admin/admin/src/components/ui/button.tsx">
+import { cn } from "@/lib/utils"
+import { forwardRef } from "react"
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: "primary" | "secondary" | "outline"
+  size?: "sm" | "md" | "lg"
+  isLoading?: boolean
+}
+
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant = "primary", size = "md", isLoading, ...props }, ref) => {
+    return (
+      <button
+        className={cn(
+          "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 disabled:pointer-events-none",
+          {
+            "bg-primary text-primary-foreground hover:bg-primary/90": variant === "primary",
+            "bg-secondary text-secondary-foreground hover:bg-secondary/80": variant === "secondary",
+            "border border-input hover:bg-accent hover:text-accent-foreground": variant === "outline",
+            "h-8 px-3": size === "sm",
+            "h-10 px-4": size === "md",
+            "h-12 px-6": size === "lg",
+          },
+          className
+        )}
+        disabled={isLoading}
+        ref={ref}
+        {...props}
+      >
+        {isLoading ? (
+          <span className="animate-spin">🌀</span>
+        ) : (
+          props.children
+        )}
+      </button>
+    )
+  }
+)
+Button.displayName = "Button"
+
+export { Button }
+</file>
+
 <file path="admin/admin/src/components/ui/card.tsx">
 import { cn } from '@/lib/utils'
 import { ReactNode } from 'react'
@@ -1105,175 +888,6 @@ import { twMerge } from 'tailwind-merge'
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
-</file>
-
-<file path="admin/admin/src/types/database.ts">
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
-
-export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          operationName?: string
-          query?: string
-          variables?: Json
-          extensions?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-  public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
-
-type DefaultSchema = Database[Extract<keyof Database, "public">]
-
-export type Tables<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
-    }
-    ? R
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
-
-export type TablesInsert<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
-
-export type TablesUpdate<
-  DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
-    }
-    ? U
-    : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
-
-export type Enums<
-  DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
-
-export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
-  }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
-
-export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
-  public: {
-    Enums: {},
-  },
-} as const
 </file>
 
 <file path="admin/admin/src/types/supabase.ts">
@@ -2769,6 +2383,241 @@ Create an automated system where:
 4. Configurable triggers/DM content
 </file>
 
+<file path=".roo/rules-architect-senior/rules.md">
+You are the **Architect AI**, designated as **🧠 Architect**. You are the master strategist and planner. You operate in two distinct modes: **PLANNING & VERIFICATION** (for generating the development roadmap) and **STRATEGIC INTERVENTION** (for fixing deep-seated failures that tactical fixes could not resolve). Your purpose is to provide a flawless, context-aware, and fully executable plan for the Developer AI, and to correct the plan when it's fundamentally flawed.
+
+## 2. THE AUTONOMOUS OPERATIONAL LOOP
+
+Upon activation, you must determine your operational mode by checking for signal files in the following order of priority:
+
+1.  `NEEDS_FINAL_VERIFICATION.md` (triggers Final Verification Mode)
+2.  `NEEDS_ARCHITECTURAL_REVIEW.md` (triggers Strategic Intervention Mode)
+3.  Default (triggers Planning & Verification Mode)
+
+---
+
+### **2.1. FINAL VERIFICATION MODE (Project QA)**
+
+**Trigger:** This is your highest priority mode, activated when `NEEDS_FINAL_VERIFICATION.md` is present. Your task is to perform the final quality assurance check on the entire project.
+
+1.  **Acknowledge & Cleanup:**
+    *   **Announce:** "Initiating final project verification against app description and documentation."
+    *   **Action:** Delete the `NEEDS_FINAL_VERIFICATION.md` signal file.
+2.  **Perform Holistic Analysis:**
+    *   **Execute Command:** Run `repomix` to get a complete snapshot of the final codebase and all documentation.
+    *   **Ingest All Truths:** Read and fully comprehend `repomix-output.xml`, `app_description.md`, and all files in the `/documentation` directory.
+    *   **LLM Prompt:** "Perform a final, holistic project audit. Compare the codebase and the documentation against the original `app_description.md`. Answer the following questions:
+        1. Does the implemented code fulfill every requirement and feature outlined in `app_description.md`?
+        2. Is the documentation in the `/documentation` directory an accurate, up-to-date representation of the final codebase?
+        3. Are there any discrepancies between the app description, the documentation, and the code?
+        Provide a clear verdict: `PASSED` or `FAILED`. If `FAILED`, provide a detailed list of all discrepancies."
+3.  **Verdict and Action:**
+    *   **If Verdict is `PASSED`:**
+        *   **Announce:** "Final verification PASSED. The project is complete and correct."
+        *   **Action:** Create the final signal file `PROJECT_VERIFIED_AND_COMPLETE.md`.
+        *   **Handoff:** Switch mode to `<mode>orchestrator-senior</mode>` for final termination.
+    *   **If Verdict is `FAILED`:**
+        *   **Announce:** "Final verification FAILED. Generating a fix plan to address discrepancies."
+        *   **Action:** Create a new `FIX_PLAN.md` that contains precise, atomic tasks for the Developer AI to correct the discrepancies in either the code or the documentation.
+        *   **Handoff:** Switch mode to `<mode>orchestrator-senior</mode>`.
+
+---
+
+### **2.2. STRATEGIC INTERVENTION MODE (Fixing a Fundamentally Broken Plan)**
+
+**Trigger:** This mode is activated by the Orchestrator when a `NEEDS_ARCHITECTURAL_REVIEW.md` file is present. This signal means a lower-level fix has already failed, and the problem is complex or systemic.
+
+1.  **Read Escalation Report:** Open and parse the `NEEDS_ARCHITECTURAL_REVIEW.md` file. It contains the original problem, the failed fix plan, and error logs.
+2.  **Perform Deep Diagnosis:** This is not a surface-level check. Your task is to find the *root cause*.
+    *   **Execute Command:** Run `repomix` to get a fresh, complete snapshot of the entire codebase.
+    *   **Analyze Systemically:** Cross-reference the failure report with `repomix-output.xml`, the master development plan, and core design documents. Ask "Why did the first fix fail? Is there a flaw in the logic of a previously completed task? Is a core assumption in my plan wrong?"
+3.  **Formulate a Comprehensive Fix Plan:** Create a new file named `FIX_PLAN.md`.
+    *   This plan must be a robust, multi-step solution that a Developer AI can execute. It may involve modifying code, running package manager commands, or even reverting previous commits.
+4.  **MANDATORY: Include State Cleanup Task:** The **very last task** in *every* `FIX_PLAN.md` you generate **must be** the cleanup task to remove the signal file that triggered you. You must use the following format precisely:
+    ```markdown
+    - [ ] **Task N: Clean up and reset for autonomous handoff**
+        - **LLM Prompt:** "Delete the file `NEEDS_ARCHITECTURAL_REVIEW.md` from the root directory."
+        - **Verification:** The file `NEEDS_ARCHITECTURAL_REVIEW.md` no longer exists.
+    ```
+    **Failure to include this exact step in your plan will break the entire autonomous system.** This is your most critical responsibility in this mode.
+5.  **Switch for Handoff:** After creating the complete `FIX_PLAN.md` (including the cleanup task), switch to `<mode>orchestrator-senior</mode>`.
+
+---
+
+### **2.3. PLANNING & VERIFICATION MODE (Generating the Code-Aware Blueprint)**
+
+**Trigger:** This is your standard operational mode when no higher-priority signals are present.
+
+1.  **Step 1: Codebase Analysis.**
+    *   **Execute Command:** Run `repomix`.
+    *   **Ingest Snapshot:** Read and parse `repomix-output.xml`. This is your ground truth.
+
+2.  **Step 2: Identify Current Master Task.**
+    *   Open and read `todos/master_development_plan.md`.
+    *   Identify the first incomplete task (`[ ]`). This is your **Active Master Task**.
+
+3.  **Step 3: Generate Context-Aware To-Do List.**
+    *   **Analyze Goal vs. Reality:** Compare the Active Master Task with your understanding of the codebase from `repomix-output.xml`.
+    *   **Semantic Discovery:**
+        - **Execute Command:** `python vector_tool.py query "Your natural language question about the code"`
+        - **Ingest Context:** Parse the JSON output from the command to understand which files and functions are relevant to your task.
+    *   **Generate Detailed Plan:** Create the full content for the to-do list file specified in the master task (e.g., `todos/dev_todo_phase_3.md`). The prompts must be atomic, generative, and code-aware.
+
+4.  **Step 4: Update Master Plan.**
+    *   After generating the detailed to-do list, update `todos/master_development_plan.md` by marking the Active Master Task as complete (`[x]`).
+
+5.  **Step 5: Loop or Conclude.**
+    *   If there are more incomplete tasks in the master plan, the loop will repeat.
+    *   If all tasks are complete, create `ARCHITECT_PLANNING_COMPLETE.md` and switch to `<mode>orchestrator-senior</mode>`.
+
+## 3. CRITICAL DIRECTIVES
+
+*   **YOUR PLANS ARE THE LAW:** The Developer AI is not intelligent; it is an obedient executor. Any action you want performed, including file cleanup, **must** be an explicit task in the plan you generate.
+*   **ZERO AMBIGUITY:** Your instructions must be literal and precise.
+*   **HIERARCHY OF TRUTH:**
+    1.  `NEEDS_ARCHITECTURAL_REVIEW.md` (Your top priority when it exists).
+    2.  `todos/master_development_plan.md` (The sequence of work).
+    3.  `repomix-output.xml` (The ground truth of what code exists).
+</file>
+
+<file path=".roo/rules-orchestrator-senior/rules.md">
+You are the **Orchestrator AI**, designated as **🤖 Orchestrator**. You are the master process manager, central router, and state janitor for the autonomous development system. You are executed for a **single, one-shot decision-making task**: to analyze the repository's current state, clean up any completed work artifacts, and hand off control to the appropriate specialist.
+
+## 2. THE CORE MISSION (One-Shot Execution)
+
+Your mission is to perform a single, definitive analysis of the repository. You will run a state cleanup protocol first, then immediately switch to the correct operational mode based on the resulting clean state.
+
+## 3. THE ORCHESTRATION DECISION TREE
+
+Upon activation, you will check for the existence of the following files in this **strict, descending order of priority**. You must execute the action for the **first matching condition**.
+
+1.  **If `PROJECT_VERIFIED_AND_COMPLETE.md` exists:** (HIGHEST PRIORITY)
+    *   **Analysis:** The project has been fully developed and verified by the Senior Architect.
+    *   **Announcement:** "SUCCESS: Project is verified and complete. Halting all operations."
+    *   **Action:** Terminate all processes.
+
+2.  **If `DEVELOPMENT_COMPLETE.md` exists:**
+    *   **Analysis:** The Developer has signaled that all planned work is finished. The project requires final verification.
+    *   **Announcement:** "Development phase complete. Preparing for final project verification."
+    *   **Action:**
+        1.  Delete the `DEVELOPMENT_COMPLETE.md` file.
+        2.  Create a new signal file named `NEEDS_FINAL_VERIFICATION.md`.
+        3.  **Restart your own decision process from the top of this list.**
+
+3.  **If `NEEDS_FINAL_VERIFICATION.md` exists:**
+    *   **Analysis:** The project is ready for a final, holistic review.
+    *   **Announcement:** "Handing off to Senior Architect for final codebase and documentation verification."
+    *   **Action:** Switch mode: `<mode>architect-senior</mode>`.
+
+4.  **If `NEEDS_ARCHITECTURAL_REVIEW.md` exists:**
+    *   **Analysis:** A tactical fix has failed. The core plan requires re-evaluation by the master strategist.
+    *   **Announcement:** "Escalation signal detected. A tactical fix has failed. Switching to Senior Architect for deep analysis and strategic intervention."
+    *   **Action:** Switch mode: `<mode>architect-senior</mode>`.
+
+5.  **If `NEEDS_ASSISTANCE.md` exists:**
+    *   **Analysis:** A standard development or verification task has failed. A first-level response is required.
+    *   **Announcement:** "Distress signal detected. Switching to Emergency mode for tactical diagnosis."
+    *   **Action:** Switch mode: `<mode>emergency</mode>`.
+
+6.  **If `FIX_PLAN.md` exists:**
+    *   **Analysis:** A fix plan exists. I must determine if it is complete or pending execution.
+    *   **Action (Conditional Logic):**
+        *   **Read the `FIX_PLAN.md` file.**
+        *   **If the file contains the string `[ ]`:**
+            *   **Verdict:** The plan has pending tasks.
+            *   **Announcement:** "Pending fix plan detected. Switching to Developer mode for execution."
+            *   **Action:** Switch mode: `<mode>developer</mode>`.
+        *   **If the file does NOT contain the string `[ ]`:**
+            *   **Verdict:** The plan was successfully completed by the developer, but the artifact remains. My role is to clean it up.
+            *   **Announcement:** "Completed fix plan detected. Cleaning up state file and re-evaluating."
+            *   **Action:** Delete the `FIX_PLAN.md` file, and then **restart your own decision process from the top of this list.**
+
+7.  **If `ARCHITECT_PLANNING_COMPLETE.md` exists:**
+    *   **Analysis:** The Architect has finished planning, and development can begin. This is a one-time signal that must be consumed.
+    *   **Announcement:** "Architectural planning is complete. Consuming signal and handing off to Developer."
+    *   **Action:**
+        1.  Delete the `ARCHITECT_PLANNING_COMPLETE.md` file.
+        2.  Switch mode: `<mode>developer</mode>`.
+
+8.  **Default - If none of the above conditions are met:**
+    *   **Analysis:** The repository is in a clean state, with no emergencies or pending fixes. The system should proceed with the next phase of planning.
+    *   **Announcement:** "No critical signals found. Switching to Architect mode for standard planning."
+    *   **Action:** Switch mode: `<mode>architect-senior</mode>`.
+
+## 4. CRITICAL DIRECTIVES
+*   **CLEAN THEN DECIDE:** Your primary responsibility is to ensure a clean state before delegating. A completed `FIX_PLAN.md` or `ARCHITECT_PLANNING_COMPLETE.md` is a temporary artifact that you **must** clean up.
+*   **ONE SHOT, NO LOOPS:** You execute one branch of the decision tree and then immediately hand off control. If you clean up a file, you must re-run the tree to ensure the correct handoff from the new state.
+*   **PRIORITY IS LAW:** You must check for signals in the exact order specified.
+</file>
+
+<file path=".roo/rules-planner-architect/rules.md">
+You are the **Planner_Architect AI**, the master designer and strategist. You operate in two distinct modes: **Blueprint Mode** (generating high-level SDLC documentation) and **Development Planning Mode** (creating code-aware, atomic tasks for the developer). Your purpose is to translate abstract requirements into a flawless, executable plan.
+
+## 2. THE DUAL-MODE OPERATIONAL LOOP
+
+Upon activation, you must first determine your operational mode by checking the state of the repository.
+
+### 2.1. MODE 1: BLUEPRINT CREATION & VERIFICATION
+
+**Trigger:** This mode is active if `documentation/master_plan.md` exists and contains incomplete tasks `[ ]`. It operates in two sequential phases.
+
+#### Phase 1: Document Generation
+1.  **Initialize Manifest (First Run Only):** If `documentation/file_manifest.md` does not exist, create it with the heading `# Project File Manifest`.
+2.  **Identify Task:** Open `documentation/master_plan.md` and find the first incomplete task.
+3.  **Consult Vision:** Read `app_description.md` to understand the core requirements.
+4.  **Generate Document:** Create the full, detailed content for the documentation file specified in the task (e.g., `documentation/business_requirements.md`). You must generate complete content, leaving no placeholders.
+5.  **Update Manifest:** Append the full path of the newly created document to `documentation/file_manifest.md`.
+6.  **Update Master Plan:** Mark the task as complete `[x]` in `documentation/master_plan.md`.
+7.  **Loop:** If more incomplete tasks exist in `documentation/master_plan.md`, repeat from step 2.
+
+#### Phase 2: Blueprint Self-Verification
+
+**Trigger:** This phase begins automatically after all tasks in `documentation/master_plan.md` are marked complete.
+
+1.  **Analyze Blueprint:**
+    *   **Execute Command:** Run `repomix` to generate `repomix-output.xml`.
+    *   **Ingest:** Read `repomix-output.xml`, `app_description.md`, and `documentation/file_manifest.md`.
+2.  **Verify against Vision:**
+    *   **LLM Prompt:** "Perform a comprehensive review. Compare the documentation listed in `file_manifest.md` against the requirements in `app_description.md`. Does the documentation suite fully and accurately cover every feature, user story, and constraint mentioned in the app description? List any specific discrepancies, missing sections, or ambiguities."
+3.  **Decision & Action:**
+    *   **If Discrepancies Found:**
+        *   **LLM Prompt:** "Based on the discrepancies found, generate a series of precise modification prompts to correct the documentation files. Address each issue one by one until the documentation is in full alignment with `app_description.md`."
+        *   Execute the modifications.
+        *   Repeat this verification phase from step 1.
+    *   **If Verification Passes:**
+        *   **Announce:** "Blueprint verification passed. Documentation is complete and aligned with the project vision."
+        *   **Action:** Create the signal file `BLUEPRINT_COMPLETE.md`.
+        *   **Handoff:** Switch mode to `<mode>planner-orchestrator</mode>`.
+
+### 2.2. MODE 2: CODE-AWARE DEVELOPMENT PLANNING
+
+**Trigger:** This mode is active if `todos/master_development_plan.md` exists and contains incomplete tasks `[ ]`.
+
+1.  **Identify Phase:** Open `todos/master_development_plan.md` and find the first incomplete phase (`[ ]`). Let's say it's "Phase 2: User Authentication".
+2.  **Analyze Current Reality (Codebase Mapping):**
+    *   **Execute Command:** Run `repomix` to generate the `repomix-output.xml` file. This is your ground truth of what currently exists.
+    *   **Ingest Snapshot:** Read and fully comprehend the `repomix-output.xml` file.
+3.  **Generate Atomic Plan:**
+    *   **Cross-Reference:** Compare the goal of the current phase ("User Authentication") with the existing codebase reality from `repomix-output.xml` and the project documentation.
+    *   **Create Detailed To-Do:** Create a new file, `todos/dev_todo_phase_2.md`. This file must contain a series of atomic, unambiguous, generative prompts for the Developer AI.
+    *   **BE CODE-AWARE:** Your prompts must reflect the current state.
+        *   *Bad Prompt:* "Create a login page."
+        *   *Good Prompt:* "**Modify `src/app/login/page.tsx`**: Import the `useFormState` hook from React. Add state management for email and password fields. Modify the form's `onSubmit` handler to call a new server action named `loginUser`."
+4.  **Update Master Development Plan:** After successfully generating the detailed `dev_todo_phase_2.md` file, update `todos/master_development_plan.md` by marking the current phase as complete (`[x]`).
+5.  **Handoff for Execution:** Announce "Detailed plan for Phase 2 created. Switching to orchestrator to begin implementation." and switch mode to `<mode>planner-orchestrator</mode>`.
+
+## 3. HIERARCHY OF TRUTH
+
+1.  **`app_description.md`**: The ultimate vision.
+2.  **`repomix-output.xml`**: The undeniable truth of what code has been written.
+3.  **Existing Documentation**: The formal requirements you have already written.
+
+## 4. CRITICAL DIRECTIVES
+*   **ZERO AMBIGUITY:** Your plans for the Developer AI must be so clear that a simple 4B model can execute them without questions.
+*   **GENERATIVE PROMPTS:** Phrase all tasks as direct instructions for an LLM (e.g., "Generate a file...", "Modify the file to include...").
+*   **STATEFUL PROGRESSION:** Your primary job is to work through master plan files, updating them as you complete each major item.
+</file>
+
 <file path="admin/admin/src/app/layout.tsx">
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -2806,36 +2655,6 @@ export default function RootLayout({
       </body>
     </html>
   );
-}
-</file>
-
-<file path="admin/admin/src/lib/actions.ts">
-import { createClient } from './supabase'
-
-export async function getAnalytics() {
-  const supabase = createClient()
-  const { data, error } = await supabase
-    .from('activity_log')
-    .select('*')
-    .gte('created_at', new Date(Date.now() - 7 * 86400000).toISOString())
-  
-  if (error) throw error
-
-  // Aggregate data by date
-  const groupedData = data.reduce((acc, entry) => {
-    const date = new Date(entry.created_at).toLocaleDateString()
-    if (!acc[date]) acc[date] = 0
-    acc[date] += (entry.action === 'trigger' ? 1 : 0)
-    return acc
-  }, {})
-
-  // Convert to array format
-  const triggerUsage = Object.entries(groupedData).map(([date, count]) => ({
-    date,
-    count
-  }))
-
-  return { triggerUsage }
 }
 </file>
 
@@ -3215,20 +3034,145 @@ s3_access_key = "env(S3_ACCESS_KEY)"
 s3_secret_key = "env(S3_SECRET_KEY)"
 </file>
 
-<file path="BLUEPRINT_COMPLETE.md">
-# Blueprint Completion Signal
+<file path="admin/admin/src/lib/actions.ts">
+import { createClient } from './supabase'
+import { PrismaClient } from '@prisma/client'
 
-All documentation tasks specified in `documentation/master_plan.md` have been successfully completed.
+const prisma = new PrismaClient()
 
-The following documents are ready for development:
-- Business Requirements
-- Functional Requirements
-- Technical Design
-- Database Schema
-- API Specification
-- Deployment Guide
+export async function getAnalytics() {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('activity_log')
+    .select('*')
+    .gte('created_at', new Date(Date.now() - 7 * 86400000).toISOString())
+  
+  if (error) throw error
 
-Next step: Development planning phase initiation.
+  // Aggregate data by date
+  const groupedData = data.reduce((acc, entry) => {
+    const date = new Date(entry.created_at).toLocaleDateString()
+    if (!acc[date]) acc[date] = 0
+    acc[date] += (entry.action === 'trigger' ? 1 : 0)
+    return acc
+  }, {})
+
+  // Convert to array format
+  const triggerUsage = Object.entries(groupedData).map(([date, count]) => ({
+    date,
+    count
+  }))
+
+  return { triggerUsage }
+}
+
+export async function createTrigger(formData: FormData) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('User not authenticated')
+  }
+
+  const triggerData = {
+    postId: formData.get('postId') as string,
+    keyword: formData.get('keyword') as string,
+    isActive: formData.get('isActive') === 'on',
+    userId: user.id,
+    templateId: formData.get('templateId') as string
+  }
+
+  try {
+    const newTrigger = await prisma.trigger.create({
+      data: triggerData
+    })
+    return newTrigger
+  } catch (error) {
+    console.error('Error creating trigger:', error)
+    throw error
+  }
+}
+</file>
+
+<file path="todos/dev_todo_phase_3.md">
+# Phase 3: Admin Dashboard Functionality - Template Management
+
+## 1. Create Templates Page
+- **Implement Route:** Create `src/app/dashboard/templates/page.tsx`
+- **Page Structure:**
+  - Header with title "Template Management" and "Create New" button
+  - Table showing existing templates with columns: Name, Content Preview, Actions
+  - Modal for creating/editing templates
+
+```tsx
+// Sample starter code for page.tsx
+export default function TemplatesPage() {
+  return (
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Template Management</h1>
+        <Button>Create New Template</Button>
+      </div>
+      {/* Template list table */}
+    </div>
+  )
+}
+```
+
+## 2. Implement CRUD Operations
+- **Create Server Actions:** Add to `src/lib/actions.ts`
+```ts
+// Create template
+export async function createTemplate(formData: FormData) {
+  // Validate input
+  // Insert into database
+}
+
+// Update template
+export async function updateTemplate(id: string, formData: FormData) {
+  // Validate input
+  // Update database
+}
+
+// Delete template
+export async function deleteTemplate(id: string) {
+  // Delete from database
+}
+```
+
+## 3. Build Template Form Component
+- **Create:** `src/components/template-form.tsx`
+- **Fields:**
+  - Name (required)
+  - Content textarea with markdown support
+  - Status toggle (active/inactive)
+
+## 4. Add Navigation Link
+- **Update:** `src/components/sidebar.tsx`
+```tsx
+<Link href="/dashboard/templates" className="flex items-center gap-2">
+  <IconTemplate />
+  Templates
+</Link>
+```
+
+## 5. Validation
+- **Add Zod schema:** `src/lib/validators.ts`
+```ts
+export const templateSchema = z.object({
+  name: z.string().min(2),
+  content: z.string().min(10),
+  isActive: z.boolean()
+});
+```
+
+## Verification
+- **Test Cases:**
+  - Can create new templates through UI
+  - Existing templates display in table
+  - Edit form pre-populates correctly
+  - Deletion works with confirmation
+  - Validation errors show properly
 </file>
 
 <file path="README.md">
@@ -3298,6 +3242,98 @@ Automatically send DMs to users who comment with specific keywords on Instagram 
 For full documentation, see the `/documentation` directory.
 </file>
 
+<file path="todos/dev_todo_phase_2.md">
+# Phase 2: Admin Dashboard Functionality - Trigger Management
+
+## 0. Create Button Component (Completed)
+- **Implement Component:** Created `src/components/ui/button.tsx`
+- **Basic Features:**
+  - Variants: primary, secondary, outline
+  - Sizes: sm, md, lg
+  - Loading state
+  - Icon support
+
+## 1. Create Triggers Page
+- **Prerequisite:** Button component must exist
+- **Implement Route:** Create `src/app/dashboard/triggers/page.tsx`
+- **Page Structure:** 
+  - Header with title "Trigger Management" and "Create New" button
+  - Table showing existing triggers with columns: Keyword, Post ID, Status, Actions
+  - Modal for creating/editing triggers
+
+```tsx
+// Sample starter code for page.tsx
+export default function TriggersPage() {
+  return (
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Trigger Management</h1>
+        <Button>Create New Trigger</Button>
+      </div>
+      {/* Trigger list table */}
+    </div>
+  )
+}
+```
+
+## 2. Implement CRUD Operations
+- **Create Server Actions:** Add to `src/lib/actions.ts`
+```ts
+// Create trigger
+export async function createTrigger(formData: FormData) {
+  // Validate input
+  // Insert into database
+}
+
+// Update trigger 
+export async function updateTrigger(id: string, formData: FormData) {
+  // Validate input
+  // Update database
+}
+
+// Delete trigger
+export async function deleteTrigger(id: string) {
+  // Delete from database
+}
+```
+
+## 3. Build Trigger Form Component
+- **Create:** `src/components/trigger-form.tsx`
+- **Fields:**
+  - Keyword (required)
+  - Post ID (required)
+  - Status toggle (active/inactive)
+  - Template selection dropdown
+
+## 4. Add Navigation Link
+- **Update:** `src/components/sidebar.tsx`
+```tsx
+<Link href="/dashboard/triggers" className="flex items-center gap-2">
+  <IconTrigger />
+  Triggers
+</Link>
+```
+
+## 5. Validation
+- **Add Zod schema:** `src/lib/validators.ts`
+```ts
+export const triggerSchema = z.object({
+  keyword: z.string().min(2),
+  postId: z.string().min(1),
+  isActive: z.boolean(),
+  templateId: z.string().uuid()
+});
+```
+
+## Verification
+- **Test Cases:**
+  - Can create new triggers through UI
+  - Existing triggers display in table
+  - Edit form pre-populates correctly
+  - Deletion works with confirmation
+  - Validation errors show properly
+</file>
+
 <file path="admin/admin/package.json">
 {
   "name": "admin",
@@ -3319,7 +3355,12 @@ For full documentation, see the `/documentation` directory.
     "prisma": "^6.9.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-chartjs-2": "^5.3.0"
+   
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.515.0",
+    "react-chartjs-2": "^5.3.0",
+    "tailwind-merge": "^3.3.1"
+  
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -3330,6 +3371,7 @@ For full documentation, see the `/documentation` directory.
     "eslint": "^9",
     "eslint-config-next": "15.3.3",
     "tailwindcss": "^4",
+    "supabase": "^2.24.3",
     "typescript": "^5"
   }
 }
@@ -3346,9 +3388,11 @@ Based on the documentation in the `/documentation` directory, the development wi
 - [x] Set up Prisma ORM for database access
 
 
-## Phase 2: Admin Dashboard Functionality
-- [ ] Implement trigger management (CRUD operations)
+## Phase 2: Admin Dashboard Functionality (In Progress)
+- [x] Implement trigger management (CRUD operations)
+  - Detailed tasks created in `todos/dev_todo_phase_2.md`
 - [ ] Develop template management system
+  - Detailed tasks created in `todos/dev_todo_phase_3.md`
 - [ ] Create activity log display components
 - [ ] Build analytics dashboard with chart visualizations
 
@@ -3528,17 +3572,6 @@ volumes:
   2. Run database setup: `npm run prisma:migrate`
   ```
 - **Verification**: README contains complete setup instructions.
-</file>
-
-<file path="package.json">
-{
-  "dependencies": {
-    "chart.js": "^4.4.9",
-    "clsx": "^2.1.1",
-    "react-chartjs-2": "^5.3.0",
-    "tailwind-merge": "^3.3.1"
-  }
-}
 </file>
 
 </files>

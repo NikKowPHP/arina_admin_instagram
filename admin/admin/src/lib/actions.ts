@@ -1,5 +1,9 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { createClient } from './supabase'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { PrismaClient } from '@prisma/client'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { templateSchema } from './validators'
 
 const prisma = new PrismaClient()
 
@@ -53,5 +57,37 @@ export async function createTrigger(formData: FormData) {
   } catch (error) {
     console.error('Error creating trigger:', error)
     throw error
+  }
+}
+
+export async function createTemplate(formData: FormData) {
+  const validated = templateSchema.parse(Object.fromEntries(formData));
+  try {
+    return await prisma.template.create({ data: validated });
+  } catch (error) {
+    console.error('Error creating template:', error);
+    throw error;
+  }
+}
+
+export async function updateTemplate(id: string, formData: FormData) {
+  const validated = templateSchema.parse(Object.fromEntries(formData));
+  try {
+    return await prisma.template.update({
+      where: { id },
+      data: validated
+    });
+  } catch (error) {
+    console.error('Error updating template:', error);
+    throw error;
+  }
+}
+
+export async function deleteTemplate(id: string) {
+  try {
+    return await prisma.template.delete({ where: { id } });
+  } catch (error) {
+    console.error('Error deleting template:', error);
+    throw error;
   }
 }
