@@ -5,6 +5,7 @@ import { BarChart } from '@/components/ui/bar-chart'
 import { LineChart } from '@/components/ui/line-chart'
 import { PieChart } from '@/components/ui/pie-chart'
 import { Card } from '@/components/ui/card'
+import { ChartControls } from '@/components/chart-controls'
 import { getAnalytics, getDashboardAnalytics } from '@/lib/actions'
 
 type TriggerUsage = Array<{ date: string; count: number }>
@@ -20,6 +21,8 @@ type DashboardAnalytics = {
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [dateRange, setDateRange] = useState('7d')
+  const [chartType, setChartType] = useState('bar')
+  const [visibleData, setVisibleData] = useState(['Triggers', 'Users', 'Templates'])
   const [chartData, setChartData] = useState<{
     triggerUsage: TriggerUsage
     analytics: DashboardAnalytics | null
@@ -69,27 +72,42 @@ export default function DashboardPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start gap-4 flex-wrap">
         <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
-        <select
-          value={dateRange}
-          onChange={(e) => setDateRange(e.target.value)}
-          className="px-4 py-2 border rounded"
-        >
-          <option value="7d">Last 7 days</option>
-          <option value="30d">Last 30 days</option>
-          <option value="90d">Last 90 days</option>
-        </select>
+        <ChartControls
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          chartType={chartType}
+          onChartTypeChange={setChartType}
+          visibleData={visibleData}
+          onVisibleDataChange={setVisibleData}
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <h2 className="text-lg mb-4">Trigger Activity</h2>
-          <BarChart
-            datasets={chartData.triggerUsage}
-            xAxis="date"
-            yFields={['count']}
-          />
+          {chartType === 'bar' && (
+            <BarChart
+              datasets={chartData.triggerUsage}
+              xAxis="date"
+              yFields={['count']}
+            />
+          )}
+          {chartType === 'line' && (
+            <LineChart
+              datasets={chartData.triggerUsage}
+              xAxis="date"
+              yFields={['count']}
+            />
+          )}
+          {chartType === 'pie' && (
+            <PieChart
+              datasets={chartData.triggerUsage}
+              labelField="date"
+              valueField="count"
+            />
+          )}
         </Card>
 
         <Card>
