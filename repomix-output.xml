@@ -68,12 +68,20 @@ admin/
       window.svg
     src/
       app/
+        dashboard/
+          page.tsx
         globals.css
         layout.tsx
         page.tsx
+      components/
+        ui/
+          bar-chart.tsx
+          card.tsx
       lib/
+        actions.ts
         supabase-provider.tsx
         supabase.ts
+        utils.ts
       types/
         supabase.ts
     .gitignore
@@ -82,6 +90,7 @@ admin/
     package.json
     postcss.config.mjs
     README.md
+    repomix-output.xml
     tsconfig.json
 documentation/
   api_spec.md
@@ -94,16 +103,728 @@ documentation/
 supabase/
   config.toml
 todos/
-  dev_todo_phase_1.md
-  dev_todo_phase_2.md
   master_development_plan.md
 app_description.md
 BLUEPRINT_COMPLETE.md
 docker-compose.yml
+package.json
+README.md
 </directory_structure>
 
 <files>
 This section contains the contents of the repository's files.
+
+<file path="admin/admin/repomix-output.xml">
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+prisma/
+  schema.prisma
+public/
+  file.svg
+  globe.svg
+  next.svg
+  vercel.svg
+  window.svg
+src/
+  app/
+    dashboard/
+      page.tsx
+    globals.css
+    layout.tsx
+    page.tsx
+  components/
+    ui/
+      bar-chart.tsx
+      card.tsx
+  lib/
+    actions.ts
+    supabase-provider.tsx
+    supabase.ts
+    utils.ts
+  types/
+    supabase.ts
+.gitignore
+eslint.config.mjs
+next.config.ts
+package.json
+postcss.config.mjs
+README.md
+tsconfig.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="prisma/schema.prisma">
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  createdAt    DateTime   @default(now()) @map("created_at")
+  triggers     Trigger[]
+  activityLogs ActivityLog[]
+  
+  @@map("users")
+}
+
+model Trigger {
+  id         String   @id @default(uuid())
+  postId     String   @map("post_id")
+  keyword    String
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  userId     String   @map("user_id")
+  templateId String   @map("template_id")
+  
+  user     User     @relation(fields: [userId], references: [id])
+  template Template @relation(fields: [templateId], references: [id])
+  
+  @@index([postId], name: "idx_triggers_post_id")
+  @@index([keyword], name: "idx_triggers_keyword")
+  @@map("triggers")
+}
+
+model Template {
+  id        String   @id @default(uuid())
+  content   String
+  mediaUrl  String?  @map("media_url")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  triggers  Trigger[]
+  
+  @@map("templates")
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  action    String
+  details   Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  userId    String   @map("user_id")
+  
+  user User @relation(fields: [userId], references: [id])
+  
+  @@map("activity_log")
+}
+</file>
+
+<file path="public/file.svg">
+<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
+</file>
+
+<file path="public/globe.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
+</file>
+
+<file path="public/next.svg">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
+</file>
+
+<file path="public/vercel.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
+</file>
+
+<file path="public/window.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
+</file>
+
+<file path="src/app/dashboard/page.tsx">
+import { BarChart, Card } from '@/components/ui'
+import { getAnalytics } from '@/lib/actions'
+
+export default async function DashboardPage() {
+  const data = await getAnalytics()
+  
+  return (
+    <div className="p-6 space-y-6">
+      <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
+      
+      <Card>
+        <h2 className="text-lg mb-4">Trigger Activity</h2>
+        <BarChart
+          data={data.triggerUsage}
+          xAxis="date"
+          yAxis="count"
+        />
+      </Card>
+
+      {/* Add more chart components */}
+    </div>
+  )
+}
+</file>
+
+<file path="src/app/globals.css">
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+</file>
+
+<file path="src/app/layout.tsx">
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import { SupabaseProvider } from "@/lib/supabase-provider";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Create Next App",
+  description: "Generated by create next app",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <SupabaseProvider>
+          {children}
+        </SupabaseProvider>
+      </body>
+    </html>
+  );
+}
+</file>
+
+<file path="src/app/page.tsx">
+import Image from "next/image";
+
+export default function Home() {
+  return (
+    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
+        <Image
+          className="dark:invert"
+          src="/next.svg"
+          alt="Next.js logo"
+          width={180}
+          height={38}
+          priority
+        />
+        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
+          <li className="mb-2 tracking-[-.01em]">
+            Get started by editing{" "}
+            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
+              src/app/page.tsx
+            </code>
+            .
+          </li>
+          <li className="tracking-[-.01em]">
+            Save and see your changes instantly.
+          </li>
+        </ol>
+
+        <div className="flex gap-4 items-center flex-col sm:flex-row">
+          <a
+            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
+            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Image
+              className="dark:invert"
+              src="/vercel.svg"
+              alt="Vercel logomark"
+              width={20}
+              height={20}
+            />
+            Deploy now
+          </a>
+          <a
+            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
+            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Read our docs
+          </a>
+        </div>
+      </main>
+      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
+        <a
+          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
+          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Image
+            aria-hidden
+            src="/file.svg"
+            alt="File icon"
+            width={16}
+            height={16}
+          />
+          Learn
+        </a>
+        <a
+          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
+          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Image
+            aria-hidden
+            src="/window.svg"
+            alt="Window icon"
+            width={16}
+            height={16}
+          />
+          Examples
+        </a>
+        <a
+          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
+          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Image
+            aria-hidden
+            src="/globe.svg"
+            alt="Globe icon"
+            width={16}
+            height={16}
+          />
+          Go to nextjs.org →
+        </a>
+      </footer>
+    </div>
+  );
+}
+</file>
+
+<file path="src/components/ui/bar-chart.tsx">
+'use client'
+
+import { Bar } from 'react-chartjs-2'
+import { 
+  Chart as ChartJS, 
+  CategoryScale, 
+  LinearScale, 
+  BarElement, 
+  Title, 
+  Tooltip, 
+  Legend 
+} from 'chart.js'
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+)
+
+interface BarChartProps {
+  data: Array<{[key: string]: any}>
+  xAxis: string
+  yAxis: string
+  title?: string
+}
+
+export function BarChart({ data, xAxis, yAxis, title }: BarChartProps) {
+  const chartData = {
+    labels: data.map(item => item[xAxis]),
+    datasets: [{
+      label: yAxis,
+      data: data.map(item => item[yAxis]),
+      backgroundColor: 'rgba(59, 130, 246, 0.5)'
+    }]
+  }
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      title: {
+        display: !!title,
+        text: title,
+      },
+    },
+  }
+
+  return <Bar options={options} data={chartData} />
+}
+</file>
+
+<file path="src/components/ui/card.tsx">
+import { cn } from '@/lib/utils'
+import { ReactNode } from 'react'
+
+interface CardProps {
+  children: ReactNode
+  className?: string
+}
+
+export function Card({ children, className }: CardProps) {
+  return (
+    <div className={cn(
+      'rounded-lg border bg-card text-card-foreground shadow-sm',
+      className
+    )}>
+      {children}
+    </div>
+  )
+}
+</file>
+
+<file path="src/lib/actions.ts">
+import { createClient } from './supabase'
+
+export async function getAnalytics() {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('activity_log')
+    .select('*')
+    .gte('created_at', new Date(Date.now() - 7 * 86400000).toISOString())
+  
+  if (error) throw error
+  
+  // Process data into chart formats
+  return {
+    triggerUsage: data.map(entry => ({
+      date: new Date(entry.created_at).toLocaleDateString(),
+      count: entry.action === 'trigger' ? 1 : 0
+    }))
+  }
+}
+</file>
+
+<file path="src/lib/supabase-provider.tsx">
+'use client'
+
+import { createClient } from './supabase'
+import { createContext, useContext, useState } from 'react'
+
+const SupabaseContext = createContext(createClient())
+
+export function SupabaseProvider({ children }: { children: React.ReactNode }) {
+  const [supabase] = useState(() => createClient())
+  
+  return (
+    <SupabaseContext.Provider value={supabase}>
+      {children}
+    </SupabaseContext.Provider>
+  )
+}
+
+export const useSupabase = () => useContext(SupabaseContext)
+</file>
+
+<file path="src/lib/supabase.ts">
+import { createBrowserClient } from '@supabase/ssr'
+import { Database } from '@/types/supabase'
+
+export function createClient() {
+  return createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_KEY!
+  )
+}
+</file>
+
+<file path="src/lib/utils.ts">
+import { type ClassValue, clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+</file>
+
+<file path="src/types/supabase.ts">
+import { PrismaClient } from '@prisma/client'
+
+export type Database = typeof PrismaClient
+export type User = PrismaClient['user']
+export type Trigger = PrismaClient['trigger']
+export type Template = PrismaClient['template']
+export type ActivityLog = PrismaClient['activityLog']
+</file>
+
+<file path=".gitignore">
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+/src/generated/prisma
+</file>
+
+<file path="eslint.config.mjs">
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+import { FlatCompat } from "@eslint/eslintrc";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const compat = new FlatCompat({
+  baseDirectory: __dirname,
+});
+
+const eslintConfig = [
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
+];
+
+export default eslintConfig;
+</file>
+
+<file path="next.config.ts">
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+
+export default nextConfig;
+</file>
+
+<file path="package.json">
+{
+  "name": "admin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.9.0",
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.50.0",
+    "next": "15.3.3",
+    "prisma": "^6.9.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.3.3",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+</file>
+
+<file path="postcss.config.mjs">
+const config = {
+  plugins: ["@tailwindcss/postcss"],
+};
+
+export default config;
+</file>
+
+<file path="README.md">
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+</file>
+
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+</file>
+
+</files>
+</file>
 
 <file path=".roo/rules-architect-senior/rules.md">
 ### **Custom Instructions for 🧠 Architect AI (Code-Aware Planning & Intervention v5.0)**
@@ -826,6 +1547,32 @@ model ActivityLog {
 <svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
 </file>
 
+<file path="admin/admin/src/app/dashboard/page.tsx">
+import { BarChart, Card } from '@/components/ui'
+import { getAnalytics } from '@/lib/actions'
+
+export default async function DashboardPage() {
+  const data = await getAnalytics()
+  
+  return (
+    <div className="p-6 space-y-6">
+      <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
+      
+      <Card>
+        <h2 className="text-lg mb-4">Trigger Activity</h2>
+        <BarChart
+          data={data.triggerUsage}
+          xAxis="date"
+          yAxis="count"
+        />
+      </Card>
+
+      {/* Add more chart components */}
+    </div>
+  )
+}
+</file>
+
 <file path="admin/admin/src/app/globals.css">
 @import "tailwindcss";
 
@@ -961,6 +1708,106 @@ export default function Home() {
 }
 </file>
 
+<file path="admin/admin/src/components/ui/bar-chart.tsx">
+'use client'
+
+import { Bar } from 'react-chartjs-2'
+import { 
+  Chart as ChartJS, 
+  CategoryScale, 
+  LinearScale, 
+  BarElement, 
+  Title, 
+  Tooltip, 
+  Legend 
+} from 'chart.js'
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+)
+
+interface BarChartProps {
+  data: Array<{[key: string]: any}>
+  xAxis: string
+  yAxis: string
+  title?: string
+}
+
+export function BarChart({ data, xAxis, yAxis, title }: BarChartProps) {
+  const chartData = {
+    labels: data.map(item => item[xAxis]),
+    datasets: [{
+      label: yAxis,
+      data: data.map(item => item[yAxis]),
+      backgroundColor: 'rgba(59, 130, 246, 0.5)'
+    }]
+  }
+
+  const options = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top' as const,
+      },
+      title: {
+        display: !!title,
+        text: title,
+      },
+    },
+  }
+
+  return <Bar options={options} data={chartData} />
+}
+</file>
+
+<file path="admin/admin/src/components/ui/card.tsx">
+import { cn } from '@/lib/utils'
+import { ReactNode } from 'react'
+
+interface CardProps {
+  children: ReactNode
+  className?: string
+}
+
+export function Card({ children, className }: CardProps) {
+  return (
+    <div className={cn(
+      'rounded-lg border bg-card text-card-foreground shadow-sm',
+      className
+    )}>
+      {children}
+    </div>
+  )
+}
+</file>
+
+<file path="admin/admin/src/lib/actions.ts">
+import { createClient } from './supabase'
+
+export async function getAnalytics() {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('activity_log')
+    .select('*')
+    .gte('created_at', new Date(Date.now() - 7 * 86400000).toISOString())
+  
+  if (error) throw error
+  
+  // Process data into chart formats
+  return {
+    triggerUsage: data.map(entry => ({
+      date: new Date(entry.created_at).toLocaleDateString(),
+      count: entry.action === 'trigger' ? 1 : 0
+    }))
+  }
+}
+</file>
+
 <file path="admin/admin/src/lib/supabase-provider.tsx">
 'use client'
 
@@ -991,6 +1838,15 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_KEY!
   )
+}
+</file>
+
+<file path="admin/admin/src/lib/utils.ts">
+import { type ClassValue, clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
 }
 </file>
 
@@ -1712,104 +2568,6 @@ port = 5433
 site_url = "http://localhost:3000"
 </file>
 
-<file path="todos/dev_todo_phase_2.md">
-# Development Tasks: Phase 2 - Core Functionality Implementation
-
-## 1. Implement Admin Authentication
-- [x] **Task: Supabase Auth Setup**
-**Modify [`admin/admin/src/app/layout.tsx`](admin/admin/src/app/layout.tsx)**:
-```tsx
-import { createClient } from '@supabase/supabase-js'
-import { Database } from '@/types/supabase'
-
-const supabase = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_KEY!
-)
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  return (
-    <html>
-      <body>
-        <SupabaseProvider supabaseClient={supabase}>
-          {children}
-        </SupabaseProvider>
-      </body>
-    </html>
-  )
-}
-```
-**Create [`admin/admin/src/types/supabase.ts`](admin/admin/src/types/supabase.ts)**:
-```ts
-import { Database } from '@/lib/database.types'
-
-export type { Database }
-```
-**Verification:** Confirm auth provider is initialized without errors.
-
-## 2. Create Trigger Management UI
-- [ ] **Task: Triggers List Page**
-**Create [`admin/admin/src/app/triggers/page.tsx`](admin/admin/src/app/triggers/page.tsx)**:
-```tsx
-import { prisma } from '@/lib/prisma'
-
-export default async function TriggersPage() {
-  const triggers = await prisma.triggers.findMany()
-  
-  return (
-    <div>
-      <h1>Triggers</h1>
-      <ul>
-        {triggers.map(trigger => (
-          <li key={trigger.id}>
-            {trigger.keyword} - {trigger.post_id}
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-```
-**Verification:** Visit `/triggers` and confirm list displays.
-
-## 3. Implement Bot Service Core
-- [ ] **Task: Instagram Bot Setup**
-**Modify [`bot/main.py`](bot/main.py)**:
-```python
-from instagram_private_api import Client
-
-api = Client(
-  os.getenv("INSTAGRAM_USER"), 
-  os.getenv("INSTAGRAM_PASSWORD")
-)
-
-def handle_comment(comment):
-  print(f"New comment: {comment['text']}")
-
-# Basic comment polling
-last_timestamp = None
-while True:
-  activity = api.get_recent_activity()
-  new_comments = [item for item in activity if item['type'] == 'comment']
-  
-  if last_timestamp:
-    new_comments = [c for c in new_comments if c['timestamp'] > last_timestamp]
-  
-  for comment in new_comments:
-    handle_comment(comment)
-  
-  if new_comments:
-    last_timestamp = new_comments[0]['timestamp']
-  
-  time.sleep(60)
-```
-**Verification:** Run bot and confirm it logs comments.
-</file>
-
 <file path="app_description.md">
 # Instagram Comment-to-DM Bot System
 
@@ -1873,16 +2631,17 @@ Create an automated system where:
 <file path="BLUEPRINT_COMPLETE.md">
 # Blueprint Completion Signal
 
-All documentation tasks from `documentation/master_plan.md` have been completed:
+All documentation tasks specified in `documentation/master_plan.md` have been successfully completed.
 
-- [x] Business Requirements
-- [x] Functional Requirements
-- [x] Technical Design Specification
-- [x] Database Schema
-- [x] API Documentation
-- [x] Deployment Guide
+The following documents are ready for development:
+- Business Requirements
+- Functional Requirements
+- Technical Design
+- Database Schema
+- API Specification
+- Deployment Guide
 
-The project is now ready for development planning phase.
+Next step: Development planning phase initiation.
 </file>
 
 <file path="admin/admin/src/app/layout.tsx">
@@ -1971,31 +2730,6 @@ next-env.d.ts
 /src/generated/prisma
 </file>
 
-<file path="todos/master_development_plan.md">
-# Master Development Plan
-
-## Phase Completion Status
-
-- [x] **Phase 1: Project Setup and Infrastructure** (`todos/dev_todo_phase_1.md`)
-  - Docker environment
-  - Supabase configuration
-  - Next.js admin panel setup
-  - Python bot service skeleton
-  - Prisma ORM configuration
-
-- [ ] **Phase 2: Core Functionality Implementation** (`todos/dev_todo_phase_2.md`)
-  - Admin authentication system
-  - Basic trigger/template CRUD operations
-  - Instagram bot service setup
-  - Database schema implementation
-
-- [ ] **Phase 3: Advanced Features & Polish**
-  - Dashboard analytics
-  - Bot monitoring interface
-  - Enhanced security
-  - Deployment configuration
-</file>
-
 <file path="admin/admin/package.json">
 {
   "name": "admin",
@@ -2031,126 +2765,109 @@ next-env.d.ts
 }
 </file>
 
-<file path="todos/dev_todo_phase_1.md">
-# Development Tasks: Phase 1 - Project Setup and Infrastructure
+<file path="todos/master_development_plan.md">
+# Master Development Plan
 
-## 1. Set up Docker Compose environment
-- [x] **Task: Docker Compose Setup**
-**Modify [`docker-compose.yml`](docker-compose.yml)**: Create a new Docker Compose file with the following content:
-```yaml
-version: '3.8'
+Based on the documentation in the `/documentation` directory, the development will proceed in the following phases:
 
-services:
-  admin-panel:
-    build: 
-      context: ./admin
-    ports:
-      - "3000:3000"
-    environment:
-      - DATABASE_URL=postgres://postgres:password@db:5432/postgres
-    depends_on:
-      - db
-    volumes:
-      - ./admin:/app
+## Phase 1: Core Infrastructure Setup
+- [ ] Initialize Supabase database with schema
+- [ ] Configure Next.js application with Supabase integration
+- [ ] Implement basic authentication system
+- [ ] Set up Prisma ORM for database access
 
-  bot-service:
-    build: 
-      context: ./bot
-    environment:
-      - INSTAGRAM_USER=${INSTAGRAM_USER:-testuser}
-      - INSTAGRAM_PASSWORD=${INSTAGRAM_PASSWORD:-testpass}
-    depends_on:
-      - db
-    volumes:
-      - ./bot:/app
+## Phase 2: Admin Dashboard Functionality
+- [ ] Implement trigger management (CRUD operations)
+- [ ] Develop template management system
+- [ ] Create activity log display components
+- [ ] Build analytics dashboard with chart visualizations
 
-  db:
-    image: supabase/postgres:15
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_PASSWORD=password
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+## Phase 3: Bot Engine Implementation
+- [ ] Develop bot monitoring service architecture
+- [ ] Implement keyword matching logic
+- [ ] Create DM sending functionality
+- [ ] Build logging system for bot activities
 
-volumes:
-  pgdata:
-```
-**Verification:** Confirm the file exists with the correct content.
+## Phase 4: API Integration
+- [ ] Implement REST API for trigger management
+- [ ] Create endpoints for template operations
+- [ ] Develop bot healthcheck API
+- [ ] Implement authentication for API endpoints
 
-## 2. Configure Supabase local instance
-- [x] **Task: Supabase Configuration**
-**Create [`supabase/config.toml`](supabase/config.toml)**: Add basic configuration:
-```toml
-[api]
-port = 5432
+## Phase 5: Testing and Deployment
+- [ ] Write comprehensive test suite
+- [ ] Create CI/CD pipeline
+- [ ] Implement monitoring and alerting
+- [ ] Prepare production deployment
 
-[auth]
-site_url = "http://localhost:3000"
-```
-**Execute Command:** 
-```bash
-docker-compose up -d db
-```
-**Verification:** Check that the Supabase container is running with `docker-compose ps`.
+Each phase will be broken down into detailed development tasks by the Planner_Architect AI.
+</file>
 
-## 3. Initialize Next.js admin panel
-- [x] **Task: Next.js Setup**
-**Execute Command in `admin` directory:**
-```bash
-npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"
-```
-**Modify [`admin/.env`](admin/.env)**: Add environment variables:
-```env
-NEXT_PUBLIC_SUPABASE_URL=http://db:5432
-NEXT_PUBLIC_SUPABASE_KEY=your-anon-key
-```
-**Verification:** Confirm Next.js app structure exists in `admin` directory.
+<file path="README.md">
+# Instagram Comment-to-DM Bot System
 
-## 4. Set up Prisma ORM
-- [x] **Task: Prisma Configuration**
-**Execute Command in `admin/admin` directory:**
-```bash
-npm install prisma @prisma/client
-npx prisma init
-npx prisma generate
-```
-**Modify [`admin/admin/prisma/schema.prisma`](admin/admin/prisma/schema.prisma)**: Add data models for User, Trigger, Template, and ActivityLog.
-**Modify [`admin/admin/.env`](admin/admin/.env)**: Add database connection URL.
-**Verification:** Confirm Prisma client is generated in `admin/admin/src/generated/prisma`.
+Automatically send DMs to users who comment with specific keywords on Instagram posts. Includes an admin panel for managing triggers and responses.
 
-## 5. Create Python bot service skeleton
-**Create [`bot/requirements.txt`](bot/requirements.txt)**:
-```
-instagram-private-api==1.6.0
-python-dotenv==1.0.0
-```
-**Create [`bot/main.py`](bot/main.py)**:
-```python
-import os
-from dotenv import load_dotenv
+## Features
+- Instagram bot service (Python)
+- Admin web panel (Next.js)
+- Supabase backend (Auth, Database, Storage)
+- Dockerized development environment
 
-load_dotenv()
+## Prerequisites
+- Docker and Docker Compose
+- Instagram API credentials
+- Supabase account
 
-INSTAGRAM_USER = os.getenv("INSTAGRAM_USER")
-INSTAGRAM_PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
+## Getting Started
 
-print(f"Bot service started for user: {INSTAGRAM_USER}")
-```
-**Create [`bot/Dockerfile`](bot/Dockerfile)**:
-```dockerfile
-FROM python:3.10-slim
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/arina_admin_instagram.git
+   cd arina_admin_instagram
+   ```
 
-WORKDIR /app
+2. **Set up environment variables**
+   - Copy `.env.example` to `.env` in both `admin/admin` and bot directories
+   - Fill in your credentials:
+     - Instagram API keys
+     - Supabase URL and anon key
+     - Admin panel secret keys
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+3. **Start the system**
+   ```bash
+   docker-compose up --build
+   ```
 
-COPY . .
+4. **Access the services**
+   - Admin panel: http://localhost:3111
+   - Bot logs: `docker-compose logs bot`
 
-CMD ["python", "main.py"]
-```
-**Verification:** Confirm all bot files exist with correct content.
+## Configuration
+
+### Admin Panel
+1. Visit http://localhost:3111/login
+2. Create your admin account
+3. Configure:
+   - Instagram posts to monitor
+   - Trigger keywords
+   - DM response templates
+
+### Instagram Bot
+1. Ensure your Instagram account is properly authenticated
+2. The bot will automatically:
+   - Monitor specified posts
+   - Detect trigger keywords
+   - Send configured DM responses
+
+## Troubleshooting
+
+**Common Issues:**
+- Instagram API limits: Ensure proper rate limiting
+- Database connection: Verify Supabase credentials
+- Docker issues: Check container logs with `docker-compose logs`
+
+For full documentation, see the `/documentation` directory.
 </file>
 
 <file path="docker-compose.yml">
@@ -2191,6 +2908,17 @@ services:
 
 volumes:
   pgdata:
+</file>
+
+<file path="package.json">
+{
+  "dependencies": {
+    "chart.js": "^4.4.9",
+    "clsx": "^2.1.1",
+    "react-chartjs-2": "^5.3.0",
+    "tailwind-merge": "^3.3.1"
+  }
+}
 </file>
 
 </files>

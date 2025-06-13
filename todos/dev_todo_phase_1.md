@@ -1,119 +1,111 @@
-# Development Tasks: Phase 1 - Project Setup and Infrastructure
+# Phase 1: Core Infrastructure Setup - Development Tasks
 
-## 1. Set up Docker Compose environment
-- [x] **Task: Docker Compose Setup**
-**Modify [`docker-compose.yml`](docker-compose.yml)**: Create a new Docker Compose file with the following content:
-```yaml
-version: '3.8'
+## 1. Install Required Dependencies
+- **Modify `admin/admin/package.json`**:
+  Add the following dependencies to the `dependencies` section:
+  ```json
+  "chart.js": "^4.4.9",
+  "react-chartjs-2": "^5.3.0"
+  ```
+- **Verification**: Run `npm install` in the `admin/admin` directory and confirm both packages are installed.
 
-services:
-  admin-panel:
-    build: 
-      context: ./admin
-    ports:
-      - "3000:3000"
-    environment:
-      - DATABASE_URL=postgres://postgres:password@db:5432/postgres
-    depends_on:
-      - db
-    volumes:
-      - ./admin:/app
+## 2. Fix Data Aggregation Logic
+- **Modify `admin/admin/src/lib/actions.ts`**:
+  Replace the current `getAnalytics` implementation with proper aggregation:
+  ```typescript
+  export async function getAnalytics() {
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from('activity_log')
+      .select('*')
+      .gte('created_at', new Date(Date.now() - 7 * 86400000).toISOString());
+    
+    if (error) throw error;
 
-  bot-service:
-    build: 
-      context: ./bot
-    environment:
-      - INSTAGRAM_USER=${INSTAGRAM_USER:-testuser}
-      - INSTAGRAM_PASSWORD=${INSTAGRAM_PASSWORD:-testpass}
-    depends_on:
-      - db
-    volumes:
-      - ./bot:/app
+    // Aggregate data by date
+    const groupedData = data.reduce((acc, entry) => {
+      const date = new Date(entry.created_at).toLocaleDateString();
+      if (!acc[date]) acc[date] = 0;
+      acc[date] += (entry.action === 'trigger' ? 1 : 0);
+      return acc;
+    }, {});
 
-  db:
-    image: supabase/postgres:15
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_PASSWORD=password
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+    // Convert to array format
+    const triggerUsage = Object.entries(groupedData).map(([date, count]) => ({
+      date,
+      count
+    }));
 
-volumes:
-  pgdata:
-```
-**Verification:** Confirm the file exists with the correct content.
+    return { triggerUsage };
+  }
+  ```
+- **Verification**: The function should now return aggregated counts per date.
 
-## 2. Configure Supabase local instance
-- [x] **Task: Supabase Configuration**
-**Create [`supabase/config.toml`](supabase/config.toml)**: Add basic configuration:
-```toml
-[api]
-port = 5432
+## 3. Generate Correct Supabase Types
+- **Execute Command**:
+  Run the following command in the terminal:
+  ```bash
+  npx supabase gen types typescript --project-id your-project-id > admin/admin/src/types/database.ts
+  ```
+- **Modify `admin/admin/src/lib/supabase.ts`**:
+  Update the import to use the new types:
+  ```typescript
+  import { Database } from '@/types/database';  // Changed from '@/types/supabase'
+  ```
+- **Verification**: The `Database` type should now come from `database.ts`.
 
-[auth]
-site_url = "http://localhost:3000"
-```
-**Execute Command:** 
-```bash
-docker-compose up -d db
-```
-**Verification:** Check that the Supabase container is running with `docker-compose ps`.
+## 4. Add Prisma Scripts
+- **Modify `admin/admin/package.json`**:
+  Add these scripts to the `scripts` section:
+  ```json
+  "prisma:generate": "prisma generate",
+  "prisma:migrate": "prisma migrate dev"
+  ```
+- **Verification**: Running `npm run prisma:generate` should generate Prisma client.
 
-## 3. Initialize Next.js admin panel
-- [x] **Task: Next.js Setup**
-**Execute Command in `admin` directory:**
-```bash
-npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"
-```
-**Modify [`admin/.env`](admin/.env)**: Add environment variables:
-```env
-NEXT_PUBLIC_SUPABASE_URL=http://db:5432
-NEXT_PUBLIC_SUPABASE_KEY=your-anon-key
-```
-**Verification:** Confirm Next.js app structure exists in `admin` directory.
+## 5. Initialize Supabase Database
+- **Execute Command**:
+  Run database migration:
+  ```bash
+  docker-compose exec db psql -U postgres -c "CREATE DATABASE arina_admin;"
+  npm run prisma:migrate
+  ```
+- **Verification**: Database tables should match `prisma/schema.prisma`.
 
-## 4. Set up Prisma ORM
-- [x] **Task: Prisma Configuration**
-**Execute Command in `admin/admin` directory:**
-```bash
-npm install prisma @prisma/client
-npx prisma init
-npx prisma generate
-```
-**Modify [`admin/admin/prisma/schema.prisma`](admin/admin/prisma/schema.prisma)**: Add data models for User, Trigger, Template, and ActivityLog.
-**Modify [`admin/admin/.env`](admin/admin/.env)**: Add database connection URL.
-**Verification:** Confirm Prisma client is generated in `admin/admin/src/generated/prisma`.
+## 6. Configure Authentication
+- **Modify `admin/admin/src/app/layout.tsx`**:
+  Add authentication check to redirect unauthenticated users:
+  ```tsx
+  import { redirect } from 'next/navigation';
+  import { createClient } from '@/lib/supabase';
+  
+  export default async function RootLayout({ children }) {
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      redirect('/login');
+    }
+    
+    return (
+      // ... existing layout code
+    );
+  }
+  ```
+- **Verification**: Unauthenticated users should be redirected to login.
 
-## 5. Create Python bot service skeleton
-**Create [`bot/requirements.txt`](bot/requirements.txt)**:
-```
-instagram-private-api==1.6.0
-python-dotenv==1.0.0
-```
-**Create [`bot/main.py`](bot/main.py)**:
-```python
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
-INSTAGRAM_USER = os.getenv("INSTAGRAM_USER")
-INSTAGRAM_PASSWORD = os.getenv("INSTAGRAM_PASSWORD")
-
-print(f"Bot service started for user: {INSTAGRAM_USER}")
-```
-**Create [`bot/Dockerfile`](bot/Dockerfile)**:
-```dockerfile
-FROM python:3.10-slim
-
-WORKDIR /app
-
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-COPY . .
-
-CMD ["python", "main.py"]
-```
-**Verification:** Confirm all bot files exist with correct content.
+## 7. Update README with Setup Instructions
+- **Modify `README.md`**:
+  Add environment setup instructions:
+  ```markdown
+  ## Environment Setup
+  
+  1. Create `.env.local` in `admin/admin` with:
+     ```
+     DATABASE_URL="postgres://postgres:password@localhost:5432/arina_admin"
+     NEXT_PUBLIC_SUPABASE_URL="http://localhost:5432"
+     NEXT_PUBLIC_SUPABASE_KEY="your-anon-key"
+     ```
+  2. Run database setup: `npm run prisma:migrate`
+  ```
+- **Verification**: README contains complete setup instructions.
