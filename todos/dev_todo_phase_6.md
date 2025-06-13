@@ -18,7 +18,7 @@
   - Add recovery procedures
 
 ## 3. Create Activity Tracking
-- **Update `bot-monitor/service.ts`**:
+- [x] **Update `bot-monitor/service.ts`**:
   - Add method to record:
     - Messages sent
     - Errors encountered
