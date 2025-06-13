@@ -20,21 +20,24 @@ ChartJS.register(
   Legend
 )
 
+type BarChartDataItem = Record<string, unknown> // Generic chart data type
+
 interface BarChartProps {
-  data: Array<{[key: string]: any}>
+  datasets: BarChartDataItem[]
   xAxis: string
-  yAxis: string
+  yFields: string[]
   title?: string
+  colors?: string[]
 }
 
-export function BarChart({ data, xAxis, yAxis, title }: BarChartProps) {
+export function BarChart({ datasets, xAxis, yFields, title, colors }: BarChartProps) {
   const chartData = {
-    labels: data.map(item => item[xAxis]),
-    datasets: [{
-      label: yAxis,
-      data: data.map(item => item[yAxis]),
-      backgroundColor: 'rgba(59, 130, 246, 0.5)'
-    }]
+    labels: datasets.map(item => item[xAxis]),
+    datasets: yFields.map((field, index) => ({
+      label: field,
+      data: datasets.map(item => item[field]),
+      backgroundColor: colors?.[index] || 'rgba(59, 130, 246, 0.5)'
+    }))
   }
 
   const options = {
@@ -47,6 +50,14 @@ export function BarChart({ data, xAxis, yAxis, title }: BarChartProps) {
         display: !!title,
         text: title,
       },
+      tooltip: {
+        mode: 'index' as const,
+        intersect: false,
+      },
+    },
+    interaction: {
+      mode: 'index' as const,
+      intersect: false,
     },
   }
 
