@@ -7,9 +7,9 @@
   - Add tooltip enhancements
 
 ## 2. Create New Chart Components
-- **Create `admin/admin/src/components/ui/line-chart.tsx`**:
+- [x] **Create `admin/admin/src/components/ui/line-chart.tsx`**:
   - Line chart implementation with similar API to BarChart
-- **Create `admin/admin/src/components/ui/pie-chart.tsx`**:
+- [x] **Create `admin/admin/src/components/ui/pie-chart.tsx`**:
   - Pie/doughnut chart implementation
 
 ## 3. Add Analytics Data Fetching
