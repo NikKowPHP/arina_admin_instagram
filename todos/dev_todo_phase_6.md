@@ -12,7 +12,7 @@
     - `ActivityEvent`
 
 ## 2. Implement Health Checks
-- **Update `bot-monitor/service.ts`**:
+- [x] **Update `bot-monitor/service.ts`**:
   - Add method to ping bot instances
   - Implement threshold-based alerts
   - Add recovery procedures
