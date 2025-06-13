@@ -61,6 +61,7 @@ docker-compose up -d db
 **Verification:** Check that the Supabase container is running with `docker-compose ps`.
 
 ## 3. Initialize Next.js admin panel
+- [x] **Task: Next.js Setup**
 **Execute Command in `admin` directory:**
 ```bash
 npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias "@/*"
