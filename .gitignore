@@ -1,2 +1,3 @@
 .venv
 bot/__pycache__
+tools/code-context-tool/src/code_context_tool/__pycache__
