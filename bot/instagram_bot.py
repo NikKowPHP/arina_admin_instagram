@@ -123,11 +123,13 @@ class InstagramBot:
                 # Send DMs for matched comments
                 for comment in matched_comments:
                     user_id = comment.user.id
-                    template_id = next((t[0] for t in templates_dict if keyword.lower() in t[1].lower()), None)
+                    template_id = trigger[3]  # template_id is the 4th element
 
-                    if template_id:
+                    if template_id in templates_dict:
                         template = templates_dict[template_id]
                         self.send_dm(user_id, template)
+                    else:
+                        logger.warning(f"No template found with ID {template_id} for trigger {trigger[0]}")
 
             # Wait before next check
             time.sleep(60)  # Check every minute
