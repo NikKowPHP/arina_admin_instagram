@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": ["dom", "dom.iterable", "esnext", "es2015", "es2017", "es2020", "es2022", "esnext.asynciterable", "node"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -24,6 +24,6 @@
       "@/bot-monitor/*": ["../../bot-monitor/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "bot-monitor/nodejs.d.ts"],
   "exclude": ["node_modules"]
 }

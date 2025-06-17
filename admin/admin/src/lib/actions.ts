@@ -1,9 +1,7 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { createClient } from './supabase'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { PrismaClient } from '@prisma/client'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { templateSchema } from './validators'
+import type { BotHealthStatus } from '@/bot-monitor/types'
 
 const prisma = new PrismaClient()
 
@@ -13,7 +11,7 @@ export async function getAnalytics() {
     .from('activity_log')
     .select('*')
     .gte('created_at', new Date(Date.now() - 7 * 86400000).toISOString())
-  
+
   if (error) throw error
 
   // Aggregate data by date
@@ -31,6 +29,20 @@ export async function getAnalytics() {
   }))
 
   return { triggerUsage }
+}
+
+export async function getBotHealth(): Promise<BotHealthStatus> {
+  try {
+    const response = await fetch('/api/bot/health')
+    if (!response.ok) {
+      throw new Error('Failed to fetch bot health')
+    }
+    const data: BotHealthStatus = await response.json()
+    return data
+  } catch (error) {
+    console.error('Error fetching bot health:', error)
+    throw error
+  }
 }
 
 export async function createTrigger(formData: FormData) {

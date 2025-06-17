@@ -2,10 +2,12 @@ export interface BotHealthStatus {
   lastPing: Date;
   isHealthy: boolean;
   errorCount: number;
+  storageUsage?: number; // MB
+  authBreaches?: number;
 }
 
 export interface ActivityEvent {
-  type: 'message' | 'error' | 'response' | 'warning';
+  type: 'message' | 'error' | 'response' | 'warning' | 'storage' | 'auth';
   timestamp: Date;
   details: string;
   metadata?: {
@@ -14,6 +16,8 @@ export interface ActivityEvent {
     messageId?: string;
     errorStack?: string;
     content?: string;
+    storagePath?: string;
+    userId?: string;
   };
 }
 

@@ -6,7 +6,8 @@ import { LineChart } from '@/components/ui/line-chart'
 import { PieChart } from '@/components/ui/pie-chart'
 import { Card } from '@/components/ui/card'
 import { ChartControls } from '@/components/chart-controls'
-import { getAnalytics, getDashboardAnalytics } from '@/lib/actions'
+import { BotHealthStatusCard } from '@/components/bot-health-status'
+import { getAnalytics, getDashboardAnalytics, getBotHealth } from '@/lib/actions'
 
 type TriggerUsage = Array<{ date: string; count: number }>
 type DashboardAnalytics = {
@@ -30,14 +31,16 @@ export default function DashboardPage() {
     triggerUsage: [],
     analytics: null
   })
+  const [botHealth, setBotHealth] = useState<{ status: any; error: string | null }>({ status: null, error: null })
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true)
       try {
-        const [basicAnalytics, dashboardAnalytics] = await Promise.all([
+        const [basicAnalytics, dashboardAnalytics, botHealthStatus] = await Promise.all([
           getAnalytics(),
-          getDashboardAnalytics()
+          getDashboardAnalytics(),
+          getBotHealth()
         ])
         // Convert triggerUsage counts to numbers
         const typedTriggerUsage = basicAnalytics.triggerUsage.map(item => ({
@@ -48,8 +51,10 @@ export default function DashboardPage() {
           triggerUsage: typedTriggerUsage,
           analytics: dashboardAnalytics
         })
+        setBotHealth({ status: botHealthStatus, error: null })
       } catch (error) {
         console.error('Error fetching analytics:', error)
+        setBotHealth({ status: null, error: 'Failed to fetch bot health' })
       } finally {
         setIsLoading(false)
       }
@@ -85,6 +90,15 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <h2 className="text-lg mb-4">Bot Health Status</h2>
+          {botHealth.error ? (
+            <p className="text-red-500">Error: {botHealth.error}</p>
+          ) : (
+            botHealth.status && <BotHealthStatusCard status={botHealth.status} />
+          )}
+        </Card>
+
         <Card>
           <h2 className="text-lg mb-4">Trigger Activity</h2>
           {chartType === 'bar' && (
