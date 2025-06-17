@@ -3,3 +3,5 @@ bot/__pycache__
 tools/code-context-tool/src/code_context_tool/__pycache__
 instagram_bot.egg-info
 bot/venv
+instagram_bot/__pycache__
+instagram_bot/venv

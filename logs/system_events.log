@@ -27,3 +27,9 @@
 {"timestamp": "2025-06-17T08:00:23Z", "agent": "Janitor", "event": "action", "details": "Updating vector DB for changed files."}
 {"timestamp": "2025-06-17T08:02:44Z", "agent": "Janitor", "event": "action_complete", "details": "Vector DB synchronization skipped. Maintenance tasks completed."}
 {"timestamp": "2025-06-17T10:04:20+02:00", "agent": "Orchestrator", "event": "handoff", "target_agent": "Architect", "details": "Open work items detected. Handing off to Architect for planning."}
+{"timestamp": "2025-06-17T11:49:22+02:00", "agent": "Orchestrator", "event": "handoff", "target_agent": "Tech Lead", "details": "Commit complete signal detected. Handing off for review."}
+{"timestamp": "2025-06-17T11:50:09+02:00", "agent": "Tech Lead", "event": "review_started", "details": "Reviewing commit 51352d9 for template selection refactoring"}
+{"timestamp": "2025-06-17T11:53:28+02:00", "agent": "Orchestrator", "event": "handoff", "target_agent": "QA Engineer", "details": "Tech lead approved signal detected. Handing off for QA review."}
+{"timestamp": "2025-06-17T12:01:35+02:00", "agent": "Orchestrator", "event": "handoff", "target_agent": "Janitor", "details": "QA approved signal detected. Handing off for final cleanup."}
+{"timestamp": "2025-06-17T12:04:35+02:00", "agent": "Janitor", "event": "action_start", "details": "Starting post-commit maintenance."}
+{"timestamp": "2025-06-17T12:04:59+02:00", "agent": "Janitor", "event": "action", "details": "Updating vector DB for file: bot/instagram_bot.py"}

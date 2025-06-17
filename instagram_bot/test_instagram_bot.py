@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 from bot.instagram_bot import InstagramBot
 
 class TestInstagramBot(unittest.TestCase):
-    @patch('instagram_bot.psycopg2.connect')
+    @patch('bot.instagram_bot.psycopg2.connect')
     def test_fetch_triggers_includes_template_id(self, mock_connect):
         # Setup mock database connection and cursor
         mock_conn = Mock()

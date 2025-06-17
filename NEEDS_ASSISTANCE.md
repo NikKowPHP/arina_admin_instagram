@@ -1,36 +1,18 @@
-# Assistance Needed: ModuleNotFoundError in Test
+# Assistance Needed: Test Environment Setup Issues
 
 ## Problem
-Unable to run `test_instagram_bot.py` due to `ModuleNotFoundError: No module named 'instagram_bot'` despite proper package setup.
+Unable to properly set up the test environment due to inconsistent directory state and Python environment issues.
 
 ## Steps Taken:
-1. Created test file `bot/test_instagram_bot.py`
-2. Tried multiple import approaches:
-   - `from instagram_bot import InstagramBot`
-   - `from .instagram_bot import InstagramBot`
-   - `from bot.instagram_bot import InstagramBot`
-3. Added `__init__.py` in `bot/` to make it a package
-4. Created `setup.py` with package configuration
-5. Installed package in editable mode with `pip install -e .`
-6. Ran tests with various PYTHONPATH configurations
+1. Created virtual environment with `python3 -m venv venv`
+2. Attempted to rename bot directory to instagram_bot
+3. Tried to reinstall package in editable mode
+4. Attempted to run tests
 
 ## Error Details:
-```
-ModuleNotFoundError: No module named 'instagram_bot'
-```
-
-## Environment:
-- Python 3.12
-- Virtual environment activated
-- Project structure:
-  ```
-  .
-  ├── bot/
-  │   ├── __init__.py
-  │   ├── instagram_bot.py
-  │   └── test_instagram_bot.py
-  └── setup.py
-  ```
+- `mv: cannot stat 'bot': No such file or directory` - suggests the directory was already renamed
+- `zsh: command not found: python` - Python 3 might not be aliased as 'python'
+- Virtual environment activation may not be persisting between commands
 
 ## Request:
-Please help identify why the module isn't being found despite proper package installation and configuration.
+Please help investigate the current directory structure and Python environment configuration to resolve the test setup issues.

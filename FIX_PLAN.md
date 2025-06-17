@@ -1,48 +1,59 @@
-# Fix Plan: Git Commit Separation
+# Fix Plan: Resolve ModuleNotFoundError in Tests
 
 ## Problem
-The developer needs to separate changes into two distinct commits:
-1. Dashboard analytics fix
-2. Code context tool relocation and cleanup
+The test file `test_instagram_bot.py` cannot import the `InstagramBot` class due to a package naming mismatch. The setup.py declares the package as "instagram_bot" but the actual directory is named "bot".
+
+## Solution
+1. Create a virtual environment
+2. Rename the bot directory to instagram_bot
+3. Update all import statements to use the new package name
+4. Update setup.py to correctly reference the package
+5. Reinstall the package in editable mode within the virtual environment
+6. Verify tests run successfully
 
 ## Steps
 
-### 1. Create a temporary branch
+### 1. Create virtual environment
 ```bash
-git checkout -b temp-fix-branch
+python3 -m venv venv
+source venv/bin/activate
 ```
 
-### 2. Reset to last good commit
-```bash
-git reset --hard HEAD~1
+### 2. Update import statements (directory already renamed)
+In `instagram_bot/test_instagram_bot.py`:
+```python
+from instagram_bot.instagram_bot import InstagramBot
 ```
 
-### 3. Re-apply changes in two stages
-First, apply only the dashboard fix:
-```bash
-git checkout HEAD@{1} -- admin/admin/src/lib/actions.ts
-git commit -m "feat: Fix dashboard analytics to use valid fields"
+In `instagram_bot/instagram_bot.py` (if there are internal imports):
+```python
+# No internal imports need changing
 ```
 
-Then apply the code context tool changes:
-```bash
-git checkout HEAD@{1} -- tools/
-git checkout HEAD@{1} -- .cct_config.json
-git checkout HEAD@{1} -- NEEDS_REFACTOR.md
-git checkout HEAD@{1} -- logs/system_events.log
-git rm -r src/code_context_tool
-git commit -m "feat: Move code context tool to tools/ and clean up"
+### 4. Update setup.py
+```python
+setup(
+    name="instagram_bot",
+    version="0.1",
+    packages=find_packages(),
+    # ... rest remains the same
+)
 ```
 
-### 4. Verify and clean up
+### 5. Reinstall the package
 ```bash
-git log --oneline  # Should show two new commits
-git branch -D new
-git branch -m new
-git push -f origin new
+pip uninstall instagram_bot
+pip install -e .
 ```
 
-### 5. Finalize
+### 5. Run tests
 ```bash
-rm NEEDS_ASSISTANCE.md
-touch COMMIT_COMPLETE.md
+venv/bin/python instagram_bot/test_instagram_bot.py
+```
+```bash
+python instagram_bot/test_instagram_bot.py
+```
+
+## Expected Outcome
+- Tests should execute without ModuleNotFoundError
+- Package imports should resolve correctly
