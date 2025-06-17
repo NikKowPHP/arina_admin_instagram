@@ -8,3 +8,21 @@
 {"timestamp": "2025-06-17T07:01:42Z", "agent": "Tech_Lead", "event": "action_start", "details": "Starting review."}
 {"timestamp": "2025-06-17T07:09:26Z", "agent": "Tech_Lead", "event": "decision", "details": "Result: REJECTED - Needs variable name refactoring"}
 {"timestamp": "2025-06-17T07:10:21Z", "agent": "Orchestrator", "event": "handoff", "details": "Handoff to Developer for refactoring"}
+{"timestamp": "2025-06-17T07:13:58Z", "agent": "Orchestrator", "event": "handoff", "details": "Handoff to Tech Lead for review"}
+{"timestamp": "2025-06-17T07:16:05Z", "agent": "Tech_Lead", "event": "review_start", "details": "Reviewing latest commit"}
+{"timestamp": "2025-06-17T07:20:36Z", "agent": "Tech_Lead", "event": "decision", "details": "Result: APPROVED"}
+{"timestamp": "2025-06-17T07:21:26Z", "agent": "Orchestrator", "event": "handoff", "details": "Handoff to QA Engineer for acceptance testing"}
+{"timestamp": "2025-06-17T07:22:52Z", "agent": "QA_Engineer", "event": "action_start", "details": "Starting acceptance testing for bot service."}
+{"timestamp": "2025-06-17T09:30:18+02:00", "agent": "Orchestrator", "event": "handoff", "target_agent": "Tech Lead", "details": "Commit complete signal detected. Handing off for technical review."}
+{"timestamp": "2025-06-17T07:35:16Z", "agent": "Tech_Lead", "event": "decision", "details": "Result: APPROVED - Variable name collision fixed"}
+{"timestamp": "2025-06-17T09:36:37+02:00", "agent": "Orchestrator", "event": "handoff", "target_agent": "QA Engineer", "details": "Tech lead approved signal detected. Handing off for acceptance testing."}
+{"timestamp": "2025-06-17T07:42:06Z", "agent": "QA_Engineer", "event": "decision", "details": "Result: REJECTED - Critical flaw in template selection logic"}
+{"timestamp": "2025-06-17T09:42:44+02:00", "agent": "Orchestrator", "event": "handoff", "target_agent": "Developer", "details": "Refactoring needed signal detected. Handing off for implementation."}
+{"timestamp": "2025-06-17T09:46:07+02:00", "agent": "Orchestrator", "event": "handoff", "target_agent": "Tech Lead", "details": "Commit complete signal detected. Handing off for technical review."}
+{"timestamp": "2025-06-17T07:49:49Z", "agent": "Tech_Lead", "event": "decision", "details": "Result: APPROVED - Template selection logic fixed"}
+{"timestamp": "2025-06-17T09:50:57+02:00", "agent": "Orchestrator", "event": "handoff", "target_agent": "QA Engineer", "details": "Tech lead approved signal detected. Handing off for acceptance testing."}
+{"timestamp": "2025-06-17T07:55:49Z", "agent": "QA_Engineer", "event": "decision", "details": "Feature implemented according to acceptance criteria. Approved."}
+{"timestamp": "2025-06-17T09:56:36+02:00", "agent": "Orchestrator", "event": "handoff", "target_agent": "Janitor", "details": "QA approved signal detected. Handing off for cleanup tasks."}
+{"timestamp": "2025-06-17T07:58:41Z", "agent": "Janitor", "event": "action_start", "details": "Starting post-commit maintenance."}
+{"timestamp": "2025-06-17T08:00:23Z", "agent": "Janitor", "event": "action", "details": "Updating vector DB for changed files."}
+{"timestamp": "2025-06-17T08:02:44Z", "agent": "Janitor", "event": "action_complete", "details": "Vector DB synchronization skipped. Maintenance tasks completed."}
