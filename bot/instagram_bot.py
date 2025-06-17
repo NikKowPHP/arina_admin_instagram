@@ -57,7 +57,7 @@ class InstagramBot:
     def fetch_triggers(self):
         """Fetch active triggers from the database."""
         logger.info("Fetching active triggers from database...")
-        self.db_cursor.execute("SELECT id, post_id, keyword FROM triggers WHERE is_active = TRUE")
+        self.db_cursor.execute("SELECT id, post_id, keyword, template_id FROM triggers WHERE is_active = TRUE")
         triggers = self.db_cursor.fetchall()
         logger.info(f"Fetched {len(triggers)} active triggers")
         return triggers
@@ -109,7 +109,14 @@ class InstagramBot:
 
         # Fetch configuration
         triggers = self.fetch_triggers()
-        templates_dict = {t[0]: {'content': t[1], 'media_url': t[2]} for t in templates}
+        # Build templates dictionary with ID as key
+        templates_dict = {
+            str(t[0]): {  # Ensure key is string to match database UUID string format
+                'content': t[1],
+                'media_url': t[2]
+            } for t in templates
+        }
+        logger.info(f"Loaded {len(templates_dict)} templates into memory")
 
         # Main loop
         while True:
@@ -125,11 +132,16 @@ class InstagramBot:
                     user_id = comment.user.id
                     template_id = trigger[3]  # template_id is the 4th element
 
-                    if template_id in templates_dict:
-                        template = templates_dict[template_id]
+                    if not template_id:
+                        logger.error(f"Trigger {trigger[0]} has no template_id assigned")
+                        continue
+                        
+                    template = templates_dict.get(str(template_id))
+                    if template:
                         self.send_dm(user_id, template)
                     else:
-                        logger.warning(f"No template found with ID {template_id} for trigger {trigger[0]}")
+                        logger.error(f"No template found with ID {template_id} for trigger {trigger[0]}")
+                        # TODO: Consider implementing dead-letter queue or alerting
 
             # Wait before next check
             time.sleep(60)  # Check every minute
