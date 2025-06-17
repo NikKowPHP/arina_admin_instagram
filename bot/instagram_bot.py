@@ -109,7 +109,7 @@ class InstagramBot:
 
         # Fetch configuration
         triggers = self.fetch_triggers()
-        templates = {t[0]: {'content': t[1], 'media_url': t[2]} for t in templates}
+        templates_dict = {t[0]: {'content': t[1], 'media_url': t[2]} for t in templates}
 
         # Main loop
         while True:
@@ -123,10 +123,10 @@ class InstagramBot:
                 # Send DMs for matched comments
                 for comment in matched_comments:
                     user_id = comment.user.id
-                    template_id = next((t[0] for t in templates if keyword.lower() in t[1].lower()), None)
+                    template_id = next((t[0] for t in templates_dict if keyword.lower() in t[1].lower()), None)
 
                     if template_id:
-                        template = templates[template_id]
+                        template = templates_dict[template_id]
                         self.send_dm(user_id, template)
 
             # Wait before next check
