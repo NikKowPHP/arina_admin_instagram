@@ -1,110 +1,68 @@
 # Deployment Guide
 
-## Prerequisites
-- Docker 20.10+
-- Docker Compose 2.20+
-- 4GB RAM minimum
+## System Requirements
+- Python 3.8+
+- PostgreSQL 12+
+- Node.js 16+ (for admin interface)
 
-## Quick Start
-```bash
-# Clone repository
-git clone https://github.com/your-repo/instagram-bot.git
-cd instagram-bot
+## Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-org/arina_admin_instagram.git
+   cd arina_admin_instagram
+   ```
 
-# Start services
-docker-compose up -d
-```
+2. Set up Python environment:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r instagram_bot/requirements.txt
+   ```
 
-## Docker Compose Configuration
-```yaml
-version: '3.8'
+3. Set up environment variables:
+   ```bash
+   cp instagram_bot/.env.example instagram_bot/.env
+   # Edit the .env file with your credentials
+   ```
 
-services:
-  admin-panel:
-    image: node:18
-    working_dir: /app
-    volumes:
-      - ./admin:/app
-    ports:
-      - "3000:3000"
-    environment:
-      - DATABASE_URL=postgres://postgres:password@db:5432/postgres
-    depends_on:
-      - db
+4. Set up database:
+   ```bash
+   # Create and migrate database using Supabase CLI
+   cd supabase
+   supabase start
+   ```
 
-  bot-service:
-    image: python:3.10
-    working_dir: /app
-    volumes:
-      - ./bot:/app
-    environment:
-      - INSTAGRAM_USER=your_username
-      - INSTAGRAM_PASSWORD=your_password
-    depends_on:
-      - db
+## Running the Application
+1. Start the Instagram bot:
+   ```bash
+   cd instagram_bot
+   python main.py
+   ```
 
-  db:
-    image: supabase/postgres:15
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_PASSWORD=password
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-
-volumes:
-  pgdata:
-```
-
-## Environment Variables
-
-### Admin Panel (Next.js)
-```env
-NEXT_PUBLIC_SUPABASE_URL=http://db:5432
-NEXT_PUBLIC_SUPABASE_KEY=your-anon-key
-```
-
-### Bot Service
-```env
-INSTAGRAM_USER=your_instagram_username
-INSTAGRAM_PASSWORD=your_instagram_password
-POLL_INTERVAL=60 # seconds
-```
-
-## Initial Setup
-1. Create admin user:
-```bash
-docker-compose exec admin-panel npm run create-admin
-```
-
-2. Import initial triggers (optional):
-```bash
-docker-compose exec admin-panel npm run import-triggers triggers.csv
-```
+2. Start the admin interface:
+   ```bash
+   cd admin/admin
+   npm install
+   npm run dev
+   ```
 
 ## Testing
-1. Verify services are running:
+### Python Environment Setup
+1. Create virtual environment:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### Running Tests
+Execute tests with mocks:
 ```bash
-docker-compose ps
+pytest instagram_bot/tests --disable-pytest-warnings
 ```
 
-2. Check admin panel:
-```bash
-curl http://localhost:3000/api/health
-```
-
-3. Test bot service:
-```bash
-docker-compose exec bot-service python test_bot.py
-```
-
-## Troubleshooting
-Common issues:
-- Instagram API limits: Check bot logs
-```bash
-docker-compose logs bot-service
-```
-- Database connection issues: Verify credentials
-- Admin panel not loading: Check Next.js build
-```bash
-docker-compose exec admin-panel npm run build
+### Test Configuration
+The test configuration is located in `instagram_bot/tests/test_config.py`. This file contains mock credentials and settings for testing.

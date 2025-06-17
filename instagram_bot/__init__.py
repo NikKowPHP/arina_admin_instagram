@@ -1,1 +1,1 @@
-# Initialize bot package
+# Package initialization file

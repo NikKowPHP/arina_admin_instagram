@@ -1,5 +1,6 @@
 {
-  "project_root": "./instagram_bot",
+  "project_root": "instagram_bot",
+  "instagram_bot_path": "./instagra_bot/",
   "paths": {
     "log_file": "logs/system_events.log",
     "cct_config": ".cct_config.json",

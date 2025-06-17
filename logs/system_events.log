@@ -33,3 +33,16 @@
 {"timestamp": "2025-06-17T12:01:35+02:00", "agent": "Orchestrator", "event": "handoff", "target_agent": "Janitor", "details": "QA approved signal detected. Handing off for final cleanup."}
 {"timestamp": "2025-06-17T12:04:35+02:00", "agent": "Janitor", "event": "action_start", "details": "Starting post-commit maintenance."}
 {"timestamp": "2025-06-17T12:04:59+02:00", "agent": "Janitor", "event": "action", "details": "Updating vector DB for file: bot/instagram_bot.py"}
+{"timestamp": "2025-06-17T13:23:04+02:00", "agent": "Orchestrator", "event": "handoff", "target_agent": "Emergency", "details": "Needs assistance signal detected."}
+{"timestamp": "2025-06-17T13:25:13+02:00", "agent": "Emergency", "event": "resolved", "details": "Fixed Python environment setup issues. Created FIX_PLAN.md and deleted NEEDS_ASSISTANCE.md."}
+{"timestamp": "2025-06-17T13:25:34+02:00", "agent": "Orchestrator", "event": "handoff", "target_agent": "Janitor", "details": "QA approved signal detected."}
+{"timestamp": "2025-06-17T13:26:24+02:00", "agent": "Janitor", "event": "action_start", "details": "Starting post-commit maintenance."}
+{"timestamp": "2025-06-17T13:27:08+02:00", "agent": "Janitor", "event": "action_complete", "details": "Cleanup complete. QA_APPROVED.md was already removed."}
+{"timestamp": "2025-06-17T13:27:31+02:00", "agent": "Orchestrator", "event": "handoff", "target_agent": "QA Engineer", "details": "Tech lead approved signal detected."}
+{"timestamp": "2025-06-17T13:27:31+02:00", "agent": "Orchestrator", "event": "handoff", "target_agent": "QA Engineer", "details": "Tech lead approved signal detected."}
+{"timestamp": "2025-06-17T13:34:19+02:00", "agent": "QA Engineer", "event": "rejection", "details": "Feature FAILED acceptance testing. Missing Pillow dependency."}
+{"timestamp": "2025-06-17T13:37:14+02:00", "agent": "Orchestrator", "event": "handoff", "target_agent": "Developer", "details": "Needs refactor signal detected."}
+{"timestamp": "2025-06-17T13:55:24+02:00", "agent": "Developer", "event": "error", "details": "Encountered unrecoverable error. Creating distress signal and handing off."}
+{"timestamp": "2025-06-17T13:57:56+02:00", "agent": "Orchestrator", "event": "handoff", "target_agent": "Emergency", "details": "Needs assistance signal detected."}
+{"timestamp": "2025-06-17T14:01:11+02:00", "agent": "Emergency", "event": "resolved", "details": "Created test isolation fix plan. Deleted NEEDS_ASSISTANCE.md."}
+{"timestamp": "2025-06-17T14:02:02+02:00", "agent": "Orchestrator", "event": "handoff", "target_agent": "Developer", "details": "Active fix plan requires implementation."}
