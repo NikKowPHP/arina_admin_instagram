@@ -26,3 +26,4 @@
 {"timestamp": "2025-06-17T07:58:41Z", "agent": "Janitor", "event": "action_start", "details": "Starting post-commit maintenance."}
 {"timestamp": "2025-06-17T08:00:23Z", "agent": "Janitor", "event": "action", "details": "Updating vector DB for changed files."}
 {"timestamp": "2025-06-17T08:02:44Z", "agent": "Janitor", "event": "action_complete", "details": "Vector DB synchronization skipped. Maintenance tasks completed."}
+{"timestamp": "2025-06-17T10:04:20+02:00", "agent": "Orchestrator", "event": "handoff", "target_agent": "Architect", "details": "Open work items detected. Handing off to Architect for planning."}
