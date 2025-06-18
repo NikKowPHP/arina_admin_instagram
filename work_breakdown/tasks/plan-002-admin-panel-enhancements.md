@@ -14,8 +14,8 @@
 - [x] **(LOGIC)** Add authentication to all API endpoints
 
 ## Ticket 4: Create Template Management User Interface
-- [ ] **(UI)** Create template management page: [`admin/admin/src/app/dashboard/templates/page.tsx`](admin/admin/src/app/dashboard/templates/page.tsx)
-- [ ] **(UI)** Implement data table to display templates
+- [x] **(UI)** Create template management page: [`admin/admin/src/app/dashboard/templates/page.tsx`](admin/admin/src/app/dashboard/templates/page.tsx)
+- [x] **(UI)** Implement data table to display templates
 - [ ] **(UI)** Create form for creating/editing templates
 - [ ] **(UI)** Connect form to existing server actions
 - [ ] **(UI)** Add navigation link to templates page in sidebar
