@@ -65,6 +65,12 @@ class InstagramBot:
             return self.instagram_api
         except Exception as e:
             self.logger.error(f"Failed to initialize Instagram API: {e}")
+            # Perform cleanup if needed
+            if hasattr(self, 'instagram_api') and self.instagram_api:
+                try:
+                    self.instagram_api.close()
+                except:
+                    self.logger.error("Failed to clean up Instagram API client")
             return None
 
     def run(self):
@@ -126,11 +132,17 @@ class InstagramBot:
 
         # Get recent comments from monitored posts
         try:
-            comments = self.instagram_api.feed_comments()
-            self.logger.info(f"Found {len(comments)} recent comments")
-        except Exception as e:
-            self.logger.error(f"Failed to fetch comments: {e}")
-            return
+            try:
+                comments_response = self.instagram_api.feed_comments()
+                if not isinstance(comments_response, list):
+                    self.logger.error(f"Invalid response format: {type(comments_response)}")
+                    return
+
+                comments = comments_response
+                self.logger.info(f"Found {len(comments)} recent comments")
+            except Exception as e:
+                self.logger.error(f"Failed to fetch comments: {e}")
+                return
 
         # Process each comment
         for comment in comments:
@@ -160,15 +172,40 @@ class InstagramBot:
             else:
                 self.logger.info("No trigger keywords found in comment")
 
-    def _send_dm(self, user_id, template):
+    def _send_dm(self, user_id, template, post_id=None):
         """Send a direct message to an Instagram user"""
         self.logger.info(f"Sending DM to user {user_id}")
 
-        # TODO: Implement actual Instagram API DM sending
-        # For now, we'll simulate the DM sending
-
+        # Get the message content from the template
         message = template.get('content', '')
-        self.logger.info(f"Message sent: {message}")
+
+        # Validate message content
+        if not message or len(message) > 1000:
+            self.logger.error("Invalid message content")
+            return
+
+        # Send the DM using Instagram API
+        try:
+            if self.instagram_api:
+                response = self.instagram_api.direct_messages.create(user_id, message)
+                if response.get('status') == 'ok':
+                    self.logger.info(f"Message sent: {message}")
+                else:
+                    self.logger.error(f"Failed to send DM: {response.get('error')}")
+            else:
+                self.logger.error("Instagram API client not initialized")
+        except Exception as e:
+            self.logger.error(f"Failed to send DM: {e}")
+            # Implement retry logic for transient errors
+            try:
+                self.logger.info("Retrying DM send...")
+                response = self.instagram_api.direct_messages.create(user_id, message)
+                if response.get('status') == 'ok':
+                    self.logger.info("Retry successful")
+                else:
+                    self.logger.error(f"Retry failed: {response.get('error')}")
+            except Exception as retry_e:
+                self.logger.error(f"Retry failed: {retry_e}")
 
     def _log_activity(self, comment, trigger, template):
         """Log bot activity to Supabase"""
