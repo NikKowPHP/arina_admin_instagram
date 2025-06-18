@@ -58,3 +58,7 @@
 {"timestamp": "2025-06-18T09:25:49+02:00", "agent": "Tech Lead", "event": "review_completed", "decision": "rejected", "details": "Created NEEDS_REFACTOR.md with specific API implementation requirements"}
 {"timestamp": "2025-06-18T09:30:12+02:00", "agent": "Tech Lead", "event": "review_started", "details": "Starting review of commit: feat: Complete Instagram Bot Implementation with API Integration"}
 {"timestamp": "2025-06-18T09:33:55+02:00", "agent": "Tech Lead", "event": "review_completed", "decision": "approved", "details": "Created TECH_LEAD_APPROVED.md for Instagram bot implementation"}
+{"timestamp": "Wed Jun 18 09:55:52 AM CEST 2025", "agent": "Janitor", "event": "action_start", "details": "Starting post-commit maintenance."}
+{"timestamp": "Wed Jun 18 09:58:45 AM CEST 2025", "agent": "Janitor", "event": "action_complete", "details": "Cleanup complete."}
+{"timestamp": "Wed Jun 18 09:59:36 AM CEST 2025", "agent": "Orchestrator", "event": "handoff", "target_agent": "Architect", "details": "Open work items detected. Requesting planning for next tasks."}
+{"timestamp": "Wed Jun 18 10:06:00 AM CEST 2025", "agent": "Orchestrator", "event": "handoff", "target_agent": "Developer", "details": "Active development plan with incomplete tasks detected. Handing off to Developer."}

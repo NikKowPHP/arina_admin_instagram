@@ -113,9 +113,10 @@ export async function getDashboardAnalytics() {
 
     // Get user activity metrics
     const totalUsers = await prisma.user.count()
-    const activeUsers = await prisma.user.count({
+    // Use activity_log entries as a proxy for active users
+    const activityLogEntries = await prisma.activityLog.count({
       where: {
-        lastLogin: {
+        createdAt: {
           gte: new Date(Date.now() - 7 * 86400000) // Last 7 days
         }
       }
@@ -124,7 +125,7 @@ export async function getDashboardAnalytics() {
     // Get template usage stats
     const templateUsage = await prisma.template.findMany({
       select: {
-        name: true,
+        content: true, // Use content field instead of non-existent name
         _count: {
           select: { triggers: true }
         }
@@ -141,10 +142,10 @@ export async function getDashboardAnalytics() {
       triggerActivations,
       userActivity: {
         totalUsers,
-        activeUsers
+        activityLogEntries // Use activity log entries as active users metric
       },
-      templateUsage: templateUsage.map((t: { name: string; _count: { triggers: number } }) => ({
-        name: t.name,
+      templateUsage: templateUsage.map((t: { content: string; _count: { triggers: number } }) => ({
+        content: t.content, // Use content instead of name
         count: t._count.triggers
       }))
     }
