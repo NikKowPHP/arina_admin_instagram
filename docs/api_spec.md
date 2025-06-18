@@ -10,10 +10,9 @@
 `POST /api/triggers`
 ```json
 {
-  "post_id": "INSTAGRAM_POST_ID",
-  "keyword": "WIN",
-  "template_id": "UUID",
-  "is_active": true
+  "name": "Trigger Name",
+  "condition": "Keyword or condition",
+  "action": "Action to perform"
 }
 ```
 Response:
@@ -24,24 +23,87 @@ Response:
 }
 ```
 
-`GET /api/triggers?post_id=INSTAGRAM_POST_ID`
+`GET /api/triggers`
 ```json
 [
   {
     "id": "UUID",
-    "keyword": "WIN",
-    "template": { /* template object */ },
-    "is_active": true
+    "name": "Trigger Name",
+    "condition": "Keyword or condition",
+    "action": "Action to perform"
   }
 ]
+```
+
+`GET /api/triggers/:id`
+```json
+{
+  "id": "UUID",
+  "name": "Trigger Name",
+  "condition": "Keyword or condition",
+  "action": "Action to perform"
+}
+```
+
+`PUT /api/triggers/:id`
+```json
+{
+  "name": "Updated Trigger Name",
+  "condition": "Updated condition",
+  "action": "Updated action"
+}
+```
+
+`DELETE /api/triggers/:id`
+Response:
+```json
+{
+  "message": "Trigger deleted successfully"
+}
 ```
 
 ### Template Management
 `POST /api/templates`
 ```json
 {
-  "content": "Congrats! You won!",
-  "media_url": "https://storage.example.com/prize.jpg"
+  "name": "Template Name",
+  "content": "Template content"
+}
+```
+
+`GET /api/templates`
+```json
+[
+  {
+    "id": "UUID",
+    "name": "Template Name",
+    "content": "Template content"
+  }
+]
+```
+
+`GET /api/templates/:id`
+```json
+{
+  "id": "UUID",
+  "name": "Template Name",
+  "content": "Template content"
+}
+```
+
+`PUT /api/templates/:id`
+```json
+{
+  "name": "Updated Template Name",
+  "content": "Updated content"
+}
+```
+
+`DELETE /api/templates/:id`
+Response:
+```json
+{
+  "message": "Template deleted successfully"
 }
 ```
 

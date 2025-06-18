@@ -3,9 +3,9 @@
 ## System Architecture
 ```text
 [Instagram Users] <-> [Instagram API] <-> [Python Bot Service]
-                             ^
-                             |
-                             v
+                              ^
+                              |
+                              v
 [Admin Users] <-> [Next.js Admin Panel] <-> [Supabase Database]
 ```
 

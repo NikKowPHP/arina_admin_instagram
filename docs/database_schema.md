@@ -6,6 +6,7 @@ model User {
   createdAt    DateTime   @default(now()) @map("created_at")
   triggers     Trigger[]
   activityLogs ActivityLog[]
+
   @@map("users")
 }
 
@@ -17,8 +18,12 @@ model Trigger {
   createdAt  DateTime @default(now()) @map("created_at")
   userId     String   @map("user_id")
   templateId String   @map("template_id")
+
   user       User     @relation(fields: [userId], references: [id])
   template   Template @relation(fields: [templateId], references: [id])
+
+  @@index([postId], name: "idx_triggers_post_id")
+  @@index([keyword], name: "idx_triggers_keyword")
   @@map("triggers")
 }
 
@@ -29,6 +34,7 @@ model Template {
   metadata  Json?
   createdAt DateTime @default(now()) @map("created_at")
   triggers  Trigger[]
+
   @@map("templates")
 }
 
@@ -38,6 +44,8 @@ model ActivityLog {
   details   Json?
   createdAt DateTime @default(now()) @map("created_at")
   userId    String   @map("user_id")
-  user      User     @relation(fields: [userId], references: [id])
+
+  user User @relation(fields: [userId], references: [id])
+
   @@map("activity_log")
 }

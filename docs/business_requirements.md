@@ -40,9 +40,10 @@ Automated Instagram engagement system that:
 4. Zero unauthorized access to admin panel
 
 ## Key Features
+
 ### Instagram Bot
 - Real-time comment monitoring
-- Keyword matching logic
+- Keyword matching engine
 - DM template selection
 - Media attachment handling
 

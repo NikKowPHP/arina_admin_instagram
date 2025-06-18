@@ -61,4 +61,4 @@ Automatically send DMs to users who comment with specific keywords on Instagram 
 - Database connection: Verify Supabase credentials
 - Docker issues: Check container logs with `docker-compose logs`
 
-For full documentation, see the `/documentation` directory.
+For full documentation, see the `/docs` directory.
