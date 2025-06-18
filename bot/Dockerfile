@@ -13,10 +13,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code
 COPY . .
 
-# Set environment variables
-ENV INSTAGRAM_USER=testuser
-ENV INSTAGRAM_PASSWORD=testpass
-ENV SUPABASE_URL=http://db:8000
+# Environment variables will be passed at runtime
 ENV SUPABASE_KEY=public-anon-key
 
 # Make the main script executable

@@ -1,3 +1,4 @@
 # Bot service dependencies
 supabase-py
 requests
+instagram-private-api

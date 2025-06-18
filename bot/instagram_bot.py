@@ -6,7 +6,9 @@ Instagram Bot Service Implementation
 import os
 import logging
 import requests
+import sys
 from supabase import create_client, Client
+from instagram_private_api import Client as InstagramClient
 
 class InstagramBot:
     """Instagram Bot Service Class"""
