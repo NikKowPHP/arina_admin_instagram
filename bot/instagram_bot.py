@@ -17,14 +17,34 @@ class InstagramBot:
         """Initialize the Instagram Bot"""
         self.logger = logging.getLogger(__name__)
 
-        # Load environment variables
-        self.instagram_user = os.getenv("INSTAGRAM_USER", "testuser")
-        self.instagram_password = os.getenv("INSTAGRAM_PASSWORD", "testpass")
+        # Load environment variables - require all to be set
+        required_env_vars = ["INSTAGRAM_USER", "INSTAGRAM_PASSWORD", "SUPABASE_URL", "SUPABASE_KEY"]
+        for var in required_env_vars:
+            if not os.getenv(var):
+                self.logger.error(f"Missing required environment variable: {var}")
+                sys.exit(1)
 
-        # Initialize Supabase client
-        self.supabase_url = os.getenv("SUPABASE_URL", "http://localhost:8000")
-        self.supabase_key = os.getenv("SUPABASE_KEY", "public-anon-key")
-        self.supabase = create_client(self.supabase_url, self.supabase_key)
+        # Load environment variables
+        self.instagram_user = os.getenv("INSTAGRAM_USER")
+        self.instagram_password = os.getenv("INSTAGRAM_PASSWORD")
+        self.supabase_url = os.getenv("SUPABASE_URL")
+        self.supabase_key = os.getenv("SUPABASE_KEY")
+
+        # Initialize Supabase client with error handling
+        try:
+            self.supabase = create_client(self.supabase_url, self.supabase_key)
+            # Test connection
+            response = self.supabase.table('triggers').select('id', limit=1).execute()
+            if response.get('error'):
+                self.logger.error(f"Supabase connection test failed: {response['error']}")
+                sys.exit(1)
+        except Exception as e:
+            self.logger.error(f"Failed to initialize Supabase client: {e}")
+            sys.exit(1)
+
+        # Initialize Instagram API client
+        self.instagram_api = None
+        self._initialize_instagram_api()
 
         self.logger.info("Instagram Bot initialized")
 
