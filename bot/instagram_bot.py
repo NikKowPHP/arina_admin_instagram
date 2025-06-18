@@ -43,10 +43,29 @@ class InstagramBot:
             sys.exit(1)
 
         # Initialize Instagram API client
-        self.instagram_api = None
-        self._initialize_instagram_api()
+        self.instagram_api = self._initialize_instagram_api()
+        if not self.instagram_api:
+            self.logger.error("Failed to initialize Instagram API client")
+            sys.exit(1)
 
         self.logger.info("Instagram Bot initialized")
+
+    def _initialize_instagram_api(self):
+        """Initialize the Instagram API client with error handling"""
+        self.logger.info("Initializing Instagram API client")
+        try:
+            # Create Instagram API client with proper authentication
+            self.instagram_api = InstagramClient(
+                self.instagram_user,
+                self.instagram_password
+            )
+            # Test connection
+            self.instagram_api.get_self_info()
+            self.logger.info("Instagram API client initialized successfully")
+            return self.instagram_api
+        except Exception as e:
+            self.logger.error(f"Failed to initialize Instagram API: {e}")
+            return None
 
     def run(self):
         """Run the bot's main functionality"""
