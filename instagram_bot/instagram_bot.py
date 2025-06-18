@@ -4,6 +4,8 @@ import os
 import time
 import logging
 import psycopg2
+import functools
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from instagrapi import Client
 from instagrapi.types import StoryMedia, StorySticker, StoryMention, StoryHashtag, StoryLocation
@@ -13,6 +15,10 @@ load_dotenv()
 
 # Set up logging
 logger = logging.getLogger(__name__)
+
+# Rate limiting configuration
+DM_RATE_LIMIT = int(os.getenv("DM_RATE_LIMIT", 10))  # Default: 10 messages per hour per user
+RATE_LIMIT_WINDOW = timedelta(hours=1)  # 1 hour window
 
 class InstagramBot:
     def __init__(self):
@@ -32,7 +38,44 @@ class InstagramBot:
         self.db_conn = None
         self.db_cursor = None
 
+        # Rate limiting tracking
+        self.dm_send_timestamps = {}  # user_id -> list of timestamps
+
         logger.info("InstagramBot initialized")
+
+    def _rate_limited(self, func):
+        """Decorator to enforce rate limiting for DM sends."""
+        @functools.wraps(func)
+        def wrapper(self, user_id, *args, **kwargs):
+            current_time = datetime.now()
+
+            # Initialize user entry if not exists
+            if user_id not in self.dm_send_timestamps:
+                self.dm_send_timestamps[user_id] = []
+
+            # Remove timestamps outside the rate limit window
+            self.dm_send_timestamps[user_id] = [
+                ts for ts in self.dm_send_timestamps[user_id]
+                if current_time - ts < RATE_LIMIT_WINDOW
+            ]
+
+            # Check if rate limit exceeded
+            if len(self.dm_send_timestamps[user_id]) >= DM_RATE_LIMIT:
+                time_until_reset = (RATE_LIMIT_WINDOW -
+                                    (current_time - self.dm_send_timestamps[user_id][0]))
+                minutes_until_reset = int(time_until_reset.total_seconds() // 60)
+                error_msg = (
+                    f"Rate limit exceeded for user {user_id}. "
+                    f"Try again in {minutes_until_reset} minutes."
+                )
+                logger.warning(error_msg)
+                raise Exception(error_msg)
+
+            # Record the current timestamp
+            self.dm_send_timestamps[user_id].append(current_time)
+
+            return func(self, user_id, *args, **kwargs)
+        return wrapper
 
     def connect_to_instagram(self):
         """Connect to Instagram API."""
@@ -71,12 +114,26 @@ class InstagramBot:
         return templates
 
     def check_comments(self, post_id, keywords):
-        """Check for new comments on a post and match keywords."""
+        """Check for new comments on a post and match keywords, with duplicate detection."""
         logger.info(f"Checking comments for post {post_id} with keywords {keywords}")
         post = self.client.post_info(post_id)
         new_comments = []
 
+        # Get already processed comment IDs for this post
+        self.db_cursor.execute(
+            "SELECT comment_id FROM processed_comments WHERE post_id = %s",
+            (post_id,)
+        )
+        processed_comment_ids = {row[0] for row in self.db_cursor.fetchall()}
+
         for comment in post.comments:
+            comment_id = comment.id
+
+            # Skip if comment is already processed
+            if comment_id in processed_comment_ids:
+                logger.info(f"Skipping already processed comment {comment_id}")
+                continue
+
             for keyword in keywords:
                 if keyword.lower() in comment.text.lower():
                     new_comments.append(comment)
@@ -84,13 +141,65 @@ class InstagramBot:
 
         return new_comments
 
+    @_rate_limited
     def send_dm(self, user_id, template):
-        """Send a direct message to a user."""
+        """Send a direct message to a user with optional media attachment (rate limited)."""
         logger.info(f"Sending DM to user {user_id} with template: {template}")
-        self.client.direct_message(user_id, template['content'])
 
-        # Log the activity
-        self.log_activity(user_id, template['content'])
+        # Prepare message content
+        message = template['content']
+
+        # Check for media URL in template
+        media_url = template.get('media_url')
+        media_sent = False
+
+        try:
+            if media_url:
+                logger.info(f"Media URL found in template: {media_url}")
+                # Download media (simple implementation - could be improved)
+                import requests
+                media_response = requests.get(media_url)
+                media_response.raise_for_status()
+
+                # Send media with message
+                # Note: The actual API call depends on instagrapi's implementation
+                # This is a hypothetical example - adjust based on actual API
+                media_data = media_response.content
+                self.client.direct_message(user_id, message, media=media_data)
+                media_sent = True
+                logger.info(f"Successfully sent media to user {user_id}")
+            else:
+                # Send text-only message
+                self.client.direct_message(user_id, message)
+                logger.info(f"Successfully sent text message to user {user_id}")
+
+            # Log the activity
+            action_type = "sent_dm_with_media" if media_sent else "sent_dm"
+            self.log_activity(user_id, message)
+
+        except Exception as e:
+            error_msg = f"Failed to send DM to user {user_id}: {str(e)}"
+            logger.error(error_msg)
+
+            # Store in dead-letter queue
+            self.db_cursor.execute(
+                "INSERT INTO dead_letter_queue (user_id, action, details, error_message) VALUES (%s, %s, %s, %s)",
+                (user_id, "send_dm", message, error_msg)
+            )
+            self.db_conn.commit()
+            logger.warning(f"Added failed DM to dead-letter queue for user {user_id}")
+
+            # Alert admin (simple implementation - could be improved)
+            admin_user_id = os.getenv("ADMIN_USER_ID")
+            if admin_user_id:
+                alert_message = f"⚠️ Bot Error: {error_msg}"
+                try:
+                    self.client.direct_message(admin_user_id, alert_message)
+                    logger.warning(f"Sent admin alert to {admin_user_id}")
+                except Exception as alert_e:
+                    logger.error(f"Failed to send admin alert: {str(alert_e)}")
+
+            raise Exception(error_msg)
 
     def log_activity(self, user_id, message):
         """Log bot activity to the database."""
@@ -107,9 +216,35 @@ class InstagramBot:
         self.connect_to_instagram()
         self.connect_to_database()
 
+        # Create processed_comments table if it doesn't exist
+        self.db_cursor.execute("""
+            CREATE TABLE IF NOT EXISTS processed_comments (
+                comment_id TEXT PRIMARY KEY,
+                post_id TEXT NOT NULL,
+                processed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        self.db_conn.commit()
+        logger.info("Ensured processed_comments table exists")
+
+        # Create dead_letter_queue table if it doesn't exist
+        self.db_cursor.execute("""
+            CREATE TABLE IF NOT EXISTS dead_letter_queue (
+                id SERIAL PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                action TEXT NOT NULL,
+                details TEXT NOT NULL,
+                error_message TEXT NOT NULL,
+                timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        self.db_conn.commit()
+        logger.info("Ensured dead_letter_queue table exists")
+
         # Fetch configuration
         triggers = self.fetch_triggers()
         # Build templates dictionary with ID as key
+        templates = self.fetch_templates()
         templates_dict = {
             str(t[0]): {  # Ensure key is string to match database UUID string format
                 'content': t[1],
@@ -131,14 +266,26 @@ class InstagramBot:
                 for comment in matched_comments:
                     user_id = comment.user.id
                     template_id = trigger[3]  # template_id is the 4th element
+                    comment_id = comment.id
 
                     if not template_id:
                         logger.error(f"Trigger {trigger[0]} has no template_id assigned")
                         continue
-                        
+
                     template = templates_dict.get(str(template_id))
                     if template:
-                        self.send_dm(user_id, template)
+                        try:
+                            self.send_dm(user_id, template)
+
+                            # Store processed comment ID
+                            self.db_cursor.execute(
+                                "INSERT INTO processed_comments (comment_id, post_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                                (comment_id, post_id)
+                            )
+                            self.db_conn.commit()
+                            logger.info(f"Stored processed comment {comment_id} for post {post_id}")
+                        except Exception as e:
+                            logger.error(f"Failed to process comment {comment_id}: {str(e)}")
                     else:
                         logger.error(f"No template found with ID {template_id} for trigger {trigger[0]}")
                         # TODO: Consider implementing dead-letter queue or alerting
