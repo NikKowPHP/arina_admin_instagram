@@ -7,11 +7,11 @@
 - [x] **(UI)** Verify dashboard page loads without crashing
 
 ## Ticket 3: Implement Missing REST APIs for Triggers and Templates
-- [ ] **(LOGIC)** Create API route for triggers: [`admin/admin/src/app/api/triggers/[[...slug]]/route.ts`](admin/admin/src/app/api/triggers/[[...slug]]/route.ts)
-- [ ] **(LOGIC)** Create API route for templates: [`admin/admin/src/app/api/templates/[[...slug]]/route.ts`](admin/admin/src/app/api/templates/[[...slug]]/route.ts)
-- [ ] **(LOGIC)** Implement full CRUD operations for triggers
-- [ ] **(LOGIC)** Implement full CRUD operations for templates
-- [ ] **(LOGIC)** Add authentication to all API endpoints
+- [x] **(LOGIC)** Create API route for triggers: [`admin/admin/src/app/api/triggers/[[...slug]]/route.ts`](admin/admin/src/app/api/triggers/[[...slug]]/route.ts)
+- [x] **(LOGIC)** Create API route for templates: [`admin/admin/src/app/api/templates/[[...slug]]/route.ts`](admin/admin/src/app/api/templates/[[...slug]]/route.ts)
+- [x] **(LOGIC)** Implement full CRUD operations for triggers
+- [x] **(LOGIC)** Implement full CRUD operations for templates
+- [x] **(LOGIC)** Add authentication to all API endpoints
 
 ## Ticket 4: Create Template Management User Interface
 - [ ] **(UI)** Create template management page: [`admin/admin/src/app/dashboard/templates/page.tsx`](admin/admin/src/app/dashboard/templates/page.tsx)
