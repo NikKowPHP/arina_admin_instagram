@@ -105,37 +105,41 @@ class InstagramBot:
         """Process Instagram comments based on triggers"""
         self.logger.info("Processing Instagram comments")
 
-        # TODO: Implement Instagram API integration
-        # For now, we'll simulate comment processing
+        # Get recent comments from monitored posts
+        try:
+            comments = self.instagram_api.feed_comments()
+            self.logger.info(f"Found {len(comments)} recent comments")
+        except Exception as e:
+            self.logger.error(f"Failed to fetch comments: {e}")
+            return
 
-        # Simulate finding a comment with a trigger keyword
-        simulated_comment = {
-            "post_id": "12345",
-            "user_id": "67890",
-            "text": "Hello, I need help!"
-        }
+        # Process each comment
+        for comment in comments:
+            comment_text = comment.get('text', '').lower()
+            comment_user_id = comment.get('user_id')
+            post_id = comment.get('post_id')
 
-        # Check if the comment contains any trigger keywords
-        for trigger in triggers:
-            keyword = trigger.get('keyword', '').lower()
-            if keyword in simulated_comment['text'].lower():
-                self.logger.info(f"Trigger keyword '{keyword}' found in comment")
+            # Check if the comment contains any trigger keywords
+            for trigger in triggers:
+                keyword = trigger.get('keyword', '').lower()
+                if keyword in comment_text:
+                    self.logger.info(f"Trigger keyword '{keyword}' found in comment")
 
-                # Find the appropriate template
-                template = next((t for t in templates if t.get('trigger_id') == trigger.get('id')), None)
-                if template:
-                    self.logger.info(f"Using template: {template.get('content', '')}")
+                    # Find the appropriate template
+                    template = next((t for t in templates if t.get('trigger_id') == trigger.get('id')), None)
+                    if template:
+                        self.logger.info(f"Using template: {template.get('content', '')}")
 
-                    # Simulate sending a DM
-                    self._send_dm(simulated_comment['user_id'], template)
+                        # Send a DM
+                        self._send_dm(comment_user_id, template, post_id)
 
-                    # Log activity
-                    self._log_activity(simulated_comment, trigger, template)
-                else:
-                    self.logger.warning(f"No template found for trigger ID: {trigger.get('id')}")
-                break
-        else:
-            self.logger.info("No trigger keywords found in comment")
+                        # Log activity
+                        self._log_activity(comment, trigger, template)
+                    else:
+                        self.logger.warning(f"No template found for trigger ID: {trigger.get('id')}")
+                    break
+            else:
+                self.logger.info("No trigger keywords found in comment")
 
     def _send_dm(self, user_id, template):
         """Send a direct message to an Instagram user"""
