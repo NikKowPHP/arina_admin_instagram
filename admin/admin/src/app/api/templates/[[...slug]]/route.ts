@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   }
 
   const slug = request.nextUrl.pathname.split('/').filter(Boolean).pop();
-  let query = supabase.from('templates').select('*');
+  let query = supabase.from('templates').select('id, name, content, media_url');
 
   if (slug) {
     query = query.eq('id', slug);
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { name, content } = body;
+  const { name, content, media_url } = body;
 
   if (!name || !content) {
     return NextResponse.json(
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
 
   const { data, error } = await supabase
     .from('templates')
-    .insert({ id: uuidv4(), name, content })
+    .insert({ id: uuidv4(), name, content, media_url })
     .single();
 
   if (error) {
@@ -68,7 +68,7 @@ export async function PUT(request: NextRequest) {
 
   const slug = request.nextUrl.pathname.split('/').filter(Boolean).pop();
   const body = await request.json();
-  const { name, content } = body;
+  const { name, content, media_url } = body;
 
   if (!slug || !name || !content) {
     return NextResponse.json(
@@ -79,7 +79,7 @@ export async function PUT(request: NextRequest) {
 
   const { data, error } = await supabase
     .from('templates')
-    .update({ name, content })
+    .update({ name, content, media_url })
     .eq('id', slug)
     .single();
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { BarChart } from '@/components/ui/bar-chart'
 import { LineChart } from '@/components/ui/line-chart'
 import { PieChart } from '@/components/ui/pie-chart'
@@ -8,14 +8,17 @@ import { Card } from '@/components/ui/card'
 import { ChartControls } from '@/components/chart-controls'
 import { BotHealthStatusCard } from '@/components/bot-health-status'
 import { getAnalytics, getDashboardAnalytics, getBotHealth } from '@/lib/actions'
+import type { BotHealthStatus } from '@/types/bot-monitor'
 
 type TriggerUsage = Array<{ date: string; count: number }>
 type DashboardAnalytics = {
   triggerActivations: number
   userActivity: {
     totalUsers: number
-    activeUsers: number
+    activityLogEntries: number
+    dmsSent: number
   }
+  systemHealth: BotHealthStatus
   templateUsage: Array<{ name: string; count: number }>
 }
 
@@ -31,7 +34,81 @@ export default function DashboardPage() {
     triggerUsage: [],
     analytics: null
   })
-  const [botHealth, setBotHealth] = useState<{ status: any; error: string | null }>({ status: null, error: null })
+  const [botHealth, setBotHealth] = useState<{ status: BotHealthStatus | null; error: string | null }>({ status: null, error: null })
+
+  // WebSocket ref to persist connection
+  const ws = useRef<WebSocket | null>(null)
+
+  useEffect(() => {
+    // Initialize WebSocket connection
+    const socket = new WebSocket('ws://localhost:8082')
+
+    // Set up WebSocket event handlers
+    socket.onopen = () => {
+      console.log('WebSocket connected')
+    }
+
+    socket.onmessage = (event) => {
+      const message = JSON.parse(event.data)
+      if (message.type === 'initial') {
+        // Handle initial data load
+        const { triggerUsage, userActivity, templateUsage, triggerActivations, systemHealth } = message.data
+
+        // Convert triggerUsage counts to numbers
+        const typedTriggerUsage = triggerUsage.map((item: { date: string; count: number }) => ({
+          date: item.date,
+          count: Number(item.count)
+        }))
+
+        setChartData({
+          triggerUsage: typedTriggerUsage,
+          analytics: {
+            triggerActivations: triggerActivations,
+            userActivity: userActivity,
+            systemHealth: systemHealth,
+            templateUsage: templateUsage.map((t: { content: string; count: number }) => ({
+              name: t.content,
+              count: t.count
+            }))
+          }
+        })
+      } else if (message.type === 'update') {
+        // Handle real-time updates
+        setChartData(prevData => {
+          if (!prevData.analytics) return prevData
+
+          return {
+            ...prevData,
+            analytics: {
+              ...prevData.analytics,
+              userActivity: {
+                ...prevData.analytics.userActivity,
+                ...message.data.userActivity
+              }
+            }
+          }
+        })
+      }
+    }
+
+    socket.onclose = () => {
+      console.log('WebSocket disconnected')
+    }
+
+    socket.onerror = (error) => {
+      console.error('WebSocket error:', error)
+    }
+
+    // Store WebSocket instance in ref
+    ws.current = socket
+
+    // Clean up on component unmount
+    return () => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.close()
+      }
+    }
+  }, [])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -130,12 +207,39 @@ export default function DashboardPage() {
             <LineChart
               datasets={[
                 { total: chartData.analytics.userActivity.totalUsers },
-                { active: chartData.analytics.userActivity.activeUsers }
+                { active: chartData.analytics.userActivity.activityLogEntries }
               ]}
               xAxis="date"
               yFields={['total', 'active']}
               colors={['#3b82f6', '#10b981']}
             />
+          )}
+        </Card>
+
+        <Card>
+          <h2 className="text-lg mb-4">DMs Sent</h2>
+          {chartData.analytics && (
+            <div className="flex flex-col items-center justify-center h-32">
+              <p className="text-4xl font-bold">{chartData.analytics.userActivity.dmsSent}</p>
+              <p className="text-sm text-gray-500">DMs sent in the last 7 days</p>
+            </div>
+          )}
+        </Card>
+
+        <Card>
+          <h2 className="text-lg mb-4">System Health</h2>
+          {chartData.analytics && (
+            <div className="space-y-2">
+              <p><strong>Last Ping:</strong> {new Date(chartData.analytics.systemHealth.lastPing).toLocaleString()}</p>
+              <p><strong>Status:</strong> {chartData.analytics.systemHealth.isHealthy ? 'Healthy' : 'Unhealthy'}</p>
+              <p><strong>Errors:</strong> {chartData.analytics.systemHealth.errorCount}</p>
+              {chartData.analytics.systemHealth.storageUsage !== undefined && (
+                <p><strong>Storage:</strong> {chartData.analytics.systemHealth.storageUsage} MB</p>
+              )}
+              {chartData.analytics.systemHealth.authBreaches !== undefined && (
+                <p><strong>Auth Breaches:</strong> {chartData.analytics.systemHealth.authBreaches}</p>
+              )}
+            </div>
           )}
         </Card>
 

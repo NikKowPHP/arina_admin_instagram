@@ -122,6 +122,19 @@ export async function getDashboardAnalytics() {
       }
     })
 
+    // Get DMs sent count
+    const dmsSent = await prisma.activityLog.count({
+      where: {
+        action: 'sent_dm',
+        createdAt: {
+          gte: new Date(Date.now() - 7 * 86400000) // Last 7 days
+        }
+      }
+    })
+
+    // Get system health metrics
+    const botHealth = await getBotHealth()
+
     // Get template usage stats
     const templateUsage = await prisma.template.findMany({
       select: {
@@ -142,8 +155,10 @@ export async function getDashboardAnalytics() {
       triggerActivations,
       userActivity: {
         totalUsers,
-        activityLogEntries // Use activity log entries as active users metric
+        activityLogEntries, // Use activity log entries as active users metric
+        dmsSent // Add DMs sent count
       },
+      systemHealth: botHealth, // Add system health metrics
       templateUsage: templateUsage.map((t: { content: string; _count: { triggers: number } }) => ({
         content: t.content, // Use content instead of name
         count: t._count.triggers
