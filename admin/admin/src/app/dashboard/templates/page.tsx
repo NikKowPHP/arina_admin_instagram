@@ -49,12 +49,12 @@ export default function TemplatesPage() {
   };
 
   const handleCreate = async () => {
-    const { data, error } = await supabase.from('templates').insert([formData]).single();
-    if (error) {
-      console.error('Error creating template:', error);
-    } else {
-      setTemplates([...templates, data]);
+    try {
+      const newTemplate = await createTemplate(new FormData(new FormData().append('name', formData.name).append('content', formData.content)));
+      setTemplates([...templates, newTemplate]);
       setFormData({ name: '', content: '' });
+    } catch (error) {
+      console.error('Error creating template:', error);
     }
   };
 
@@ -65,31 +65,27 @@ export default function TemplatesPage() {
   };
 
   const handleUpdate = async () => {
-    const { error } = await supabase
-      .from('templates')
-      .update(formData)
-      .eq('id', currentId);
-
-    if (error) {
-      console.error('Error updating template:', error);
-    } else {
+    try {
+      const updatedTemplate = await updateTemplate(currentId, new FormData().append('name', formData.name).append('content', formData.content));
       setTemplates(
         templates.map(template =>
-          template.id === currentId ? { ...template, ...formData } : template
+          template.id === currentId ? updatedTemplate : template
         )
       );
       setFormData({ name: '', content: '' });
       setIsEditing(false);
       setCurrentId('');
+    } catch (error) {
+      console.error('Error updating template:', error);
     }
   };
 
   const handleDelete = async (id: string) => {
-    const { error } = await supabase.from('templates').delete().eq('id', id);
-    if (error) {
-      console.error('Error deleting template:', error);
-    } else {
+    try {
+      await deleteTemplate(id);
       setTemplates(templates.filter(template => template.id !== id));
+    } catch (error) {
+      console.error('Error deleting template:', error);
     }
   };
 

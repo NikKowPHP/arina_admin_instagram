@@ -4,10 +4,10 @@
 - [x] Implement Core Instagram Bot Service (Ticket #1)
 
 ## Phase 2: Admin Panel Enhancements
-- [ ] Fix Critical Data-Fetching Bugs (Ticket #2)
-- [ ] Implement Missing REST APIs (Ticket #3)
-- [ ] Create Template Management UI (Ticket #4)
-- [ ] Implement Authentication Guard (Ticket #6)
+ - [x] Fix Critical Data-Fetching Bugs (Ticket #2)
+ - [x] Implement Missing REST APIs (Ticket #3)
+ - [x] Create Template Management UI (Ticket #4)
+ - [x] Implement Authentication Guard (Ticket #6)
 
 ## Phase 3: Documentation Update
 - [ ] Correct and Align All Project Documentation (Ticket #5)
