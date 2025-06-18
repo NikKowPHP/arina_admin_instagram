@@ -62,3 +62,8 @@
 {"timestamp": "Wed Jun 18 09:58:45 AM CEST 2025", "agent": "Janitor", "event": "action_complete", "details": "Cleanup complete."}
 {"timestamp": "Wed Jun 18 09:59:36 AM CEST 2025", "agent": "Orchestrator", "event": "handoff", "target_agent": "Architect", "details": "Open work items detected. Requesting planning for next tasks."}
 {"timestamp": "Wed Jun 18 10:06:00 AM CEST 2025", "agent": "Orchestrator", "event": "handoff", "target_agent": "Developer", "details": "Active development plan with incomplete tasks detected. Handing off to Developer."}
+{"timestamp": "Wed Jun 18 10:14:39 AM CEST 2025", "agent": "Tech Lead", "event": "review_completed", "decision": "approved", "details": "Created TECH_LEAD_APPROVED.md for analytics dashboard fixes"}
+{"timestamp": "Wed Jun 18 10:15:40 AM CEST 2025", "agent": "Orchestrator", "event": "handoff", "target_agent": "QA Engineer", "details": "Tech lead approval received. Handing off for QA review."}
+{"timestamp": "Wed Jun 18 10:19:48 AM CEST 2025", "agent": "Auditor", "event": "qa_approved", "details": "Created QA_APPROVED.md for analytics dashboard fixes"}
+{"timestamp": "Wed Jun 18 10:20:36 AM CEST 2025", "agent": "Orchestrator", "event": "handoff", "target_agent": "Janitor", "details": "QA approval received. Handing off for final cleanup."}
+{"timestamp": "Wed Jun 18 10:21:45 AM CEST 2025", "agent": "Orchestrator", "event": "handoff", "target_agent": "Developer", "details": "Janitor mode unavailable. Proceeding with next development tasks."}
