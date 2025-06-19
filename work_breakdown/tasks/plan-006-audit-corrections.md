@@ -4,7 +4,7 @@
 - [x] Create Trigger List component with search/filter capabilities
 - [x] Develop Create Trigger form with validation
 - [x] Implement Edit Trigger modal with prefilled data
-- [ ] Add Delete Trigger confirmation dialog
+- [x] Add Delete Trigger confirmation dialog
 - [x] Connect UI to existing API endpoints
 - [ ] Add pagination and sorting to trigger list
 - [ ] Implement real-time updates using websockets
