@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
+import TriggerList from '@/components/trigger-list'
 
 export default function TriggersPage() {
   return (
@@ -11,7 +12,7 @@ export default function TriggersPage() {
           Create New Trigger
         </Button>
       </div>
-      {/* TODO: Add trigger list table */}
+      <TriggerList />
     </div>
   )
 }
