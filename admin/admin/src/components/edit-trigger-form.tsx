@@ -1,73 +1,64 @@
-import { useForm, FieldErrors } from 'react-hook-form';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { TriggerFormData } from './create-trigger-form';
+import React from 'react';
+import Input from '@/components/ui/input';
+import { useForm } from 'react-hook-form';
+import { updateTrigger } from '@/lib/actions';
 
-interface EditTriggerFormProps {
-  initialData: TriggerFormData;
-  onSubmit: (data: TriggerFormData) => void;
-  onCancel: () => void;
+interface EditTriggerFormValues {
+  name: string;
+  keyword: string;
+  status: string;
 }
 
-export default function EditTriggerForm({ initialData, onSubmit, onCancel }: EditTriggerFormProps) {
-  const { register, handleSubmit, formState: { errors } } = useForm<TriggerFormData>({
-    defaultValues: initialData
+interface EditTriggerFormProps {
+  triggerId: string;
+  initialData: EditTriggerFormValues;
+}
+
+const EditTriggerForm: React.FC<EditTriggerFormProps> = ({ triggerId, initialData }) => {
+  const { register, handleSubmit, formState: { errors } } = useForm<EditTriggerFormValues>({
+    defaultValues: initialData,
   });
 
-  const getErrorMessage = (errors: FieldErrors<TriggerFormData>, field: keyof TriggerFormData) => {
-    return errors[field]?.message?.toString() || '';
+  const onSubmit = async (data: EditTriggerFormValues) => {
+    try {
+      const formData = new FormData();
+      formData.append('name', data.name);
+      formData.append('keyword', data.keyword);
+      formData.append('status', data.status);
+      await updateTrigger(triggerId, formData);
+      // Handle success (e.g., show notification, close modal)
+    } catch (error) {
+      console.error('Failed to update trigger:', error);
+      // Handle error (e.g., show error message)
+    }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)}>
       <div>
-        <label htmlFor="name" className="block text-sm font-medium mb-1">
-          Trigger Name
-        </label>
         <Input
-          id="name"
+          label="Trigger Name"
           {...register('name', { required: 'Name is required' })}
         />
-        {errors.name && (
-          <p className="text-red-500 text-sm mt-1">{getErrorMessage(errors, 'name')}</p>
-        )}
+        {errors.name && <p>{errors.name.message}</p>}
       </div>
-
       <div>
-        <label htmlFor="keyword" className="block text-sm font-medium mb-1">
-          Keyword
-        </label>
         <Input
-          id="keyword"
+          label="Keyword"
           {...register('keyword', { required: 'Keyword is required' })}
         />
-        {errors.keyword && (
-          <p className="text-red-500 text-sm mt-1">{getErrorMessage(errors, 'keyword')}</p>
-        )}
+        {errors.keyword && <p>{errors.keyword.message}</p>}
       </div>
-
       <div>
-        <label className="block text-sm font-medium mb-1">Status</label>
-        <select
+        <Input
+          label="Status"
           {...register('status', { required: 'Status is required' })}
-          className="w-full p-2 border rounded-md"
-        >
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
-        {errors.status && (
-          <p className="text-red-500 text-sm mt-1">{getErrorMessage(errors, 'status')}</p>
-        )}
+        />
+        {errors.status && <p>{errors.status.message}</p>}
       </div>
-
-      <div className="flex gap-2">
-        <Button type="button" variant="secondary" className="flex-1" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit" variant="primary" className="flex-1">
-          Save Changes
-        </Button>
-      </div>
+      <button type="submit">Update Trigger</button>
     </form>
   );
-}
+};
+
+export default EditTriggerForm;

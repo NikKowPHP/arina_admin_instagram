@@ -1,106 +1,61 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { WebSocketProvider } from '@/lib/websocket-context';
+import React, { useState, useEffect } from 'react';
 import TriggerList from '@/components/trigger-list';
 import CreateTriggerForm from '@/components/create-trigger-form';
 import EditTriggerForm from '@/components/edit-trigger-form';
 import Modal from '@/components/ui/modal';
-import DeleteConfirmationDialog from '@/components/delete-confirmation-dialog';
+import { getTriggers, deleteTrigger } from '@/lib/actions';
 import { Trigger } from '@/types/database';
 
-interface TriggerFormData {
-  name: string;
-  keyword: string;
-  status: 'active' | 'inactive';
-}
-
-export default function TriggersPage() {
+const TriggersPage: React.FC = () => {
   const [triggers, setTriggers] = useState<Trigger[]>([]);
+  const [selectedTrigger, setSelectedTrigger] = useState<Trigger | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [currentTrigger, setCurrentTrigger] = useState<Trigger | null>(null);
 
-  const handleCreate = (newTrigger: TriggerFormData) => {
-    const trigger: Trigger = {
-      ...newTrigger,
-      id: (triggers.length + 1).toString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+  useEffect(() => {
+    const fetchTriggers = async () => {
+      const data = await getTriggers();
+      setTriggers(data);
     };
-    setTriggers([...triggers, trigger]);
-    setIsCreateModalOpen(false);
+    fetchTriggers();
+  }, []);
+
+  const handleCreate = () => {
+    setIsCreateModalOpen(true);
   };
 
-  const handleEdit = (updatedTrigger: TriggerFormData) => {
-    if (currentTrigger) {
-      const trigger: Trigger = {
-        ...currentTrigger,
-        ...updatedTrigger,
-        updatedAt: new Date().toISOString(),
-      };
-      setTriggers(triggers.map(t => (t.id === trigger.id ? trigger : t)));
-      setIsEditModalOpen(false);
-    }
+  const handleEdit = (trigger: Trigger) => {
+    setSelectedTrigger(trigger);
+    setIsEditModalOpen(true);
   };
 
-  const handleDelete = (trigger: Trigger) => {
-    setCurrentTrigger(trigger);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = () => {
-    if (currentTrigger) {
-      // In a real application, you would make an API call here
-      setTriggers(triggers.filter(t => t.id !== currentTrigger.id));
-      setIsDeleteDialogOpen(false);
-    }
+  const handleDelete = async (id: string) => {
+    await deleteTrigger(id);
+    setTriggers(triggers.filter(t => t.id !== id));
   };
 
   return (
-    <WebSocketProvider>
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Triggers</h1>
-          <Button onClick={() => setIsCreateModalOpen(true)}>Create Trigger</Button>
-        </div>
-        <TriggerList
-          triggers={triggers}
-          onEdit={setCurrentTrigger}
-          onDelete={handleDelete}
-        />
-        <Modal
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-        >
-          <CreateTriggerForm
-            onSubmit={handleCreate}
-            onCancel={() => setIsCreateModalOpen(false)}
+    <div>
+      <h1>Triggers</h1>
+      <button onClick={handleCreate}>Create Trigger</button>
+      <TriggerList triggers={triggers} onEdit={handleEdit} onDelete={handleDelete} />
+      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)}>
+        <CreateTriggerForm />
+      </Modal>
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
+        {selectedTrigger && (
+          <EditTriggerForm
+            triggerId={selectedTrigger.id}
+            initialData={{
+              name: selectedTrigger.name,
+              keyword: selectedTrigger.keyword,
+              status: selectedTrigger.status,
+            }}
           />
-        </Modal>
-        <Modal
-          isOpen={isEditModalOpen && currentTrigger !== null}
-          onClose={() => setIsEditModalOpen(false)}
-        >
-          {currentTrigger && (
-            <EditTriggerForm
-              initialData={{
-                name: currentTrigger.name,
-                keyword: currentTrigger.keyword,
-                status: currentTrigger.status,
-              }}
-              onSubmit={handleEdit}
-              onCancel={() => setIsEditModalOpen(false)}
-            />
-          )}
-        </Modal>
-        <DeleteConfirmationDialog
-          isOpen={isDeleteDialogOpen}
-          onClose={() => setIsDeleteDialogOpen(false)}
-          onConfirm={confirmDelete}
-          triggerName={currentTrigger?.name || ''}
-        />
-      </div>
-    </WebSocketProvider>
+        )}
+      </Modal>
+    </div>
   );
-}
+};
+
+export default TriggersPage;
