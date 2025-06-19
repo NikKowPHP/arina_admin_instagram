@@ -5,7 +5,7 @@
 - [x] Develop Create Trigger form with validation
 - [x] Implement Edit Trigger modal with prefilled data
 - [ ] Add Delete Trigger confirmation dialog
-- [ ] Connect UI to existing API endpoints
+- [x] Connect UI to existing API endpoints
 - [ ] Add pagination and sorting to trigger list
 - [ ] Implement real-time updates using websockets
 
