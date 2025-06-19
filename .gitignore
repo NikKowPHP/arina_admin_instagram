@@ -5,3 +5,6 @@ instagram_bot.egg-info
 bot/venv
 instagram_bot/__pycache__
 instagram_bot/venv
+DS_Store
+.DS_Store
+repomix_output.xml
