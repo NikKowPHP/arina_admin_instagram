@@ -1,14 +1,24 @@
-import { useForm } from 'react-hook-form';
+import { useForm, FieldErrors } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Trigger } from '@/types/database';
 
-interface CreateTriggerFormProps {
-  onSubmit: (data: Omit<Trigger, 'id' | 'createdAt' | 'updatedAt'>) => void;
+export interface TriggerFormData {
+  name: string;
+  keyword: string;
+  status: 'active' | 'inactive';
 }
 
-export default function CreateTriggerForm({ onSubmit }: CreateTriggerFormProps) {
-  const { register, handleSubmit, formState: { errors } } = useForm();
+interface CreateTriggerFormProps {
+  onSubmit: (data: TriggerFormData) => void;
+  onCancel: () => void;
+}
+
+export default function CreateTriggerForm({ onSubmit, onCancel }: CreateTriggerFormProps) {
+  const { register, handleSubmit, formState: { errors } } = useForm<TriggerFormData>();
+
+  const getErrorMessage = (errors: FieldErrors<TriggerFormData>, field: keyof TriggerFormData) => {
+    return errors[field]?.message?.toString() || '';
+  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -21,7 +31,7 @@ export default function CreateTriggerForm({ onSubmit }: CreateTriggerFormProps) 
           {...register('name', { required: 'Name is required' })}
         />
         {errors.name && (
-          <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+          <p className="text-red-500 text-sm mt-1">{getErrorMessage(errors, 'name')}</p>
         )}
       </div>
 
@@ -34,7 +44,7 @@ export default function CreateTriggerForm({ onSubmit }: CreateTriggerFormProps) 
           {...register('keyword', { required: 'Keyword is required' })}
         />
         {errors.keyword && (
-          <p className="text-red-500 text-sm mt-1">{errors.keyword.message}</p>
+          <p className="text-red-500 text-sm mt-1">{getErrorMessage(errors, 'keyword')}</p>
         )}
       </div>
 
@@ -48,13 +58,18 @@ export default function CreateTriggerForm({ onSubmit }: CreateTriggerFormProps) 
           <option value="inactive">Inactive</option>
         </select>
         {errors.status && (
-          <p className="text-red-500 text-sm mt-1">{errors.status.message}</p>
+          <p className="text-red-500 text-sm mt-1">{getErrorMessage(errors, 'status')}</p>
         )}
       </div>
 
-      <Button type="submit" variant="primary" className="w-full">
-        Create Trigger
-      </Button>
+      <div className="flex gap-2">
+        <Button type="button" variant="secondary" className="flex-1" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit" variant="primary" className="flex-1">
+          Create Trigger
+        </Button>
+      </div>
     </form>
   );
 }

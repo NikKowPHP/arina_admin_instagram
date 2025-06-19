@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import TriggerList from '@/components/trigger-list';
-import CreateTriggerForm from '@/components/create-trigger-form';
+import CreateTriggerForm, { type TriggerFormData } from '@/components/create-trigger-form';
+import useSWR from 'swr';
 
 export default function TriggersPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const { mutate } = useSWR('/api/triggers');
 
-  const handleCreateTrigger = async (data) => {
+  const handleCreateTrigger = async (data: TriggerFormData) => {
     try {
       const response = await fetch('/api/triggers', {
         method: 'POST',
@@ -20,7 +22,7 @@ export default function TriggersPage() {
       if (!response.ok) throw new Error('Failed to create trigger');
       
       setShowCreateForm(false);
-      // TODO: Refresh trigger list
+      mutate(); // Refresh the trigger list
     } catch (error) {
       console.error('Error creating trigger:', error);
     }
@@ -30,8 +32,8 @@ export default function TriggersPage() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Trigger Management</h1>
-        <Button
-          variant="primary"
+        <Button 
+          variant="primary" 
           onClick={() => setShowCreateForm(true)}
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -41,8 +43,8 @@ export default function TriggersPage() {
 
       {showCreateForm && (
         <div className="mb-6 p-4 border rounded-lg bg-background">
-          <CreateTriggerForm
-            onSubmit={handleCreateTrigger}
+          <CreateTriggerForm 
+            onSubmit={handleCreateTrigger} 
             onCancel={() => setShowCreateForm(false)}
           />
         </div>
