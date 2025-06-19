@@ -1,56 +1,52 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { Trigger } from '@/types/database';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { io, Socket } from 'socket.io-client';
+
+interface WebSocketContextProps {
+  children: React.ReactNode;
+}
 
 interface WebSocketContextType {
-  triggers: Trigger[];
-  refreshTriggers: () => void;
+  socket: Socket | null;
+  triggerUpdated: (triggerId: string) => void;
 }
 
 const WebSocketContext = createContext<WebSocketContextType | undefined>(undefined);
 
-export const WebSocketProvider = ({ children }: { children: ReactNode }) => {
-  const [triggers, setTriggers] = useState<Trigger[]>([]);
-  const [ws, setWs] = useState<WebSocket | null>(null);
+export const WebSocketProvider: React.FC<WebSocketContextProps> = ({ children }) => {
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:8082');
+    const socketIo = io('/api/ws/dashboard');
 
-    socket.onopen = () => {
+    socketIo.on('connect', () => {
       console.log('WebSocket connected');
-    };
+    });
 
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'trigger_update') {
-        setTriggers(data.data.triggers);
-      }
-    };
-
-    socket.onclose = () => {
+    socketIo.on('disconnect', () => {
       console.log('WebSocket disconnected');
-    };
+    });
 
-    setWs(socket);
+    setSocket(socketIo);
 
     return () => {
-      socket.close();
+      socketIo.disconnect();
     };
   }, []);
 
-  const refreshTriggers = () => {
-    if (ws) {
-      ws.send(JSON.stringify({ type: 'request_triggers' }));
+  const triggerUpdated = (triggerId: string) => {
+    if (socket) {
+      socket.emit('trigger_updated', { triggerId });
     }
   };
 
   return (
-    <WebSocketContext.Provider value={{ triggers, refreshTriggers }}>
+    <WebSocketContext.Provider value={{ socket, triggerUpdated }}>
       {children}
     </WebSocketContext.Provider>
   );
 };
 
-export const useWebSocket = () => {
+export const useWebSocket = (): WebSocketContextType => {
   const context = useContext(WebSocketContext);
   if (!context) {
     throw new Error('useWebSocket must be used within a WebSocketProvider');

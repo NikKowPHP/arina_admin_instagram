@@ -5,6 +5,7 @@ import EditTriggerForm from '@/components/edit-trigger-form';
 import Modal from '@/components/ui/modal';
 import { getTriggers, deleteTrigger } from '@/lib/actions';
 import { Trigger } from '@/types/database';
+import { WebSocketProvider } from '@/lib/websocket-context';
 
 const TriggersPage: React.FC = () => {
   const [triggers, setTriggers] = useState<Trigger[]>([]);
@@ -35,26 +36,28 @@ const TriggersPage: React.FC = () => {
   };
 
   return (
-    <div>
-      <h1>Triggers</h1>
-      <button onClick={handleCreate}>Create Trigger</button>
-      <TriggerList triggers={triggers} onEdit={handleEdit} onDelete={handleDelete} />
-      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)}>
-        <CreateTriggerForm />
-      </Modal>
-      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
-        {selectedTrigger && (
-          <EditTriggerForm
-            triggerId={selectedTrigger.id}
-            initialData={{
-              name: selectedTrigger.name,
-              keyword: selectedTrigger.keyword,
-              status: selectedTrigger.status,
-            }}
-          />
-        )}
-      </Modal>
-    </div>
+    <WebSocketProvider>
+      <div>
+        <h1>Triggers</h1>
+        <button onClick={handleCreate}>Create Trigger</button>
+        <TriggerList triggers={triggers} onEdit={handleEdit} onDelete={handleDelete} />
+        <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)}>
+          <CreateTriggerForm />
+        </Modal>
+        <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
+          {selectedTrigger && (
+            <EditTriggerForm
+              triggerId={selectedTrigger.id}
+              initialData={{
+                name: selectedTrigger.name,
+                keyword: selectedTrigger.keyword,
+                status: selectedTrigger.status,
+              }}
+            />
+          )}
+        </Modal>
+      </div>
+    </WebSocketProvider>
   );
 };
 
