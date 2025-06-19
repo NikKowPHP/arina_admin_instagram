@@ -156,16 +156,23 @@ class InstagramBot:
         try:
             if media_url:
                 logger.info(f"Media URL found in template: {media_url}")
-                # Download media (simple implementation - could be improved)
+
+                # Download media
                 import requests
                 media_response = requests.get(media_url)
                 media_response.raise_for_status()
 
+                # Save media to local file
+                media_path = f"/tmp/instagram_bot_media_{user_id}.jpg"
+                with open(media_path, 'wb') as f:
+                    f.write(media_response.content)
+
+                # Upload media to Instagram
+                media = self.client.photo_upload(media_path)
+                os.remove(media_path)  # Clean up temp file
+
                 # Send media with message
-                # Note: The actual API call depends on instagrapi's implementation
-                # This is a hypothetical example - adjust based on actual API
-                media_data = media_response.content
-                self.client.direct_message(user_id, message, media=media_data)
+                self.client.direct_message(user_id, message, media=media)
                 media_sent = True
                 logger.info(f"Successfully sent media to user {user_id}")
             else:
@@ -189,7 +196,7 @@ class InstagramBot:
             self.db_conn.commit()
             logger.warning(f"Added failed DM to dead-letter queue for user {user_id}")
 
-            # Alert admin (simple implementation - could be improved)
+            # Alert admin
             admin_user_id = os.getenv("ADMIN_USER_ID")
             if admin_user_id:
                 alert_message = f"⚠️ Bot Error: {error_msg}"
