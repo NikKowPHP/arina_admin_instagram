@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import TriggerList from '@/components/trigger-list';
-import CreateTriggerForm, { type TriggerFormData } from '@/components/create-trigger-form';
+import CreateTriggerForm, { TriggerFormData } from '@/components/create-trigger-form';
+import EditTriggerForm from '@/components/edit-trigger-form';
 import useSWR from 'swr';
+import { Trigger } from '@/types/database';
 
 export default function TriggersPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const { mutate } = useSWR('/api/triggers');
+  const [editingTrigger, setEditingTrigger] = useState<Trigger | null>(null);
+  const { data: triggers = [], mutate } = useSWR<Trigger[]>('/api/triggers');
 
   const handleCreateTrigger = async (data: TriggerFormData) => {
     try {
@@ -22,9 +25,30 @@ export default function TriggersPage() {
       if (!response.ok) throw new Error('Failed to create trigger');
       
       setShowCreateForm(false);
-      mutate(); // Refresh the trigger list
+      mutate();
     } catch (error) {
       console.error('Error creating trigger:', error);
+    }
+  };
+
+  const handleUpdateTrigger = async (data: TriggerFormData) => {
+    if (!editingTrigger) return;
+    
+    try {
+      const response = await fetch(`/api/triggers/${editingTrigger.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) throw new Error('Failed to update trigger');
+      
+      setEditingTrigger(null);
+      mutate();
+    } catch (error) {
+      console.error('Error updating trigger:', error);
     }
   };
 
@@ -50,7 +74,20 @@ export default function TriggersPage() {
         </div>
       )}
 
-      <TriggerList />
+      {editingTrigger && (
+        <div className="mb-6 p-4 border rounded-lg bg-background">
+          <EditTriggerForm 
+            initialData={editingTrigger}
+            onSubmit={handleUpdateTrigger} 
+            onCancel={() => setEditingTrigger(null)}
+          />
+        </div>
+      )}
+
+      <TriggerList 
+        triggers={triggers}
+        onEdit={(trigger) => setEditingTrigger(trigger)}
+      />
     </div>
   );
 }

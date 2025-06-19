@@ -1,52 +1,42 @@
-import { useState } from 'react';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Table } from '@/components/ui/table';
-import useSWR from 'swr';
 import { Trigger } from '@/types/database';
+import { Edit } from 'lucide-react';
 
-export default function TriggerList() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const { data: triggers, error, isLoading } = useSWR<Trigger[]>('/api/triggers');
+interface TriggerListProps {
+  triggers: Trigger[];
+  onEdit: (trigger: Trigger) => void;
+}
 
-  const filteredTriggers = triggers?.filter(trigger => 
-    trigger.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    trigger.keyword.toLowerCase().includes(searchTerm.toLowerCase())
-  ) || [];
-
-  if (isLoading) return <div>Loading triggers...</div>;
-  if (error) return <div>Error loading triggers: {error.message}</div>;
-
+export default function TriggerList({ triggers, onEdit }: TriggerListProps) {
   return (
-    <div className="space-y-4">
-      <Input 
-        placeholder="Search triggers..." 
-        className="max-w-sm"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-      
-      <Table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Keyword</th>
-            <th>Status</th>
-            <th>Actions</th>
+    <Table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Keyword</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {triggers.map((trigger) => (
+          <tr key={trigger.id}>
+            <td>{trigger.name}</td>
+            <td>{trigger.keyword}</td>
+            <td>{trigger.status}</td>
+            <td>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onEdit(trigger)}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            </td>
           </tr>
-        </thead>
-        <tbody>
-          {filteredTriggers.map(trigger => (
-            <tr key={trigger.id}>
-              <td>{trigger.name}</td>
-              <td>{trigger.keyword}</td>
-              <td>{trigger.status}</td>
-              <td>
-                {/* Will add action buttons later */}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-    </div>
+        ))}
+      </tbody>
+    </Table>
   );
 }

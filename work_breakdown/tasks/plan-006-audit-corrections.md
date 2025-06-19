@@ -3,7 +3,7 @@
 ## 1. Implement Trigger Management UI (UI)
 - [x] Create Trigger List component with search/filter capabilities
 - [x] Develop Create Trigger form with validation
-- [ ] Implement Edit Trigger modal with prefilled data
+- [x] Implement Edit Trigger modal with prefilled data
 - [ ] Add Delete Trigger confirmation dialog
 - [ ] Connect UI to existing API endpoints
 - [ ] Add pagination and sorting to trigger list
