@@ -2,7 +2,8 @@ import { Button } from '@/components/ui/button';
 import { Table } from '@/components/ui/table';
 import { Trigger } from '@/types/database';
 import { Edit, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useWebSocket } from '@/lib/websocket-context';
 
 interface TriggerListProps {
   triggers: Trigger[];
@@ -10,13 +11,17 @@ interface TriggerListProps {
   onDelete: (trigger: Trigger) => void;
 }
 
-export default function TriggerList({ triggers, onEdit, onDelete }: TriggerListProps) {
+export default function TriggerList({ triggers: initialTriggers, onEdit, onDelete }: TriggerListProps) {
+  const { triggers: wsTriggers, refreshTriggers } = useWebSocket();
   const [sortField, setSortField] = useState<'name' | 'keyword' | 'status' | ''>('');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const sortedTriggers = [...triggers].sort((a, b) => {
+  // Use WebSocket triggers if available, otherwise fall back to initialTriggers
+  const allTriggers = wsTriggers.length > 0 ? wsTriggers : initialTriggers;
+
+  const sortedTriggers = [...allTriggers].sort((a, b) => {
     if (!sortField) return 0;
 
     let aValue: string | number = '';
@@ -47,7 +52,7 @@ export default function TriggerList({ triggers, onEdit, onDelete }: TriggerListP
     currentPage * itemsPerPage
   );
 
-  const totalPages = Math.ceil(triggers.length / itemsPerPage);
+  const totalPages = Math.ceil(allTriggers.length / itemsPerPage);
 
   const handleSort = (field: 'name' | 'keyword' | 'status') => {
     if (sortField === field) {
@@ -57,6 +62,11 @@ export default function TriggerList({ triggers, onEdit, onDelete }: TriggerListP
       setSortDirection('asc');
     }
   };
+
+  // Refresh triggers when component mounts
+  useEffect(() => {
+    refreshTriggers();
+  }, [refreshTriggers]);
 
   return (
     <div className="space-y-4">

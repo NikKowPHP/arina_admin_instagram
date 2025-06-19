@@ -6,7 +6,7 @@
 - [x] Implement Edit Trigger modal with prefilled data
 - [x] Add Delete Trigger confirmation dialog
 - [x] Connect UI to existing API endpoints
-- [ ] Add pagination and sorting to trigger list
+- [x] Add pagination and sorting to trigger list
 - [ ] Implement real-time updates using websockets
 
 ## 2. Fix Bot Media DM Functionality (LOGIC)

@@ -1,120 +1,106 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { WebSocketProvider } from '@/lib/websocket-context';
 import TriggerList from '@/components/trigger-list';
-import CreateTriggerForm, { TriggerFormData } from '@/components/create-trigger-form';
+import CreateTriggerForm from '@/components/create-trigger-form';
 import EditTriggerForm from '@/components/edit-trigger-form';
+import Modal from '@/components/ui/modal';
 import DeleteConfirmationDialog from '@/components/delete-confirmation-dialog';
-import useSWR from 'swr';
 import { Trigger } from '@/types/database';
 
+interface TriggerFormData {
+  name: string;
+  keyword: string;
+  status: 'active' | 'inactive';
+}
+
 export default function TriggersPage() {
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editingTrigger, setEditingTrigger] = useState<Trigger | null>(null);
-  const [deletingTrigger, setDeletingTrigger] = useState<Trigger | null>(null);
-  const { data: triggers = [], mutate } = useSWR<Trigger[]>('/api/triggers');
+  const [triggers, setTriggers] = useState<Trigger[]>([]);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [currentTrigger, setCurrentTrigger] = useState<Trigger | null>(null);
 
-  const handleCreateTrigger = async (data: TriggerFormData) => {
-    try {
-      const response = await fetch('/api/triggers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+  const handleCreate = (newTrigger: TriggerFormData) => {
+    const trigger: Trigger = {
+      ...newTrigger,
+      id: (triggers.length + 1).toString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setTriggers([...triggers, trigger]);
+    setIsCreateModalOpen(false);
+  };
 
-      if (!response.ok) throw new Error('Failed to create trigger');
-
-      setShowCreateForm(false);
-      mutate();
-    } catch (error) {
-      console.error('Error creating trigger:', error);
+  const handleEdit = (updatedTrigger: TriggerFormData) => {
+    if (currentTrigger) {
+      const trigger: Trigger = {
+        ...currentTrigger,
+        ...updatedTrigger,
+        updatedAt: new Date().toISOString(),
+      };
+      setTriggers(triggers.map(t => (t.id === trigger.id ? trigger : t)));
+      setIsEditModalOpen(false);
     }
   };
 
-  const handleUpdateTrigger = async (data: TriggerFormData) => {
-    if (!editingTrigger) return;
-
-    try {
-      const response = await fetch(`/api/triggers/${editingTrigger.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) throw new Error('Failed to update trigger');
-
-      setEditingTrigger(null);
-      mutate();
-    } catch (error) {
-      console.error('Error updating trigger:', error);
-    }
+  const handleDelete = (trigger: Trigger) => {
+    setCurrentTrigger(trigger);
+    setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteTrigger = async () => {
-    if (!deletingTrigger) return;
-
-    try {
-      const response = await fetch(`/api/triggers/${deletingTrigger.id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) throw new Error('Failed to delete trigger');
-
-      setDeletingTrigger(null);
-      mutate();
-    } catch (error) {
-      console.error('Error deleting trigger:', error);
+  const confirmDelete = () => {
+    if (currentTrigger) {
+      // In a real application, you would make an API call here
+      setTriggers(triggers.filter(t => t.id !== currentTrigger.id));
+      setIsDeleteDialogOpen(false);
     }
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Trigger Management</h1>
-        <Button
-          variant="primary"
-          onClick={() => setShowCreateForm(true)}
+    <WebSocketProvider>
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Triggers</h1>
+          <Button onClick={() => setIsCreateModalOpen(true)}>Create Trigger</Button>
+        </div>
+        <TriggerList
+          triggers={triggers}
+          onEdit={setCurrentTrigger}
+          onDelete={handleDelete}
+        />
+        <Modal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
         >
-          <Plus className="mr-2 h-4 w-4" />
-          Create New Trigger
-        </Button>
-      </div>
-
-      {showCreateForm && (
-        <div className="mb-6 p-4 border rounded-lg bg-background">
           <CreateTriggerForm
-            onSubmit={handleCreateTrigger}
-            onCancel={() => setShowCreateForm(false)}
+            onSubmit={handleCreate}
+            onCancel={() => setIsCreateModalOpen(false)}
           />
-        </div>
-      )}
-
-      {editingTrigger && (
-        <div className="mb-6 p-4 border rounded-lg bg-background">
-          <EditTriggerForm
-            initialData={editingTrigger}
-            onSubmit={handleUpdateTrigger}
-            onCancel={() => setEditingTrigger(null)}
-          />
-        </div>
-      )}
-
-      <TriggerList
-        triggers={triggers}
-        onEdit={(trigger) => setEditingTrigger(trigger)}
-        onDelete={(trigger) => setDeletingTrigger(trigger)}
-      />
-
-      <DeleteConfirmationDialog
-        isOpen={!!deletingTrigger}
-        onClose={() => setDeletingTrigger(null)}
-        onConfirm={handleDeleteTrigger}
-        triggerName={deletingTrigger?.name || ''}
-      />
-    </div>
+        </Modal>
+        <Modal
+          isOpen={isEditModalOpen && currentTrigger !== null}
+          onClose={() => setIsEditModalOpen(false)}
+        >
+          {currentTrigger && (
+            <EditTriggerForm
+              initialData={{
+                name: currentTrigger.name,
+                keyword: currentTrigger.keyword,
+                status: currentTrigger.status,
+              }}
+              onSubmit={handleEdit}
+              onCancel={() => setIsEditModalOpen(false)}
+            />
+          )}
+        </Modal>
+        <DeleteConfirmationDialog
+          isOpen={isDeleteDialogOpen}
+          onClose={() => setIsDeleteDialogOpen(false)}
+          onConfirm={confirmDelete}
+          triggerName={currentTrigger?.name || ''}
+        />
+      </div>
+    </WebSocketProvider>
   );
 }
