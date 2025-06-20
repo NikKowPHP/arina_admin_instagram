@@ -14,6 +14,8 @@ const TriggersPage: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [sortField, setSortField] = useState('');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     const fetchTriggers = async () => {
@@ -22,7 +24,7 @@ const TriggersPage: React.FC = () => {
       setTotalPages(data.totalPages);
     };
     fetchTriggers();
-  }, [currentPage]);
+  }, [currentPage, sortField, sortDirection]);
 
   const handleCreate = () => {
     setIsCreateModalOpen(true);
@@ -52,6 +54,25 @@ const TriggersPage: React.FC = () => {
     }
   };
 
+  const handleSort = (field: string) => {
+    const newDirection = sortField === field && sortDirection === 'asc' ? 'desc' : 'asc';
+    setSortField(field);
+    setSortDirection(newDirection);
+  };
+
+  const sortedTriggers = React.useMemo(() => {
+    if (!sortField) return triggers;
+
+    return [...triggers].sort((a, b) => {
+      const aValue = a[sortField as keyof Trigger] as string;
+      const bValue = b[sortField as keyof Trigger] as string;
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [triggers, sortField, sortDirection]);
+
   return (
     <WebSocketProvider>
       <div>
@@ -68,7 +89,13 @@ const TriggersPage: React.FC = () => {
             Next
           </button>
         </div>
-        <TriggerList triggers={triggers} onEdit={handleEdit} onDelete={handleDelete} />
+        <TriggerList
+          triggers={sortedTriggers}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onSort={handleSort}
+          currentSort={{ field: sortField, direction: sortDirection }}
+        />
         <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)}>
           <CreateTriggerForm />
         </Modal>

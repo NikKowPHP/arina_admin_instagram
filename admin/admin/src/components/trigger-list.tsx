@@ -6,9 +6,17 @@ interface TriggerListProps {
   triggers: Trigger[];
   onEdit: (trigger: Trigger) => void;
   onDelete: (id: string) => void;
+  onSort?: (field: string) => void;
+  currentSort?: { field: string; direction: 'asc' | 'desc' };
 }
 
-const TriggerList: React.FC<TriggerListProps> = ({ triggers, onEdit, onDelete }) => {
+const TriggerList: React.FC<TriggerListProps> = ({
+  triggers,
+  onEdit,
+  onDelete,
+  onSort,
+  currentSort
+}) => {
   const { socket } = useWebSocket();
   const [triggerData, setTriggerData] = useState(triggers);
 
@@ -33,13 +41,25 @@ const TriggerList: React.FC<TriggerListProps> = ({ triggers, onEdit, onDelete })
     };
   }, [socket]);
 
+  const getSortIcon = (field: string) => {
+    if (!currentSort) return null;
+    if (currentSort.field !== field) return null;
+    return currentSort.direction === 'asc' ? ' ↑' : ' ↓';
+  };
+
   return (
     <table>
       <thead>
         <tr>
-          <th>Name</th>
-          <th>Keyword</th>
-          <th>Status</th>
+          <th onClick={() => onSort?.('name')}>
+            Name {getSortIcon('name')}
+          </th>
+          <th onClick={() => onSort?.('keyword')}>
+            Keyword {getSortIcon('keyword')}
+          </th>
+          <th onClick={() => onSort?.('status')}>
+            Status {getSortIcon('status')}
+          </th>
           <th>Actions</th>
         </tr>
       </thead>
