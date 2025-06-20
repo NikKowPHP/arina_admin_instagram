@@ -63,3 +63,24 @@ model ActivityLog {
   
   @@map("activity_log")
 }
+
+model ProcessedComment {
+  id         String   @id @default(uuid())
+  commentId  String   @unique @map("comment_id")
+  postId     String   @map("post_id")
+  processedAt DateTime @default(now()) @map("processed_at")
+  
+  @@index([postId], name: "idx_processed_comments_post_id")
+  @@map("processed_comments")
+}
+
+model DeadLetterQueue {
+  id           String   @id @default(uuid())
+  user_id      String
+  action       String
+  details      String
+  errorMessage String   @map("error_message")
+  timestamp    DateTime @default(now())
+  
+  @@map("dead_letter_queue")
+}

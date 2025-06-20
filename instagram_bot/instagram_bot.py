@@ -6,6 +6,7 @@ import logging
 import psycopg2
 import functools
 import tempfile
+import requests
 from datetime import datetime, timedelta
 from urllib.request import urlopen, Request, URLError, HTTPError
 from dotenv import load_dotenv
@@ -297,9 +298,20 @@ class InstagramBot:
                             logger.info(f"Stored processed comment {comment_id} for post {post_id}")
                         except Exception as e:
                             logger.error(f"Failed to process comment {comment_id}: {str(e)}")
-                    else:
-                        logger.error(f"No template found with ID {template_id} for trigger {trigger[0]}")
-                        # TODO: Consider implementing dead-letter queue or alerting
+                            # Store failed comment in dead-letter queue
+                            self.db_cursor.execute(
+                                "INSERT INTO dead_letter_queue (user_id, action, details, error_message) VALUES (%s, %s, %s, %s)",
+                                (user_id, "process_comment", f"Trigger: {trigger[0]}", str(e))
+                            )
+                            self.db_conn.commit()
+                        else:
+                            logger.error(f"No template found with ID {template_id} for trigger {trigger[0]}")
+                            # Store missing template error in dead-letter queue
+                            self.db_cursor.execute(
+                                "INSERT INTO dead_letter_queue (user_id, action, details, error_message) VALUES (%s, %s, %s, %s)",
+                                (user_id, "missing_template", f"Trigger: {trigger[0]}", f"No template {template_id}")
+                            )
+                            self.db_conn.commit()
 
             # Wait before next check
             time.sleep(60)  # Check every minute

@@ -1,5 +1,28 @@
 # Testing Environment Setup
 
+## Audit Script Usage
+
+The `run_audit.sh` script verifies code quality and schema consistency:
+
+```bash
+./scripts/run_audit.sh
+```
+
+Checks performed:
+1. **Placeholder Scan**: Finds TODO/FIXME comments
+2. **Schema Validation**: Ensures Prisma schema is valid
+3. **Audit Plan Check**: Verifies audit/audit_plan.md exists
+
+Example successful output:
+```
+Running system audit...
+Checking for placeholder comments:
+Verifying database schema:
+Checking audit plan:
+Audit plan exists
+Audit completed
+```
+
 This guide provides instructions for setting up the testing environment for the Instagram Bot project.
 
 ## Virtual Environment Setup
@@ -47,3 +70,15 @@ The CI/CD pipeline is configured to:
 3. Run tests with coverage reporting
 
 See `.github/workflows/tests.yml` for details.
+## Audit Verification
+
+To verify the implementation against the specification, run:
+
+```bash
+./scripts/run_audit.sh
+```
+
+The script will:
+1. Check for placeholder code patterns
+2. Verify database schema consistency
+3. Exit with code 0 on success or appropriate error code on failure
