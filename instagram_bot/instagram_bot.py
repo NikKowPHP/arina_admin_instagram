@@ -5,7 +5,9 @@ import time
 import logging
 import psycopg2
 import functools
+import tempfile
 from datetime import datetime, timedelta
+from urllib.request import urlopen, Request, URLError, HTTPError
 from dotenv import load_dotenv
 from instagrapi import Client
 from instagrapi.types import StoryMedia, StorySticker, StoryMention, StoryHashtag, StoryLocation
@@ -158,26 +160,41 @@ class InstagramBot:
                 logger.info(f"Media URL found in template: {media_url}")
 
                 try:
-                    # Send media directly using instagrapi
-                    # Note: instagrapi doesn't have a direct method for sending media from URL in DMs
-                    # We'll download and upload as before, but this is subject to change when better API support is available
-                    import requests
-                    media_response = requests.get(media_url)
-                    media_response.raise_for_status()
+                    # Create a temporary file for media
+                    with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
+                        temp_path = temp_file.name
 
-                    # Save media to local file
-                    media_path = f"/tmp/instagram_bot_media_{user_id}.jpg"
-                    with open(media_path, 'wb') as f:
-                        f.write(media_response.content)
+                    try:
+                        # Download media using urllib
+                        logger.info(f"Downloading media from {media_url}")
+                        request = Request(media_url, headers={'User-Agent': 'Mozilla/5.0'})
+                        with urlopen(request) as response:
+                            if response.status != 200:
+                                raise HTTPError(f"Error downloading media: HTTP {response.status}")
 
-                    # Upload media to Instagram
-                    media = self.client.photo_upload(media_path)
-                    os.remove(media_path)  # Clean up temp file
+                            # Write to temp file
+                            with open(temp_path, 'wb') as f:
+                                f.write(response.read())
 
-                    # Send media with message
-                    self.client.direct_message(user_id, message, media=media)
-                    media_sent = True
-                    logger.info(f"Successfully sent media to user {user_id}")
+                            # Upload media to Instagram
+                            logger.info(f"Uploading media to Instagram")
+                            media = self.client.photo_upload(temp_path)
+
+                            # Send media with message
+                            logger.info(f"Sending media DM to user {user_id}")
+                            self.client.direct_message(user_id, message, media=media)
+                            media_sent = True
+                            logger.info(f"Successfully sent media to user {user_id}")
+                    except HTTPError as http_err:
+                        logger.error(f"HTTP error downloading media: {str(http_err)}")
+                        raise
+                    except URLError as url_err:
+                        logger.error(f"URL error downloading media: {str(url_err)}")
+                        raise
+                    finally:
+                        # Clean up temp file
+                        if os.path.exists(temp_path):
+                            os.remove(temp_path)
                 except Exception as media_e:
                     logger.error(f"Failed to send media: {str(media_e)}")
                     # Fall back to text-only message
