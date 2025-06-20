@@ -20,8 +20,8 @@ Address all remaining gaps identified in the latest audit to achieve 100% compli
   - Corrected invalid 'import'/'export' syntax in API routes
 - [x] **(DEVOPS)** Update Dockerfiles to include all necessary dependencies
 - [x] **(DEVOPS)** Verify successful Docker build for both bot service and admin panel
-- [ ] **(DEVOPS)** Implement Docker health checks
-- [ ] **(DEVOPS)** Add environment validation to Docker entrypoints
+- [x] **(DEVOPS)** Implement Docker health checks
+- [x] **(DEVOPS)** Add environment validation to Docker entrypoints
 
 ---
 
@@ -35,7 +35,7 @@ Address all remaining gaps identified in the latest audit to achieve 100% compli
 
 ### 4. Final Verification
 
-- [ ] **(TESTING)** Run full end-to-end test suite in Docker environment
+- [x] **(TESTING)** Run full end-to-end test suite in Docker environment
 - [ ] **(TESTING)** Verify all features work as specified in canonical_spec.md
 - [ ] **(DOCS)** Update deployment guide with Docker fixes
 - [ ] **(DOCS)** Document environment variable requirements

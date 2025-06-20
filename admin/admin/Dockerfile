@@ -29,8 +29,11 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Copy built assets and production dependencies
+# Set environment variables
 ENV DATABASE_URL=postgres://postgres:password@db:5433/postgres
+ENV NODE_ENV=production
 
+# Copy built assets and production dependencies
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
@@ -39,8 +42,15 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/prisma ./prisma
 
+# Regenerate Prisma client for production environment
+RUN npx prisma generate
+
 # Expose the port
 EXPOSE 3000
 
-# Start the application
-CMD ["npm", "start"]
+# Health check and startup
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+  CMD curl --fail http://localhost:3000/api/bot/health || exit 1
+
+# Start the application with environment validation
+CMD ["sh", "-c", "./entrypoint.sh && npm start"]

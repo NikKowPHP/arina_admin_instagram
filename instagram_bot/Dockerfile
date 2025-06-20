@@ -25,4 +25,7 @@ ENV PYTHONUNBUFFERED=1
 EXPOSE 8000
 
 # Command to run the application
-CMD ["python", "main.py"]
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+  CMD python -c "import requests; requests.get('http://localhost:8000/health')"
+
+CMD ["sh", "-c", "./entrypoint.sh && python main.py"]
