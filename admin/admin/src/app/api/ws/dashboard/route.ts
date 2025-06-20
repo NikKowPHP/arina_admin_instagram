@@ -2,19 +2,17 @@ import { NextResponse } from 'next/server'
 import { WebSocket, WebSocketServer } from 'ws'
 import { PrismaClient } from '@prisma/client'
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient({
+  log: ['query', 'info', 'warn', 'error'],
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL
+    }
+  }
+})
 
 // Create a WebSocket server
 const wss = new WebSocketServer({ port: 8082 })
-
-// Broadcast function to send data to all connected clients
-function broadcast(data: string) {
-  wss.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(data)
-    }
-  })
-}
 
 // Handle new WebSocket connections
 wss.on('connection', (ws: WebSocket) => {

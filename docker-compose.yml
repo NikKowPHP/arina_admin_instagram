@@ -8,6 +8,8 @@ services:
       - "3000:3000"
     environment:
       - DATABASE_URL=postgres://postgres:password@db:5433/postgres
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL:-https://default.supabase.co}
+      - NEXT_PUBLIC_SUPABASE_KEY=${NEXT_PUBLIC_SUPABASE_KEY:-default-key}
     depends_on:
       - db
     volumes:

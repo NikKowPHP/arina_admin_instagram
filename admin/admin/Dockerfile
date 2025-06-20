@@ -1,14 +1,21 @@
-# Use the official Node.js 18 image from the Docker Hub
-FROM node:18-alpine
+# Use the official Node.js 18 image with Alpine
+FROM node:18-alpine AS builder
+
+# Install system dependencies for native modules
+RUN apk add --no-cache python3 make g++
 
 # Create and set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Copy package files
 COPY package*.json ./
+COPY prisma/schema.prisma ./prisma/
 
-# Install dependencies with legacy-peer-deps flag
-RUN npm install --legacy-peer-deps
+# Install dependencies
+RUN npm install --legacy-peer-deps --include=dev
+
+# Generate Prisma client
+RUN npx prisma generate
 
 # Copy the rest of the application code
 COPY . .
@@ -16,7 +23,23 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Expose the port the app runs on
+# Production stage
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy built assets and production dependencies
+ENV DATABASE_URL=postgres://postgres:password@db:5433/postgres
+
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/src/generated/prisma ./src/generated/prisma
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/prisma ./prisma
+
+# Expose the port
 EXPOSE 3000
 
 # Start the application
