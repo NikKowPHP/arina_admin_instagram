@@ -160,41 +160,20 @@ class InstagramBot:
                 logger.info(f"Media URL found in template: {media_url}")
 
                 try:
-                    # Create a temporary file for media
-                    with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
-                        temp_path = temp_file.name
+                    # Download media directly using instagrapi
+                    logger.info(f"Downloading media from {media_url}")
+                    response = requests.get(media_url, stream=True)
+                    response.raise_for_status()
 
-                    try:
-                        # Download media using urllib
-                        logger.info(f"Downloading media from {media_url}")
-                        request = Request(media_url, headers={'User-Agent': 'Mozilla/5.0'})
-                        with urlopen(request) as response:
-                            if response.status != 200:
-                                raise HTTPError(f"Error downloading media: HTTP {response.status}")
+                    # Upload media to Instagram using instagrapi
+                    logger.info(f"Uploading media to Instagram")
+                    media = self.client.photo_upload_from_url(media_url)
 
-                            # Write to temp file
-                            with open(temp_path, 'wb') as f:
-                                f.write(response.read())
-
-                            # Upload media to Instagram
-                            logger.info(f"Uploading media to Instagram")
-                            media = self.client.photo_upload(temp_path)
-
-                            # Send media with message
-                            logger.info(f"Sending media DM to user {user_id}")
-                            self.client.direct_message(user_id, message, media=media)
-                            media_sent = True
-                            logger.info(f"Successfully sent media to user {user_id}")
-                    except HTTPError as http_err:
-                        logger.error(f"HTTP error downloading media: {str(http_err)}")
-                        raise
-                    except URLError as url_err:
-                        logger.error(f"URL error downloading media: {str(url_err)}")
-                        raise
-                    finally:
-                        # Clean up temp file
-                        if os.path.exists(temp_path):
-                            os.remove(temp_path)
+                    # Send media with message
+                    logger.info(f"Sending media DM to user {user_id}")
+                    self.client.direct_message(user_id, message, media=media)
+                    media_sent = True
+                    logger.info(f"Successfully sent media to user {user_id}")
                 except Exception as media_e:
                     logger.error(f"Failed to send media: {str(media_e)}")
                     # Fall back to text-only message
