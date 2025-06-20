@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { Trigger } from '@/types/database';
 import { useWebSocket } from '@/lib/websocket-context';
