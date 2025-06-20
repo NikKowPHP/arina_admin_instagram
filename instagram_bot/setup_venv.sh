@@ -4,20 +4,20 @@
 
 echo "Setting up Python virtual environment..."
 
-# Check for Python 3.10+
-if ! command -v python3.10 &> /dev/null; then
-    echo "Python 3.10+ is required but not found. Please install Python 3.10+ and try again."
+# Check for Python 3
+if ! command -v python3 &> /dev/null; then
+    echo "Python 3 is required but not found. Please install Python 3 and try again."
     exit 1
 fi
 
 # Create virtual environment
-python3.10 -m venv venv
+python3 -m venv venv
 
 # Activate virtual environment
 if [ "$OSTYPE" == "darwin*" ]; then
     # macOS
     source venv/bin/activate
-elif [ "$OSTYPE" == "linux-gnu*" ]; then
+elif [ "$OSTYPE" == "linux-gnu" ]; then
     # Linux
     source venv/bin/activate
 elif [ "$OSTYPE" == "win32" ]; then

@@ -11,7 +11,7 @@ import { getAnalytics, getDashboardAnalytics, getBotHealth } from '@/lib/actions
 import type { BotHealthStatus } from '@/types/bot-monitor'
 
 type TriggerUsage = Array<{ date: string; count: number }>
-type DashboardAnalytics = {
+export type DashboardAnalytics = {
   triggerActivations: number
   userActivity: {
     totalUsers: number
@@ -120,7 +120,7 @@ export default function DashboardPage() {
           getBotHealth()
         ])
         // Convert triggerUsage counts to numbers
-        const typedTriggerUsage = basicAnalytics.triggerUsage.map(item => ({
+        const typedTriggerUsage = basicAnalytics.triggerUsage.map((item: { date: string; count: number }) => ({
           date: item.date,
           count: Number(item.count)
         }))

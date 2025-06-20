@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import type { DashboardAnalytics } from '@/app/dashboard/page';
 
 const prisma = new PrismaClient();
 
@@ -43,4 +44,39 @@ export async function updateTrigger(id: string, data: FormData) {
 
 export async function deleteTrigger(id: string) {
   return prisma.trigger.delete({ where: { id } });
+}
+
+export async function getAnalytics() {
+  return prisma.analytics.findMany();
+}
+
+export async function getDashboardAnalytics(): Promise<DashboardAnalytics> {
+  const [triggerActivations, userActivity, systemHealth, templateUsage] = await Promise.all([
+    prisma.trigger.count(),
+    prisma.userActivity.findFirst().then((activity: { totalUsers?: number; logEntries?: number; dmsSent?: number } | null) => ({
+      totalUsers: activity?.totalUsers ?? 0,
+      activityLogEntries: activity?.logEntries ?? 0,
+      dmsSent: activity?.dmsSent ?? 0
+    })),
+    prisma.botHealth.findFirst({
+      orderBy: { createdAt: 'desc' }
+    }),
+    prisma.templateUsage.findMany()
+  ]);
+
+  return {
+    triggerActivations,
+    userActivity,
+    systemHealth: systemHealth || { isHealthy: false, lastPing: new Date(), errorCount: 0 },
+    templateUsage: templateUsage.map((t: { name: string; count: number }) => ({
+      name: t.name,
+      count: t.count
+    }))
+  };
+}
+
+export async function getBotHealth() {
+  return prisma.botHealth.findFirst({
+    orderBy: { createdAt: 'desc' }
+  });
 }

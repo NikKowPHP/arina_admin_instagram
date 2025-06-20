@@ -1,4 +1,4 @@
-import type { BotHealthStatus } from '@/bot-monitor/types'
+import type { BotHealthStatus } from '@/types/bot-monitor'
 
 export function BotHealthStatusCard({ status }: { status: BotHealthStatus }) {
   return (

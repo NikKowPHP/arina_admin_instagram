@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import TriggerList from '@/components/trigger-list';
 import CreateTriggerForm from '@/components/create-trigger-form';

@@ -2,8 +2,8 @@ version: '3.8'
 
 services:
   admin-panel:
-    build: 
-      context: ./admin
+    build:
+      context: ./admin/admin
     ports:
       - "3000:3000"
     environment:
@@ -11,18 +11,28 @@ services:
     depends_on:
       - db
     volumes:
-      - ./admin:/app
+      - ./admin/admin:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   bot-service:
-    build: 
-      context: ./bot
+    build:
+      context: ./instagram_bot
     environment:
       - INSTAGRAM_USER=${INSTAGRAM_USER:-testuser}
       - INSTAGRAM_PASSWORD=${INSTAGRAM_PASSWORD:-testpass}
     depends_on:
       - db
     volumes:
-      - ./bot:/app
+      - ./instagram_bot:/app
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import instagram_bot; instagram_bot.main.check_health()\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   db:
     image: postgres:15
