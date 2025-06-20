@@ -12,14 +12,17 @@ const TriggersPage: React.FC = () => {
   const [selectedTrigger, setSelectedTrigger] = useState<Trigger | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const fetchTriggers = async () => {
-      const data = await getTriggers();
-      setTriggers(data);
+      const data = await getTriggers(currentPage);
+      setTriggers(data.triggers);
+      setTotalPages(data.totalPages);
     };
     fetchTriggers();
-  }, []);
+  }, [currentPage]);
 
   const handleCreate = () => {
     setIsCreateModalOpen(true);
@@ -32,7 +35,21 @@ const TriggersPage: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     await deleteTrigger(id);
-    setTriggers(triggers.filter(t => t.id !== id));
+    const data = await getTriggers(currentPage);
+    setTriggers(data.triggers);
+    setTotalPages(data.totalPages);
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
   };
 
   return (
@@ -40,6 +57,17 @@ const TriggersPage: React.FC = () => {
       <div>
         <h1>Triggers</h1>
         <button onClick={handleCreate}>Create Trigger</button>
+        <div style={{ margin: '10px 0' }}>
+          <button onClick={handlePrevPage} disabled={currentPage <= 1}>
+            Previous
+          </button>
+          <span style={{ margin: '0 10px' }}>
+            Page {currentPage} of {totalPages}
+          </span>
+          <button onClick={handleNextPage} disabled={currentPage >= totalPages}>
+            Next
+          </button>
+        </div>
         <TriggerList triggers={triggers} onEdit={handleEdit} onDelete={handleDelete} />
         <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)}>
           <CreateTriggerForm />

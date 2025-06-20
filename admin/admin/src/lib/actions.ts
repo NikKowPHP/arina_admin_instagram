@@ -2,8 +2,22 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function getTriggers() {
-  return prisma.trigger.findMany();
+export async function getTriggers(page = 1, pageSize = 10) {
+  const skip = (page - 1) * pageSize;
+  const [triggers, totalCount] = await Promise.all([
+    prisma.trigger.findMany({
+      skip,
+      take: pageSize,
+      orderBy: { createdAt: 'desc' } // Assuming triggers are ordered by creation date
+    }),
+    prisma.trigger.count()
+  ]);
+
+  return {
+    triggers,
+    totalPages: Math.ceil(totalCount / pageSize),
+    currentPage: page
+  };
 }
 
 export async function createTrigger(data: FormData) {
