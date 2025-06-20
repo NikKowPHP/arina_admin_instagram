@@ -157,24 +157,32 @@ class InstagramBot:
             if media_url:
                 logger.info(f"Media URL found in template: {media_url}")
 
-                # Download media
-                import requests
-                media_response = requests.get(media_url)
-                media_response.raise_for_status()
+                try:
+                    # Send media directly using instagrapi
+                    # Note: instagrapi doesn't have a direct method for sending media from URL in DMs
+                    # We'll download and upload as before, but this is subject to change when better API support is available
+                    import requests
+                    media_response = requests.get(media_url)
+                    media_response.raise_for_status()
 
-                # Save media to local file
-                media_path = f"/tmp/instagram_bot_media_{user_id}.jpg"
-                with open(media_path, 'wb') as f:
-                    f.write(media_response.content)
+                    # Save media to local file
+                    media_path = f"/tmp/instagram_bot_media_{user_id}.jpg"
+                    with open(media_path, 'wb') as f:
+                        f.write(media_response.content)
 
-                # Upload media to Instagram
-                media = self.client.photo_upload(media_path)
-                os.remove(media_path)  # Clean up temp file
+                    # Upload media to Instagram
+                    media = self.client.photo_upload(media_path)
+                    os.remove(media_path)  # Clean up temp file
 
-                # Send media with message
-                self.client.direct_message(user_id, message, media=media)
-                media_sent = True
-                logger.info(f"Successfully sent media to user {user_id}")
+                    # Send media with message
+                    self.client.direct_message(user_id, message, media=media)
+                    media_sent = True
+                    logger.info(f"Successfully sent media to user {user_id}")
+                except Exception as media_e:
+                    logger.error(f"Failed to send media: {str(media_e)}")
+                    # Fall back to text-only message
+                    self.client.direct_message(user_id, message)
+                    logger.info(f"Fallback: Sent text-only message to user {user_id}")
             else:
                 # Send text-only message
                 self.client.direct_message(user_id, message)
