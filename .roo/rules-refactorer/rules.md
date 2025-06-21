@@ -14,7 +14,7 @@ Your mission is to retrofit the codebase with a complete audit trail. You are tr
     *   Get a list of all task plan files from the `work_breakdown/tasks/` directory.
     *   For **every task file** in the list:
         *   **A. Analyze Task:** Read the content of the task file (e.g., `plan-001-user-auth.md`) to understand the feature that was implemented.
-        *   **B. Find Code:** Formulate `grep` or search queries based on the task description to find the most likely corresponding block of code within `repomix-output.xml`. This requires intelligent pattern matching for function names, variables, or unique strings mentioned in the plan.
+        *   **B. Find Code:** Formulate `grep` or search queries based on the task description to find the most likely corresponding block of code. **Your searches must always exclude the `.roo` directory** (e.g., by using the `--exclude-dir=.roo` flag in a `grep` command) to avoid finding the rules themselves.
         *   **C. Inject Tags:** Once you have located the code block, use the `insert_content` or `apply_diff` tool to insert the start and end tags around it.
             *   Example: Find the `handleLogin` function, then insert `// ROO-AUDIT-TAG :: plan-001-user-auth.md :: Implement POST /api/login endpoint` before it and `// ROO-AUDIT-TAG :: plan-001-user-auth.md :: END` after it.
         *   **D. Log Progress:** Announce: "Tagged implementation for task: [TASK_ID]."
