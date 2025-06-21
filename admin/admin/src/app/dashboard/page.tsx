@@ -22,6 +22,7 @@ export type DashboardAnalytics = {
   templateUsage: Array<{ name: string; count: number }>
 }
 
+// ROO-AUDIT-TAG :: plan-007-dashboard.md :: Implement analytics dashboard
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [dateRange, setDateRange] = useState('7d')
@@ -259,3 +260,4 @@ export default function DashboardPage() {
     </div>
   )
 }
+// ROO-AUDIT-TAG :: plan-007-dashboard.md :: END

@@ -1,3 +1,4 @@
+// ROO-AUDIT-TAG :: plan-005-trigger-management.md :: Implement trigger management UI
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -83,3 +84,4 @@ const TriggerList: React.FC<TriggerListProps> = ({
 };
 
 export default TriggerList;
+// ROO-AUDIT-TAG :: plan-005-trigger-management.md :: END

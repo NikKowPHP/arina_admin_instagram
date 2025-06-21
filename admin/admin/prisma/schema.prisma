@@ -1,3 +1,4 @@
+// ROO-AUDIT-TAG :: plan-009-database-schema.md :: Implement database schema
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -84,3 +85,4 @@ model DeadLetterQueue {
   
   @@map("dead_letter_queue")
 }
+// ROO-AUDIT-TAG :: plan-009-database-schema.md :: END

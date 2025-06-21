@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ROO-AUDIT-TAG :: plan-011-bot-fixes.md :: Implement bot fixes
 """
 Instagram Bot Service Implementation
 """
@@ -126,23 +127,23 @@ class InstagramBot:
             self.logger.error(f"Exception fetching templates: {e}")
             return []
 
+    # ROO-AUDIT-TAG :: plan-001-comment-monitoring.md :: Implement comment monitoring
     def _process_instagram_comments(self, triggers, templates):
         """Process Instagram comments based on triggers"""
         self.logger.info("Processing Instagram comments")
 
         # Get recent comments from monitored posts
         try:
-            try:
-                comments_response = self.instagram_api.feed_comments()
-                if not isinstance(comments_response, list):
-                    self.logger.error(f"Invalid response format: {type(comments_response)}")
-                    return
-
-                comments = comments_response
-                self.logger.info(f"Found {len(comments)} recent comments")
-            except Exception as e:
-                self.logger.error(f"Failed to fetch comments: {e}")
+            comments_response = self.instagram_api.feed_comments()
+            if not isinstance(comments_response, list):
+                self.logger.error(f"Invalid response format: {type(comments_response)}")
                 return
+
+            comments = comments_response
+            self.logger.info(f"Found {len(comments)} recent comments")
+        except Exception as e:
+            self.logger.error(f"Failed to fetch comments: {e}")
+            return
 
         # Process each comment
         for comment in comments:
@@ -150,6 +151,7 @@ class InstagramBot:
             comment_user_id = comment.get('user_id')
             post_id = comment.get('post_id')
 
+            # ROO-AUDIT-TAG :: plan-002-keyword-matching.md :: Implement keyword matching
             # Check if the comment contains any trigger keywords
             for trigger in triggers:
                 keyword = trigger.get('keyword', '').lower()
@@ -171,7 +173,10 @@ class InstagramBot:
                     break
             else:
                 self.logger.info("No trigger keywords found in comment")
+            # ROO-AUDIT-TAG :: plan-002-keyword-matching.md :: END
+    # ROO-AUDIT-TAG :: plan-001-comment-monitoring.md :: END
 
+    # ROO-AUDIT-TAG :: plan-003-dm-response.md :: Implement DM response
     def _send_dm(self, user_id, template, post_id=None):
         """Send a direct message to an Instagram user"""
         self.logger.info(f"Sending DM to user {user_id}")
@@ -206,6 +211,7 @@ class InstagramBot:
                     self.logger.error(f"Retry failed: {response.get('error')}")
             except Exception as retry_e:
                 self.logger.error(f"Retry failed: {retry_e}")
+    # ROO-AUDIT-TAG :: plan-003-dm-response.md :: END
 
     def _log_activity(self, comment, trigger, template):
         """Log bot activity to Supabase"""
@@ -228,3 +234,4 @@ class InstagramBot:
                 self.logger.info("Activity logged successfully")
         except Exception as e:
             self.logger.error(f"Exception logging activity: {e}")
+# ROO-AUDIT-TAG :: plan-011-bot-fixes.md :: END

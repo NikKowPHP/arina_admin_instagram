@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSupabase } from '@/lib/supabase-provider';
 import { Button } from '@/components/ui/button';
 
+// ROO-AUDIT-TAG :: plan-004-admin-authentication.md :: Implement admin authentication
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -61,4 +62,5 @@ export default function LoginPage() {
       </div>
     </div>
   );
+// ROO-AUDIT-TAG :: plan-004-admin-authentication.md :: END
 }

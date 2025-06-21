@@ -1,3 +1,4 @@
+# ROO-AUDIT-TAG :: plan-008-docker-setup.md :: Implement admin panel Docker setup
 # Use the official Node.js 18 image with Alpine
 FROM node:18-alpine AS builder
 
@@ -54,3 +55,4 @@ HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
 
 # Start the application with environment validation
 CMD ["sh", "-c", "./entrypoint.sh && npm start"]
+# ROO-AUDIT-TAG :: plan-008-docker-setup.md :: END

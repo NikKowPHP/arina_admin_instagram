@@ -1,3 +1,4 @@
+// ROO-AUDIT-TAG :: plan-006-template-management.md :: Implement template management UI
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -231,3 +232,4 @@ export default function TemplatesPage() {
     </div>
   );
 }
+// ROO-AUDIT-TAG :: plan-006-template-management.md :: END

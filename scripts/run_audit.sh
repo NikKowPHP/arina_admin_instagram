@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ROO-AUDIT-TAG :: plan-013-audit-system-repair.md :: Create audit verification script
+# ROO-AUDIT-TAG :: plan-012-audit-script.md :: Create audit verification script
 
 echo "Running system audit..."
 
@@ -22,3 +22,4 @@ else
 fi
 
 echo "Audit completed"
+# ROO-AUDIT-TAG :: plan-012-audit-script.md :: END
