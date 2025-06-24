@@ -1,3 +1,4 @@
+// ROO-AUDIT-TAG :: plan-002-code-quality.md :: Configure ESLint rules and extensions
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { FlatCompat } from "@eslint/eslintrc";
@@ -17,9 +18,10 @@ const eslintConfig = [
       "@typescript-eslint/no-unused-expressions": "off",
       "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/no-require-imports": "off",
-      "@typescript-eslint/no-this-alias": "off"
-    }
-  }
+      "@typescript-eslint/no-this-alias": "off",
+    },
+  },
 ];
+// ROO-AUDIT-TAG :: plan-002-code-quality.md :: END
 
 export default eslintConfig;

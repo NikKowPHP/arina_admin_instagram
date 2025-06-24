@@ -8,9 +8,11 @@ echo "Running system audit..."
 echo "Checking for placeholder comments:"
 grep -rnw . -e 'TODO\|FIXME\|\[IMPLEMENT\]' --exclude-dir={node_modules,__pycache__,.git}
 
+# ROO-AUDIT-TAG :: plan-003-database-verification.md :: Database schema validation
 # Verify database schema
 echo -e "\nVerifying database schema:"
 prisma schema validate
+# ROO-AUDIT-TAG :: plan-003-database-verification.md :: END
 
 # Check audit plan exists
 echo -e "\nChecking audit plan:"

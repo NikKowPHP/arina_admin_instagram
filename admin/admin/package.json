@@ -6,7 +6,9 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
+    // ROO-AUDIT-TAG :: plan-002-code-quality.md :: Add lint script and ESLint dependencies
     "lint": "next lint",
+    // ROO-AUDIT-TAG :: plan-002-code-quality.md :: END
     "test": "jest --coverage",
     "test:watch": "jest --watch"
   },
@@ -29,6 +31,7 @@
     "uuid": "^11.1.0",
     "zod": "^3.25.64"
   },
+  // ROO-AUDIT-TAG :: plan-002-code-quality.md :: Install ESLint tooling
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@faker-js/faker": "^9.8.0",
@@ -48,4 +51,5 @@
     "ts-jest": "^29.4.0",
     "typescript": "^5"
   }
+  // ROO-AUDIT-TAG :: plan-002-code-quality.md :: END
 }

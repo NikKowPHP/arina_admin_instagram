@@ -25,6 +25,7 @@
    - [ ] Audit System Repair: plan-013-audit-system-repair.md
    - [ ] Audit Failures Fix: plan-014-audit-failures.md
    - [ ] Missing Test Script: plan-015-missing-test-script.md
+   - [ ] Audit Tag Corrections: plan-016-audit-failures-fix.md
 
 ## Non-Functional Requirements
 - [ ] Rate limiting implemented
