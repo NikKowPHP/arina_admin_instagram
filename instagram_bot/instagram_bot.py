@@ -116,33 +116,45 @@ class InstagramBot:
         logger.info(f"Fetched {len(templates)} DM templates")
         return templates
 
+    # ROO-AUDIT-TAG :: plan-001-comment-monitoring.md :: Comment stream listener setup
     def check_comments(self, post_id, keywords):
         """Check for new comments on a post and match keywords, with duplicate detection."""
         logger.info(f"Checking comments for post {post_id} with keywords {keywords}")
-        post = self.client.post_info(post_id)
-        new_comments = []
+        try:
+            post = self.client.post_info(post_id)
+            new_comments = []
 
-        # Get already processed comment IDs for this post
-        self.db_cursor.execute(
-            "SELECT comment_id FROM processed_comments WHERE post_id = %s",
-            (post_id,)
-        )
-        processed_comment_ids = {row[0] for row in self.db_cursor.fetchall()}
+            # Get already processed comment IDs for this post
+            self.db_cursor.execute(
+                "SELECT comment_id FROM processed_comments WHERE post_id = %s",
+                (post_id,)
+            )
+            processed_comment_ids = {row[0] for row in self.db_cursor.fetchall()}
 
-        for comment in post.comments:
-            comment_id = comment.id
+            for comment in post.comments:
+                comment_id = comment.id
 
-            # Skip if comment is already processed
-            if comment_id in processed_comment_ids:
-                logger.info(f"Skipping already processed comment {comment_id}")
-                continue
+                # Skip if comment is already processed
+                if comment_id in processed_comment_ids:
+                    logger.info(f"Skipping already processed comment {comment_id}")
+                    continue
 
-            for keyword in keywords:
-                if keyword.lower() in comment.text.lower():
-                    new_comments.append(comment)
-                    logger.info(f"Matched keyword '{keyword}' in comment: {comment.text}")
+                for keyword in keywords:
+                    if keyword.lower() in comment.text.lower():
+                        new_comments.append(comment)
+                        logger.info(f"Matched keyword '{keyword}' in comment: {comment.text}")
+                        # Log the matched comment to database
+                        self.db_cursor.execute(
+                            "INSERT INTO comment_matches (comment_id, post_id, keyword) VALUES (%s, %s, %s)",
+                            (comment_id, post_id, keyword)
+                        )
+                        self.db_conn.commit()
 
-        return new_comments
+            return new_comments
+        except Exception as e:
+            logger.error(f"Error checking comments for post {post_id}: {str(e)}")
+            return []
+    # ROO-AUDIT-TAG :: plan-001-comment-monitoring.md :: END
 
     @_rate_limited
     def send_dm(self, user_id, template):

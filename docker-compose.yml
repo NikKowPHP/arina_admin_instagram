@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   admin-panel:
@@ -31,7 +31,11 @@ services:
     volumes:
       - ./instagram_bot:/app
     healthcheck:
-      test: ["CMD-SHELL", "python -c \"import instagram_bot; instagram_bot.main.check_health()\""]
+      test:
+        [
+          "CMD-SHELL",
+          'python -c "import instagram_bot; instagram_bot.main.check_health()"',
+        ]
       interval: 30s
       timeout: 10s
       retries: 5
