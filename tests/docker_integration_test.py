@@ -49,5 +49,64 @@ class DockerIntegrationTests(unittest.TestCase):
         )
         self.assertIn("accepting connections", result.stdout)
 
+    # ROO-AUDIT-TAG :: plan-003-database-verification.md :: Data consistency
+    def test_data_consistency(self):
+        """Verify critical data relationships and constraints."""
+        # Check foreign key relationships
+        # Example: Verify all triggers have valid template IDs
+        result = subprocess.run(
+            ["docker", "exec", "db", "psql", "-U", "postgres", "-d", "main", "-c",
+             "SELECT COUNT(*) FROM triggers WHERE template_id NOT IN (SELECT id FROM templates)"],
+            capture_output=True,
+            text=True
+        )
+        orphaned_triggers = int(result.stdout.splitlines()[-2])
+        self.assertEqual(orphaned_triggers, 0, f"Found {orphaned_triggers} triggers with invalid template IDs")
+
+        # Check required fields
+        result = subprocess.run(
+            ["docker", "exec", "db", "psql", "-U", "postgres", "-d", "main", "-c",
+             "SELECT COUNT(*) FROM triggers WHERE name IS NULL"],
+            capture_output=True,
+            text=True
+        )
+        null_names = int(result.stdout.splitlines()[-2])
+        self.assertEqual(null_names, 0, f"Found {null_names} triggers with null names")
+
+    def test_critical_data_relationships(self):
+        """Verify integrity of critical data relationships."""
+        # Test cascade delete from templates to triggers
+        # 1. Create test template and associated trigger
+        subprocess.run(
+            ["docker", "exec", "db", "psql", "-U", "postgres", "-d", "main", "-c",
+             "INSERT INTO templates (id, content) VALUES ('test_template', 'Test content')"],
+            capture_output=True,
+            text=True
+        )
+        subprocess.run(
+            ["docker", "exec", "db", "psql", "-U", "postgres", "-d", "main", "-c",
+             "INSERT INTO triggers (id, name, template_id) VALUES ('test_trigger', 'Test Trigger', 'test_template')"],
+            capture_output=True,
+            text=True
+        )
+        
+        # 2. Delete the template and verify trigger is handled appropriately
+        subprocess.run(
+            ["docker", "exec", "db", "psql", "-U", "postgres", "-d", "main", "-c",
+             "DELETE FROM templates WHERE id = 'test_template'"],
+            capture_output=True,
+            text=True
+        )
+        
+        # 3. Check if trigger was cascade deleted or nullified
+        result = subprocess.run(
+            ["docker", "exec", "db", "psql", "-U", "postgres", "-d", "main", "-c",
+             "SELECT COUNT(*) FROM triggers WHERE id = 'test_trigger'"],
+            capture_output=True,
+            text=True
+        )
+        remaining_triggers = int(result.stdout.splitlines()[-2])
+        self.assertEqual(remaining_triggers, 0, "Trigger not properly handled after template deletion")
+
 if __name__ == "__main__":
     unittest.main()

@@ -6,6 +6,7 @@ import logging
 import psycopg2
 import functools
 import tempfile
+import re
 import requests
 from datetime import datetime, timedelta
 from urllib.request import urlopen, Request, URLError, HTTPError
@@ -139,14 +140,33 @@ class InstagramBot:
                     logger.info(f"Skipping already processed comment {comment_id}")
                     continue
 
+                # Check each keyword against the comment text
                 for keyword in keywords:
-                    if keyword.lower() in comment.text.lower():
-                        new_comments.append(comment)
-                        logger.info(f"Matched keyword '{keyword}' in comment: {comment.text}")
-                        # Log the matched comment to database
+                    try:
+                        # Use regex for exact word matching (case-insensitive)
+                        regex = re.compile(rf'\b{re.escape(keyword)}\b', re.IGNORECASE)
+                        if regex.search(comment.text):
+                            new_comments.append(comment)
+                            logger.info(f"Exact match found for keyword '{keyword}' in comment: {comment.text}")
+                            
+                            # Log additional match details to database
+                            self.db_cursor.execute(
+                                """INSERT INTO comment_matches
+                                   (comment_id, post_id, keyword, matched_text, full_comment)
+                                   VALUES (%s, %s, %s, %s, %s)""",
+                                (comment_id, post_id, keyword,
+                                 comment.text[:100],  # Store first 100 chars of matched text
+                                 comment.text)
+                            )
+                            self.db_conn.commit()
+                            break  # No need to check other keywords once a match is found
+                            
+                    except Exception as e:
+                        logger.error(f"Error processing keyword '{keyword}': {str(e)}")
+                        # Log the error to database
                         self.db_cursor.execute(
-                            "INSERT INTO comment_matches (comment_id, post_id, keyword) VALUES (%s, %s, %s)",
-                            (comment_id, post_id, keyword)
+                            "INSERT INTO processing_errors (post_id, keyword, error_message) VALUES (%s, %s, %s)",
+                            (post_id, keyword, str(e))
                         )
                         self.db_conn.commit()
 

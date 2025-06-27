@@ -75,6 +75,22 @@ model ProcessedComment {
   @@map("processed_comments")
 }
 
+// ROO-AUDIT-TAG :: plan-001-comment-monitoring.md :: Comment match logging
+model CommentMatch {
+  id          String   @id @default(uuid())
+  commentId   String   @map("comment_id")
+  postId      String   @map("post_id")
+  keyword     String
+  matchedText String   @map("matched_text") @db.VarChar(100)
+  fullComment String   @map("full_comment")
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  @@index([postId], name: "idx_comment_matches_post_id")
+  @@index([keyword], name: "idx_comment_matches_keyword")
+  @@map("comment_matches")
+}
+// ROO-AUDIT-TAG :: plan-001-comment-monitoring.md :: END
+
 model DeadLetterQueue {
   id           String   @id @default(uuid())
   user_id      String

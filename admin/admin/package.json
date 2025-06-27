@@ -17,6 +17,7 @@
     "@supabase/supabase-js": "^2.50.0",
     "chart.js": "^4.4.9",
     "clsx": "^2.1.1",
+    "instagram-private-api": "^1.45.3",
     "lucide-react": "^0.515.0",
     "next": "15.3.3",
     "prisma": "^6.9.0",
@@ -27,6 +28,7 @@
     "socket.io-client": "^4.8.1",
     "tailwind-merge": "^3.3.1",
     "uuid": "^11.1.0",
+    "winston": "^3.15.0",
     "zod": "^3.25.64"
   },
   "devDependencies": {
