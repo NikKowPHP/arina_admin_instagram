@@ -7,7 +7,7 @@ import { PieChart } from '@/components/ui/pie-chart'
 import { Card } from '@/components/ui/card'
 import { ChartControls } from '@/components/chart-controls'
 import { BotHealthStatusCard } from '@/components/bot-health-status'
-import { getAnalytics, getDashboardAnalytics, getBotHealth } from '@/lib/actions'
+import { getDashboardAnalytics, getBotHealth } from '@/lib/actions'
 import type { BotHealthStatus } from '@/types/bot-monitor'
 
 type TriggerUsage = Array<{ date: string; count: number }>
@@ -40,18 +40,12 @@ export default function DashboardPage() {
   const fetchData = async () => {
     setIsLoading(true)
     try {
-      const [basicAnalytics, dashboardAnalytics, botHealthStatus] = await Promise.all([
-        getAnalytics(),
+      const [dashboardAnalytics, botHealthStatus] = await Promise.all([
         getDashboardAnalytics(),
         getBotHealth()
       ])
-      // Convert triggerUsage counts to numbers
-      const typedTriggerUsage = basicAnalytics.triggerUsage.map((item: { date: string; count: number }) => ({
-        date: item.date,
-        count: Number(item.count)
-      }))
       setChartData({
-        triggerUsage: typedTriggerUsage,
+        triggerUsage: [], // Analytics commented out, so no trigger usage data for now
         analytics: dashboardAnalytics
       })
       setBotHealth({ status: botHealthStatus, error: null })

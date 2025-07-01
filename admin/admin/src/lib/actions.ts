@@ -56,12 +56,12 @@ export async function deleteTrigger(id: string) {
 }
 
 // THIS IS A PLACEHOLDER. You don't have an `analytics` table.
-export async function getAnalytics() {
-  // You don't have an `analytics` model in your schema.
-  // This will fail. You should probably remove or implement this.
-  // For now, returning an empty array to prevent crashes.
-  return [];
-}
+// export async function getAnalytics() {
+//   // You don't have an `analytics` model in your schema.
+//   // This will fail. You should probably remove or implement this.
+//   // For now, returning an empty array to prevent crashes.
+//   return [];
+// }
 
 export async function getDashboardAnalytics(): Promise<DashboardAnalytics> {
   // NOTE: You don't have `userActivity`, `botHealth`, or `templateUsage` tables.
@@ -69,7 +69,7 @@ export async function getDashboardAnalytics(): Promise<DashboardAnalytics> {
   const [triggerActivations, userActivity, systemHealth, templateUsage] = await Promise.all([
     prisma.trigger.count(),
     Promise.resolve({ totalUsers: 10, activityLogEntries: 100, dmsSent: 50 }), // Mock data
-    Promise.resolve({ isHealthy: true, lastPing: new Date(), errorCount: 0, storageUsage: 123, authBreaches: 0 }), // Mock data
+    Promise.resolve({ isHealthy: true, lastPing: new Date(), errorCount: 0, storageUsage: 123, authBreaches: 0, lastCheck: new Date(), mediaCacheCount: 0, status: 'Operational', uptime: 99.9 }), // Mock data
     Promise.resolve([{ name: 'Welcome DM', count: 25 }, { name: 'Promo DM', count: 15 }]) // Mock data
   ]);
 
@@ -84,5 +84,5 @@ export async function getDashboardAnalytics(): Promise<DashboardAnalytics> {
 export async function getBotHealth() {
   // NOTE: You don't have a `botHealth` table.
   // Returning mock data.
-  return Promise.resolve({ isHealthy: true, lastPing: new Date(), errorCount: 0, storageUsage: 123, authBreaches: 0 });
+  return Promise.resolve({ isHealthy: true, lastPing: new Date(), errorCount: 0, storageUsage: 123, authBreaches: 0, lastCheck: new Date(), mediaCacheCount: 0, status: 'Operational', uptime: 99.9 });
 }
