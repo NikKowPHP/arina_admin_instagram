@@ -27,7 +27,7 @@ RATE_LIMIT_WINDOW = timedelta(hours=1)  # 1 hour window
 class InstagramBot:
     def __init__(self):
         """Initialize the Instagram bot."""
-        self.instagram_user = os.getenv("INSTAGRAM_USER")
+        self.instagram_user = os.getenv("INSTAGRAM_USERNAME")
         self.instagram_password = os.getenv("INSTAGRAM_PASSWORD")
         self.db_host = os.getenv("DB_HOST", "localhost")
         self.db_port = os.getenv("DB_PORT", "5432")
@@ -47,7 +47,8 @@ class InstagramBot:
 
         logger.info("InstagramBot initialized")
 
-    def _rate_limited(self, func):
+    @staticmethod
+    def _rate_limited(func):
         """Decorator to enforce rate limiting for DM sends."""
         @functools.wraps(func)
         def wrapper(self, user_id, *args, **kwargs):
