@@ -14,7 +14,7 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="w-64 min-h-screen bg-gray-100 p-4">
+    <div className="w-64 min-h-screen  p-4">
       <h2 className="text-xl font-bold mb-4">Admin Panel</h2>
       <nav className="space-y-2">
         <SidebarLink href="/dashboard" label="Dashboard" pathname={pathname} />
