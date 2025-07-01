@@ -44,14 +44,20 @@ const TriggerList: React.FC<TriggerListProps> = ({
     <table>
       <thead>
         <tr>
-          <th onClick={() => onSort?.('name')}>
-            Name {getSortIcon('name')}
+          <th onClick={() => onSort?.('postId')}>
+            Post ID {getSortIcon('postId')}
           </th>
           <th onClick={() => onSort?.('keyword')}>
             Keyword {getSortIcon('keyword')}
           </th>
-          <th onClick={() => onSort?.('status')}>
-            Status {getSortIcon('status')}
+          <th onClick={() => onSort?.('isActive')}>
+            Active {getSortIcon('isActive')}
+          </th>
+          <th onClick={() => onSort?.('userId')}>
+            User ID {getSortIcon('userId')}
+          </th>
+          <th onClick={() => onSort?.('templateId')}>
+            Template ID {getSortIcon('templateId')}
           </th>
           <th>Actions</th>
         </tr>
@@ -59,9 +65,11 @@ const TriggerList: React.FC<TriggerListProps> = ({
       <tbody>
         {triggerData.map((trigger: Trigger) => (
           <tr key={trigger.id}>
-            <td>{trigger.name}</td>
+            <td>{trigger.postId}</td>
             <td>{trigger.keyword}</td>
-            <td>{trigger.status}</td>
+            <td>{trigger.isActive ? 'Yes' : 'No'}</td>
+            <td>{trigger.userId}</td>
+            <td>{trigger.templateId}</td>
             <td>
               <button onClick={() => onEdit(trigger)}>Edit</button>
               <button onClick={() => onDelete(trigger.id)}>Delete</button>

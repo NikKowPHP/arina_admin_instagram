@@ -119,9 +119,10 @@ const TriggersPage: React.FC = () => {
           <EditTriggerForm
             triggerId={selectedTrigger.id}
             initialData={{
-              name: selectedTrigger.name,
+              postId: selectedTrigger.postId,
               keyword: selectedTrigger.keyword,
-              status: selectedTrigger.status,
+              userId: selectedTrigger.userId,
+              templateId: selectedTrigger.templateId,
             }}
           />
         )}

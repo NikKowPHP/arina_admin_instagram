@@ -1,11 +1,11 @@
 export type Trigger = {
   id: string;
-  name: string;
+  postId: string;
   keyword: string;
-  condition: string;
-  action: string;
-  status: 'active' | 'inactive';
-  created_at: string;
+  isActive: boolean;
+  createdAt: Date;
+  userId: string;
+  templateId: string;
 };
 
 export type Database = {

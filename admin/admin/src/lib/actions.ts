@@ -33,9 +33,16 @@ export async function createTrigger(data: FormData) {
     data: {
       postId: data.get('postId') as string,
       keyword: data.get('keyword') as string,
-      userId: data.get('userId') as string,
-      templateId: data.get('templateId') as string,
-      // 'name' and 'status' are not in the Trigger model.
+      user: {
+        connect: {
+          id: data.get('userId') as string,
+        },
+      },
+      template: {
+        connect: {
+          id: data.get('templateId') as string,
+        },
+      },
     },
   });
 }
@@ -46,7 +53,16 @@ export async function updateTrigger(id: string, data: FormData) {
     data: {
       postId: data.get('postId') as string,
       keyword: data.get('keyword') as string,
-      // 'name' and 'status' are not in the Trigger model.
+      user: {
+        connect: {
+          id: data.get('userId') as string,
+        },
+      },
+      template: {
+        connect: {
+          id: data.get('templateId') as string,
+        },
+      },
     },
   });
 }

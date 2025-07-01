@@ -4,9 +4,10 @@ import { useForm } from 'react-hook-form';
 import { updateTrigger } from '@/lib/actions';
 
 interface EditTriggerFormValues {
-  name: string;
+  postId: string;
   keyword: string;
-  status: string;
+  userId: string;
+  templateId: string;
 }
 
 interface EditTriggerFormProps {
@@ -22,9 +23,10 @@ const EditTriggerForm: React.FC<EditTriggerFormProps> = ({ triggerId, initialDat
   const onSubmit = async (data: EditTriggerFormValues) => {
     try {
       const formData = new FormData();
-      formData.append('name', data.name);
+      formData.append('postId', data.postId);
       formData.append('keyword', data.keyword);
-      formData.append('status', data.status);
+      formData.append('userId', data.userId);
+      formData.append('templateId', data.templateId);
       await updateTrigger(triggerId, formData);
       // Handle success (e.g., show notification, close modal)
     } catch (error) {
@@ -37,10 +39,10 @@ const EditTriggerForm: React.FC<EditTriggerFormProps> = ({ triggerId, initialDat
     <form onSubmit={handleSubmit(onSubmit)}>
       <div>
         <Input
-          label="Trigger Name"
-          {...register('name', { required: 'Name is required' })}
+          label="Post ID"
+          {...register('postId', { required: 'Post ID is required' })}
         />
-        {errors.name && <p>{errors.name.message}</p>}
+        {errors.postId && <p>{errors.postId.message}</p>}
       </div>
       <div>
         <Input
@@ -51,10 +53,17 @@ const EditTriggerForm: React.FC<EditTriggerFormProps> = ({ triggerId, initialDat
       </div>
       <div>
         <Input
-          label="Status"
-          {...register('status', { required: 'Status is required' })}
+          label="User ID"
+          {...register('userId', { required: 'User ID is required' })}
         />
-        {errors.status && <p>{errors.status.message}</p>}
+        {errors.userId && <p>{errors.userId.message}</p>}
+      </div>
+      <div>
+        <Input
+          label="Template ID"
+          {...register('templateId', { required: 'Template ID is required' })}
+        />
+        {errors.templateId && <p>{errors.templateId.message}</p>}
       </div>
       <button type="submit">Update Trigger</button>
     </form>
