@@ -113,7 +113,8 @@ class InstagramBot:
     def fetch_templates(self):
         """Fetch DM templates from the database."""
         logger.info("Fetching DM templates from database...")
-        self.db_cursor.execute("SELECT id, content, media_url FROM dm_templates")
+     # NEW - Aligns with the Prisma schema
+        self.db_cursor.execute("SELECT id, content, media_url FROM templates")
         templates = self.db_cursor.fetchall()
         logger.info(f"Fetched {len(templates)} DM templates")
         return templates
