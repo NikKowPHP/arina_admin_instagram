@@ -8,18 +8,30 @@ interface SidebarLinkProps {
   pathname: string;
 }
 
+import { useState } from 'react';
+import { Menu, X } from 'lucide-react';
+
 export default function Sidebar() {
   const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="fixed h-screen w-64 bg-gray-900 p-4 border-r border-gray-800">
+    <>
+      <button
+        className="md:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-gray-800 text-white"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+      </button>
+      <div className={`${isOpen ? 'block' : 'hidden'} md:block h-full bg-gray-900 p-4 border-r border-gray-800`}>
       <h2 className="text-2xl font-semibold text-white mb-6">Admin Panel</h2>
       <nav className="space-y-2">
         <SidebarLink href="/dashboard" label="Dashboard" pathname={pathname} />
         <SidebarLink href="/dashboard/triggers" label="Triggers" pathname={pathname} />
         <SidebarLink href="/dashboard/templates" label="Templates" pathname={pathname} />
       </nav>
-    </div>
+      </div>
+    </>
   );
 }
 
