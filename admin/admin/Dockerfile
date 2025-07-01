@@ -29,6 +29,14 @@ RUN npm install
 # Generate Prisma client
 RUN npx prisma generate
 
+COPY entrypoint.sh .
+RUN chmod +x ./entrypoint.sh
+
+# Set the entrypoint
+ENTRYPOINT ["./entrypoint.sh"]
+
+
+
 # Start the application in development mode
 CMD ["npm", "run", "dev"]
 # ROO-AUDIT-TAG :: plan-008-docker-setup.md :: END

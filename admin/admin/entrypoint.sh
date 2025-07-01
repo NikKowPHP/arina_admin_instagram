@@ -1,3 +1,5 @@
+# file: entrypoint.sh
+
 #!/bin/sh
 set -e
 
@@ -10,4 +12,12 @@ do
   fi
 done
 
-echo "All required environment variables are set"
+echo "All required environment variables are set."
+
+# Apply database migrations before starting the application
+echo "Running database migrations..."
+npx prisma migrate deploy
+echo "Migrations applied successfully."
+
+# Execute the command passed to the entrypoint (e.g., "npm run dev")
+exec "$@"
