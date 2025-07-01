@@ -145,85 +145,104 @@ export default function TemplatesPage() {
   };
 
   if (isLoading) {
-    return <div>Loading templates...</div>;
+    return <div className="p-8 mt-16 text-white">Loading templates...</div>;
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Templates</h1>
+    <div className="p-8 mt-16"> {/* Added mt-16 for spacing from fixed sidebar */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-white">Templates</h1>
       </div>
 
       {/* Form for creating/editing templates */}
-      <div className="mb-4">
-        <h2 className="text-xl font-bold mb-2">{isEditing ? 'Edit' : 'Create'} Template</h2>
-        <div className="mb-2">
-          <label className="block text-sm font-medium text-gray-700">Name</label>
+      <div className="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6 mb-8">
+        <h2 className="text-xl font-semibold mb-4 text-white">{isEditing ? 'Edit' : 'Create'} Template</h2>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-300 mb-1">Name</label>
           <input
             type="text"
             name="name"
             value={formData.name}
             onChange={handleInputChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
-        <div className="mb-2">
-          <label className="block text-sm font-medium text-gray-700">Content</label>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-300 mb-1">Content</label>
           <textarea
             name="content"
             value={formData.content}
             onChange={handleInputChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            rows={4}
+            className="w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
-        <div className="mb-2">
-          <label className="block text-sm font-medium text-gray-700">Media URL</label>
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-300 mb-1">Media URL</label>
           <input
             type="text"
             name="media_url"
             value={formData.media_url}
             onChange={handleInputChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
         {formData.media_url && (
-          <div className="mb-2">
-            <label className="block text-sm font-medium text-gray-700">Media Preview</label>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-300 mb-1">Media Preview</label>
             <img
               src={formData.media_url}
               alt="Preview"
-              className="mt-1 w-full rounded-md border-gray-300 shadow-sm"
+              className="mt-1 w-full rounded-md border border-gray-700"
               style={{ maxHeight: '200px', objectFit: 'contain' }}
             />
           </div>
         )}
-        <Button onClick={isEditing ? handleUpdate : handleCreate}>
-          {isEditing ? 'Update' : 'Create'}
-        </Button>
-        {isEditing && (
-          <Button onClick={() => setIsEditing(false)} className="ml-2">
-            Cancel
+        <div className="flex space-x-2">
+          <Button
+            onClick={isEditing ? handleUpdate : handleCreate}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+          >
+            {isEditing ? 'Update' : 'Create'}
           </Button>
-        )}
+          {isEditing && (
+            <Button
+              onClick={() => { setIsEditing(false); setFormData({ name: '', content: '', media_url: '' }); }}
+              className="px-4 py-2 bg-gray-700 text-gray-300 rounded-md text-sm font-medium hover:bg-gray-600 transition-colors"
+            >
+              Cancel
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Table to display templates */}
-      <Table>
-        <TableHeader>
+      <Table className="min-w-full bg-gray-900 border border-gray-800 rounded-lg shadow-md">
+        <TableHeader className="bg-gray-800">
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Content</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Name</TableHead>
+            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Content</TableHead>
+            <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>
+        <TableBody className="divide-y divide-gray-800">
           {templates.map(template => (
-            <TableRow key={template.id}>
-              <TableCell>{template.name}</TableCell>
-              <TableCell>{template.content}</TableCell>
-              <TableCell>
-                <Button onClick={() => handleEdit(template)}>Edit</Button>
-                <Button onClick={() => handleDelete(template.id)}>Delete</Button>
+            <TableRow key={template.id} className="hover:bg-gray-850">
+              <TableCell className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{template.name}</TableCell>
+              <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{template.content}</TableCell>
+              <TableCell className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                <Button
+                  onClick={() => handleEdit(template)}
+                  className="px-3 py-1 bg-blue-600 text-white rounded-md text-xs hover:bg-blue-700 transition-colors"
+                >
+                  Edit
+                </Button>
+                <Button
+                  onClick={() => handleDelete(template.id)}
+                  className="px-3 py-1 bg-red-600 text-white rounded-md text-xs hover:bg-red-700 transition-colors"
+                >
+                  Delete
+                </Button>
               </TableCell>
             </TableRow>
           ))}

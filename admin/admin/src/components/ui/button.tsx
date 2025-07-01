@@ -13,14 +13,14 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         className={cn(
-          "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 disabled:pointer-events-none",
+          "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 disabled:opacity-50 disabled:pointer-events-none",
           {
-            "bg-primary text-primary-foreground hover:bg-primary/90": variant === "primary",
-            "bg-secondary text-secondary-foreground hover:bg-secondary/80": variant === "secondary",
-            "border border-input hover:bg-accent hover:text-accent-foreground": variant === "outline",
-            "h-8 px-3": size === "sm",
-            "h-10 px-4": size === "md",
-            "h-12 px-6": size === "lg",
+            "bg-blue-600 text-white hover:bg-blue-700": variant === "primary",
+            "bg-gray-700 text-gray-200 hover:bg-gray-600": variant === "secondary",
+            "border border-gray-700 text-gray-300 hover:bg-gray-800": variant === "outline",
+            "h-8 px-3 text-xs": size === "sm",
+            "h-10 px-4 text-sm": size === "md",
+            "h-12 px-6 text-base": size === "lg",
           },
           className
         )}
@@ -29,7 +29,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading ? (
-          <span className="animate-spin">🌀</span>
+          <span className="animate-spin mr-2">🌀</span>
         ) : (
           props.children
         )}

@@ -73,20 +73,37 @@ const TriggersPage: React.FC = () => {
   }, [triggers, sortField, sortDirection]);
 
   return (
-    <div>
-      <h1>Triggers</h1>
-      <button onClick={handleCreate}>Create Trigger</button>
-      <div style={{ margin: '10px 0' }}>
-        <button onClick={handlePrevPage} disabled={currentPage <= 1}>
+    <div className="p-8 mt-16"> {/* Added mt-16 for spacing from fixed sidebar */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-white">Triggers</h1>
+        <button
+          onClick={handleCreate}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
+        >
+          Create Trigger
+        </button>
+      </div>
+
+      <div className="flex justify-center items-center mb-6 space-x-4">
+        <button
+          onClick={handlePrevPage}
+          disabled={currentPage <= 1}
+          className="px-4 py-2 bg-gray-800 text-gray-300 rounded-md text-sm font-medium hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
           Previous
         </button>
-        <span style={{ margin: '0 10px' }}>
+        <span className="text-gray-300 text-sm">
           Page {currentPage} of {totalPages}
         </span>
-        <button onClick={handleNextPage} disabled={currentPage >= totalPages}>
+        <button
+          onClick={handleNextPage}
+          disabled={currentPage >= totalPages}
+          className="px-4 py-2 bg-gray-800 text-gray-300 rounded-md text-sm font-medium hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
           Next
         </button>
       </div>
+
       <TriggerList
         triggers={sortedTriggers}
         onEdit={handleEdit}

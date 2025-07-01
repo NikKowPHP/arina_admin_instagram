@@ -30,32 +30,35 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded shadow-md w-full max-w-sm">
-        <h2 className="text-2xl font-bold mb-6 text-center text-black">Login</h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
+    <div className="flex flex-col items-center justify-center min-h-screen bg-black">
+      <div className="bg-gray-900 p-8 rounded-lg shadow-lg w-full max-w-sm border border-gray-800">
+        <h2 className="text-3xl font-bold mb-6 text-center text-white">Login</h2>
+        {error && <p className="text-red-400 text-center mb-4">{error}</p>}
         <form onSubmit={handleLogin}>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Email</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="mt-1 block w-full rounded-md border-gray-300 text-black shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">Password</label>
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-300 mb-1">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="mt-1 block w-full text-black rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-          <Button type="submit" className="w-full bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500 focus:ring-offset-indigo-200">
+          <Button
+            type="submit"
+            className="w-full px-4 py-2 bg-blue-600 text-white rounded-md text-lg font-medium hover:bg-blue-700 transition-colors"
+          >
             Login
           </Button>
         </form>

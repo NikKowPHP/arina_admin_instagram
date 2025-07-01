@@ -21,9 +21,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }, [supabase, router]);
 
   return (
-    <div className="flex">
+    <div className="min-h-screen flex">
       <Sidebar />
-      <main className="flex-1 p-4">
+      <main className="flex-1 p-8 bg-gray-950 overflow-y-auto">
         {children}
       </main>
     </div>

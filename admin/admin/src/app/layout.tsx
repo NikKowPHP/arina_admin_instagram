@@ -13,10 +13,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className="font-sans antialiased"
-      >
+    <html lang="en" className="bg-black text-white">
+      <body>
         <SupabaseProvider>
           {children}
         </SupabaseProvider>

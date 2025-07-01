@@ -94,17 +94,17 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <h2 className="text-lg mb-4">Bot Health Status</h2>
+        <Card className="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-4 text-white">Bot Health Status</h2>
           {botHealth.error ? (
-            <p className="text-red-500">Error: {botHealth.error}</p>
+            <p className="text-red-400">Error: {botHealth.error}</p>
           ) : (
             botHealth.status && <BotHealthStatusCard status={botHealth.status} />
           )}
         </Card>
 
-        <Card>
-          <h2 className="text-lg mb-4">Trigger Activity</h2>
+        <Card className="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-4 text-white">Trigger Activity</h2>
           {chartType === 'bar' && (
             <BarChart
               datasets={chartData.triggerUsage}
@@ -128,8 +128,8 @@ export default function DashboardPage() {
           )}
         </Card>
 
-        <Card>
-          <h2 className="text-lg mb-4">User Activity</h2>
+        <Card className="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-4 text-white">User Activity</h2>
           {chartData.analytics && (
             <LineChart
               datasets={[
@@ -143,20 +143,20 @@ export default function DashboardPage() {
           )}
         </Card>
 
-        <Card>
-          <h2 className="text-lg mb-4">DMs Sent</h2>
+        <Card className="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-4 text-white">DMs Sent</h2>
           {chartData.analytics && (
-            <div className="flex flex-col items-center justify-center h-32">
-              <p className="text-4xl font-bold">{chartData.analytics.userActivity.dmsSent}</p>
-              <p className="text-sm text-gray-500">DMs sent in the last 7 days</p>
+            <div className="flex flex-col items-center justify-center h-32 text-white">
+              <p className="text-5xl font-bold">{chartData.analytics.userActivity.dmsSent}</p>
+              <p className="text-sm text-gray-400">DMs sent in the last 7 days</p>
             </div>
           )}
         </Card>
 
-        <Card>
-          <h2 className="text-lg mb-4">System Health</h2>
+        <Card className="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-4 text-white">System Health</h2>
           {chartData.analytics && (
-            <div className="space-y-2">
+            <div className="space-y-2 text-gray-300">
               <p><strong>Last Ping:</strong> {new Date(chartData.analytics.systemHealth.lastPing).toLocaleString()}</p>
               <p><strong>Status:</strong> {chartData.analytics.systemHealth.isHealthy ? 'Healthy' : 'Unhealthy'}</p>
               <p><strong>Errors:</strong> {chartData.analytics.systemHealth.errorCount}</p>
@@ -170,8 +170,8 @@ export default function DashboardPage() {
           )}
         </Card>
 
-        <Card className="md:col-span-2">
-          <h2 className="text-lg mb-4">Template Usage</h2>
+        <Card className="md:col-span-2 lg:col-span-3 bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-4 text-white">Template Usage</h2>
           {chartData.analytics && (
             <div className="max-w-md mx-auto">
               <PieChart
