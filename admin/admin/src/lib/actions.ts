@@ -1,7 +1,4 @@
-import { PrismaClient } from '@prisma/client';
 import type { DashboardAnalytics } from '@/app/dashboard/page';
-
-const prisma = new PrismaClient();
 
 export async function getTriggers(page = 1, pageSize = 10) {
   const skip = (page - 1) * pageSize;
