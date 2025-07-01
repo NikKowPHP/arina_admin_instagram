@@ -26,8 +26,6 @@ COPY . .
 # Install dependencies
 RUN npm install
 
-# Generate Prisma client
-RUN npx prisma generate
 
 COPY entrypoint.sh .
 RUN chmod +x ./entrypoint.sh

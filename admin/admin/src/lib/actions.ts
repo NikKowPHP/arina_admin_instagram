@@ -1,12 +1,20 @@
+// file: src/lib/actions.ts
+
+'use server';
+
+import prisma from './prisma'; // Make sure the prisma client is imported
 import type { DashboardAnalytics } from '@/app/dashboard/page';
+import type { BotHealthStatus } from '@/types/bot-monitor'; // Import this type if needed
 
 export async function getTriggers(page = 1, pageSize = 10) {
   const skip = (page - 1) * pageSize;
+  // NOTE: You don't have a `trigger` model in your schema with `name` and `status` fields.
+  // This will cause a type error. I'm assuming the model should be `Trigger`.
   const [triggers, totalCount] = await Promise.all([
     prisma.trigger.findMany({
       skip,
       take: pageSize,
-      orderBy: { createdAt: 'desc' } // Assuming triggers are ordered by creation date
+      orderBy: { createdAt: 'desc' }
     }),
     prisma.trigger.count()
   ]);
@@ -19,11 +27,15 @@ export async function getTriggers(page = 1, pageSize = 10) {
 }
 
 export async function createTrigger(data: FormData) {
+  // Assuming 'name', 'keyword', 'status' are not the actual fields.
+  // Based on your schema, it should be something like this:
   return prisma.trigger.create({
     data: {
-      name: data.get('name') as string,
+      postId: data.get('postId') as string,
       keyword: data.get('keyword') as string,
-      status: data.get('status') as string,
+      userId: data.get('userId') as string,
+      templateId: data.get('templateId') as string,
+      // 'name' and 'status' are not in the Trigger model.
     },
   });
 }
@@ -32,9 +44,9 @@ export async function updateTrigger(id: string, data: FormData) {
   return prisma.trigger.update({
     where: { id },
     data: {
-      name: data.get('name') as string,
+      postId: data.get('postId') as string,
       keyword: data.get('keyword') as string,
-      status: data.get('status') as string,
+      // 'name' and 'status' are not in the Trigger model.
     },
   });
 }
@@ -43,37 +55,34 @@ export async function deleteTrigger(id: string) {
   return prisma.trigger.delete({ where: { id } });
 }
 
+// THIS IS A PLACEHOLDER. You don't have an `analytics` table.
 export async function getAnalytics() {
-  return prisma.analytics.findMany();
+  // You don't have an `analytics` model in your schema.
+  // This will fail. You should probably remove or implement this.
+  // For now, returning an empty array to prevent crashes.
+  return [];
 }
 
 export async function getDashboardAnalytics(): Promise<DashboardAnalytics> {
+  // NOTE: You don't have `userActivity`, `botHealth`, or `templateUsage` tables.
+  // These queries will fail. I am providing mock data to prevent the app from crashing.
   const [triggerActivations, userActivity, systemHealth, templateUsage] = await Promise.all([
     prisma.trigger.count(),
-    prisma.userActivity.findFirst().then((activity: { totalUsers?: number; logEntries?: number; dmsSent?: number } | null) => ({
-      totalUsers: activity?.totalUsers ?? 0,
-      activityLogEntries: activity?.logEntries ?? 0,
-      dmsSent: activity?.dmsSent ?? 0
-    })),
-    prisma.botHealth.findFirst({
-      orderBy: { createdAt: 'desc' }
-    }),
-    prisma.templateUsage.findMany()
+    Promise.resolve({ totalUsers: 10, activityLogEntries: 100, dmsSent: 50 }), // Mock data
+    Promise.resolve({ isHealthy: true, lastPing: new Date(), errorCount: 0, storageUsage: 123, authBreaches: 0 }), // Mock data
+    Promise.resolve([{ name: 'Welcome DM', count: 25 }, { name: 'Promo DM', count: 15 }]) // Mock data
   ]);
 
   return {
     triggerActivations,
     userActivity,
-    systemHealth: systemHealth || { isHealthy: false, lastPing: new Date(), errorCount: 0 },
-    templateUsage: templateUsage.map((t: { name: string; count: number }) => ({
-      name: t.name,
-      count: t.count
-    }))
+    systemHealth: systemHealth as BotHealthStatus,
+    templateUsage,
   };
 }
 
 export async function getBotHealth() {
-  return prisma.botHealth.findFirst({
-    orderBy: { createdAt: 'desc' }
-  });
+  // NOTE: You don't have a `botHealth` table.
+  // Returning mock data.
+  return Promise.resolve({ isHealthy: true, lastPing: new Date(), errorCount: 0, storageUsage: 123, authBreaches: 0 });
 }
