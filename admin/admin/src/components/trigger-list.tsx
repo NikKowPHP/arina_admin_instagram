@@ -3,8 +3,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { Trigger } from '@/types/database';
-import { useWebSocket } from '@/lib/websocket-context';
-
 interface TriggerListProps {
   triggers: Trigger[];
   onEdit: (trigger: Trigger) => void;
@@ -25,42 +23,11 @@ const TriggerList: React.FC<TriggerListProps> = ({
   onSort,
   currentSort
 }) => {
-  const { socket } = useWebSocket();
   const [triggerData, setTriggerData] = useState(triggers);
 
   useEffect(() => {
     setTriggerData(triggers);
   }, [triggers]);
-
-  /**
-   * Handles trigger update events from the websocket
-   * @param {{triggerId: string}} data - Update event data containing trigger ID
-   */
-  const handleTriggerUpdate = (data: { triggerId: string }) => {
-    console.log(`Trigger updated received: ${data.triggerId}`);
-    // Refresh the trigger list
-    // In a real implementation, you would fetch the updated trigger data from the server
-    // For now, we'll just log the event
-  };
-
-  // ROO-AUDIT-TAG :: plan-002-code-quality.md :: Refactoring
-  /**
-   * Sets up websocket listeners for trigger updates
-   * @returns {Function} Cleanup function to remove listeners
-   */
-  const setupSocketListeners = () => {
-    if (socket) {
-      socket.on('trigger_updated', handleTriggerUpdate);
-    }
-    return () => {
-      if (socket) {
-        socket.off('trigger_updated', handleTriggerUpdate);
-      }
-    };
-  };
-
-  useEffect(setupSocketListeners, [socket]);
-  // ROO-AUDIT-TAG :: plan-002-code-quality.md :: END
 
   /**
    * Gets the sort direction icon for a given field

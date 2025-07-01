@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { BarChart } from '@/components/ui/bar-chart'
 import { LineChart } from '@/components/ui/line-chart'
 import { PieChart } from '@/components/ui/pie-chart'
@@ -37,107 +37,33 @@ export default function DashboardPage() {
   })
   const [botHealth, setBotHealth] = useState<{ status: BotHealthStatus | null; error: string | null }>({ status: null, error: null })
 
-  // WebSocket ref to persist connection
-  const ws = useRef<WebSocket | null>(null)
+  const fetchData = async () => {
+    setIsLoading(true)
+    try {
+      const [basicAnalytics, dashboardAnalytics, botHealthStatus] = await Promise.all([
+        getAnalytics(),
+        getDashboardAnalytics(),
+        getBotHealth()
+      ])
+      // Convert triggerUsage counts to numbers
+      const typedTriggerUsage = basicAnalytics.triggerUsage.map((item: { date: string; count: number }) => ({
+        date: item.date,
+        count: Number(item.count)
+      }))
+      setChartData({
+        triggerUsage: typedTriggerUsage,
+        analytics: dashboardAnalytics
+      })
+      setBotHealth({ status: botHealthStatus, error: null })
+    } catch (error) {
+      console.error('Error fetching analytics:', error)
+      setBotHealth({ status: null, error: 'Failed to fetch bot health' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
-    // Initialize WebSocket connection
-    const socket = new WebSocket('ws://localhost:8082')
-
-    // Set up WebSocket event handlers
-    socket.onopen = () => {
-      console.log('WebSocket connected')
-    }
-
-    socket.onmessage = (event) => {
-      const message = JSON.parse(event.data)
-      if (message.type === 'initial') {
-        // Handle initial data load
-        const { triggerUsage, userActivity, templateUsage, triggerActivations, systemHealth } = message.data
-
-        // Convert triggerUsage counts to numbers
-        const typedTriggerUsage = triggerUsage.map((item: { date: string; count: number }) => ({
-          date: item.date,
-          count: Number(item.count)
-        }))
-
-        setChartData({
-          triggerUsage: typedTriggerUsage,
-          analytics: {
-            triggerActivations: triggerActivations,
-            userActivity: userActivity,
-            systemHealth: systemHealth,
-            templateUsage: templateUsage.map((t: { content: string; count: number }) => ({
-              name: t.content,
-              count: t.count
-            }))
-          }
-        })
-      } else if (message.type === 'update') {
-        // Handle real-time updates
-        setChartData(prevData => {
-          if (!prevData.analytics) return prevData
-
-          return {
-            ...prevData,
-            analytics: {
-              ...prevData.analytics,
-              userActivity: {
-                ...prevData.analytics.userActivity,
-                ...message.data.userActivity
-              }
-            }
-          }
-        })
-      }
-    }
-
-    socket.onclose = () => {
-      console.log('WebSocket disconnected')
-    }
-
-    socket.onerror = (error) => {
-      console.error('WebSocket error:', error)
-    }
-
-    // Store WebSocket instance in ref
-    ws.current = socket
-
-    // Clean up on component unmount
-    return () => {
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.close()
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true)
-      try {
-        const [basicAnalytics, dashboardAnalytics, botHealthStatus] = await Promise.all([
-          getAnalytics(),
-          getDashboardAnalytics(),
-          getBotHealth()
-        ])
-        // Convert triggerUsage counts to numbers
-        const typedTriggerUsage = basicAnalytics.triggerUsage.map((item: { date: string; count: number }) => ({
-          date: item.date,
-          count: Number(item.count)
-        }))
-        setChartData({
-          triggerUsage: typedTriggerUsage,
-          analytics: dashboardAnalytics
-        })
-        setBotHealth({ status: botHealthStatus, error: null })
-      } catch (error) {
-        console.error('Error fetching analytics:', error)
-        setBotHealth({ status: null, error: 'Failed to fetch bot health' })
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
     fetchData()
   }, [dateRange])
 
