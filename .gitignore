@@ -8,3 +8,4 @@ instagram_bot/venv
 DS_Store
 .DS_Store
 repomix_output.xml
+.env

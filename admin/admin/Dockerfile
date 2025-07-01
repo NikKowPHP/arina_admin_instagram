@@ -24,7 +24,7 @@ COPY prisma/schema.prisma ./prisma/
 COPY . .
 
 # Install dependencies
-RUN npm ci --legacy-peer-deps
+RUN npm install
 
 # Generate Prisma client
 RUN npx prisma generate
