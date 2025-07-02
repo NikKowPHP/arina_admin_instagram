@@ -1,71 +1,83 @@
-# Engineering Implementation Plan
+Here is the prioritized implementation plan to resolve all issues found during the audit.
 
-This document provides a prioritized, step-by-step plan to resolve all findings from the recent audit report. The tasks are designed to be atomic and machine-readable for an AI developer agent, with the goal of bringing the codebase into 100% compliance with its documentation and architectural design.
+### Plan Summary
 
----
+This plan addresses all discrepancies between the project's documentation and its implementation. It is structured into three prioritized tiers:
 
-### **P0 - Critical Code Fixes**
+*   **P0: Critical Code Fixes:** A single, critical bug that prevents the bot from authenticating with Instagram.
+*   **P2: Correcting Mismatches:** Refactoring code to remove redundancy, adding missing fields to APIs, and creating a missing configuration file.
+*   **P3: Documentation Updates:** A series of tasks to update all relevant documentation (`.md` files, tests) to accurately reflect the implemented architecture, removing references to non-existent HTTP endpoints and adding details about undocumented but functional features.
 
-*   [x] **[FIX]**: Correct the Triggers API to align with the database schema.
-    -   **File**: `admin/admin/src/app/api/triggers/[[...slug]]/route.ts`
-    -   **Action**: In the `POST` and `PUT` handlers, replace the destructuring of `{ name, condition, action }` with `{ postId, keyword, userId, templateId }`. Update the `prisma.trigger.create` and `prisma.trigger.update` calls to use these correct fields as defined in `prisma/schema.prisma`.
-    -   **Reason**: Audit finding: "The `POST /api/triggers` endpoint implementation is completely different from its documentation... Code Implementation: Expects `{ "name", "condition", "action" }`".
-
-*   [x] **[REFACTOR]**: Remove obsolete bot health API route.
-    -   **File**: `admin/admin/src/app/api/bot/health/route.ts`
-    -   **Action**: Delete the file `admin/admin/src/app/api/bot/health/route.ts` and its parent directory.
-    -   **Reason**: Audit finding: "Obsolete API routes... These routes are unused, undocumented, and should be removed to avoid confusion."
-
-*   [x] **[REFACTOR]**: Remove obsolete bot healthcheck API route.
-    -   **File**: `admin/admin/src/app/api/bot/healthcheck/route.ts`
-    -   **Action**: Delete the file `admin/admin/src/app/api/bot/healthcheck/route.ts` and its parent directory.
-    -   **Reason**: Audit finding: "Obsolete API routes... These routes are unused, undocumented, and should be removed to avoid confusion."
+Completing this plan will bring the codebase into 100% compliance with its documentation.
 
 ---
 
-### **P1 - Implementation of Missing Features**
+### P0 - Critical Code Fixes
 
-*(No tasks in this category. All core features are implemented, but have mismatches or configuration gaps addressed below.)*
-
----
-
-### **P2 - Correcting Mismatches**
-
-*   [x] **[CREATE]**: Create an example environment file for the Admin Panel.
-    -   **File**: `admin/admin/.env.example`
-    -   **Action**: Create a new file at this path. Add the following environment variables with placeholder values: `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
-    -   **Reason**: Audit finding: "[MISSING FILE]: Admin Panel `.env.example`... there is no `admin/admin/.env.example` file to guide developers."
-
-*   [x] **[UPDATE]**: Add missing environment variables to the bot's example env file.
-    -   **File**: `instagram_bot/.env.example`
-    -   **Action**: Add the `DM_RATE_LIMIT` and `ADMIN_USER_ID` variables to the file, providing default or placeholder values (e.g., `DM_RATE_LIMIT=10`).
-    -   **Reason**: Audit finding: "[INCOMPLETE FILE]: Instagram Bot `.env.example`... `DM_RATE_LIMIT` and `ADMIN_USER_ID` are missing."
+- [ ] **FIX**: Correct environment variable name in Python bot
+    - **File**: `instagram_bot/instagram_bot.py`
+    - **Action**: Change the line `self.instagram_user = os.getenv("INSTAGRAM_USERNAME")` to `self.instagram_user = os.getenv("INSTAGRAM_USER")` to match the variable defined in `.env.example`.
+    - **Reason**: Audit finding: Environment Variable Mismatch. The code is trying to read `INSTAGRAM_USERNAME` but the configuration specifies `INSTAGRAM_USER`.
 
 ---
 
-### **P3 - Documentation Updates**
+### P2 - Correcting Mismatches
 
-*   [x] **[DOCS]**: Update the Triggers API documentation to match the corrected implementation.
-    -   **File**: `docs/api_spec.md`
-    -   **Action**: In the "Trigger Management" section, change the example request body for `POST /api/triggers` and `PUT /api/triggers/:id` to: `{ "postId": "INSTAGRAM_POST_ID", "keyword": "...", "userId": "...", "templateId": "..." }`.
-    -   **Reason**: Audit finding: "The `POST /api/triggers` endpoint implementation is completely different from its documentation."
+- [ ] **REFACTOR**: Remove redundant trigger deletion API route
+    - **File**: `admin/admin/src/app/api/triggers/[id]/route.ts`
+    - **Action**: Delete this file entirely. Its functionality is already covered by the `DELETE` handler in `admin/admin/src/app/api/triggers/[[...slug]]/route.ts`.
+    - **Reason**: Audit finding: Redundant API routes for Trigger Deletion. Having two endpoints for the same action is confusing and unnecessary.
 
-*   [x] **[DOCS]**: Remove non-existent Bot Service API endpoints from the API specification.
-    -   **File**: `docs/api_spec.md`
-    -   **Action**: Delete the "Bot Service API" section, including the entries for `GET /bot/config` and `POST /bot/healthcheck`, as the bot does not operate as a web server.
-    -   **Reason**: Audit finding: "The Bot Service API endpoints documented in the spec do not exist."
+- [ ] **UPDATE**: Add `isActive` field handling to the trigger update API
+    - **File**: `admin/admin/src/app/api/triggers/[[...slug]]/route.ts`
+    - **Action**: In the `PUT` function, read the `isActive` boolean value from the request body. Add `isActive` to the object passed to `supabase.from('triggers').update(...)`. Ensure proper type handling (it should be a boolean).
+    - **Reason**: Audit finding: `PUT /api/triggers/:id` is missing the `isActive` field, which is specified as a possibility in the documentation.
 
-*   [x] **[DOCS]**: Document the internal storage upload API endpoint.
-    -   **File**: `docs/api_spec.md`
-    -   **Action**: Add a new section, "Storage API," and document the `POST /api/storage/upload` endpoint. Specify that it is a protected route that accepts `FormData` with a `file` and returns a JSON object containing the `publicUrl`.
-    -   **Reason**: Audit finding: "[Undocumented API Endpoint] `/api/storage/upload`... is a critical part of the template media upload feature."
+- [ ] **REFACTOR**: Delete obsolete bot health API route
+    - **File**: `admin/admin/src/app/api/bot/health/route.ts`
+    - **Action**: Delete this file.
+    - **Reason**: Audit finding: Obsolete Bot Monitoring Service. The bot is not an HTTP service, making this API endpoint non-functional and misleading.
 
-*   [x] **[DOCS]**: Update the deployment guide with Admin Panel environment variables.
-    -   **File**: `docs/deployment_guide.md`
-    -   **Action**: Add a new sub-section under "Installation" or "Configuration" that lists the environment variables required for the `admin-panel` service. Reference the new `admin/admin/.env.example` file and explain each variable's purpose.
-    -   **Reason**: Audit finding: "[UNDOCUMENTED VARIABLE]: `SUPABASE_SERVICE_ROLE_KEY` is used but not documented."
+- [ ] **REFACTOR**: Delete obsolete bot healthcheck API route
+    - **File**: `admin/admin/src/app/api/bot/healthcheck/route.ts`
+    - **Action**: Delete this file.
+    - **Reason**: Audit finding: Obsolete Bot Monitoring Service. The bot is not an HTTP service, making this API endpoint non-functional and misleading.
 
-*   [x] **[DOCS]**: Document the Dead-Letter Queue Viewer feature in the functional requirements.
-    -   **File**: `docs/functional_requirements.md`
-    -   **Action**: Under the "Admin Panel Features" section, add a new sub-section named "Error Handling". Describe the "Error Queue" page, explaining that it displays failed events from the `DeadLetterQueue` table for easy diagnosis of bot and system errors.
-    -   **Reason**: Audit finding: "[Inconsistent Documentation] Dead-Letter Queue Viewer... is a useful, implemented feature that is not mentioned in the documentation."
+- [ ] **CREATE**: Create example environment file for the admin panel
+    - **File**: `admin/admin/.env.example`
+    - **Action**: Create a new file named `.env.example` in the `admin/admin/` directory. Add the following required environment variables with placeholder values: `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
+    - **Reason**: Audit finding: Missing Configuration File. The deployment guide requires these variables, but no example file is provided.
+
+---
+
+### P3 - Documentation Updates
+
+- [ ] **DOCS**: Update API spec to remove bot health endpoints
+    - **File**: `docs/api_spec.md`
+    - **Action**: Search for and remove any mention of bot-specific HTTP endpoints, such as `POST /bot/healthcheck`.
+    - **Reason**: Audit finding: Architectural Mismatch in Bot Health Check. The documentation incorrectly describes the bot as an HTTP service.
+
+- [ ] **DOCS**: Update technical design to reflect the bot's non-HTTP nature
+    - **File**: `docs/technical_design.md`
+    - **Action**: In the "Bot Service API" section, remove the endpoints. In the "Components" section for the bot, clarify that it is a standalone polling script that interacts with the database, not an HTTP service.
+    - **Reason**: Audit finding: Architectural Mismatch in Bot Health Check. The documentation needs to be corrected to reflect the actual implementation.
+
+- [ ] **DOCS**: Update integration test to remove invalid bot health check
+    - **File**: `tests/docker_integration_test.py`
+    - **Action**: Remove the entire `test_bot_service_service` method, as it attempts to make an HTTP request to a non-existent endpoint.
+    - **Reason**: Audit finding: Architectural Mismatch in Bot Health Check. The test is invalid and will always fail because the bot does not run a web server.
+
+- [ ] **DOCS**: Update Templates API spec to include `media_url`
+    - **File**: `docs/api_spec.md`
+    - **Action**: For the Template Management endpoints (`POST`, `GET`, `PUT`), add an optional `media_url: "string"` field to the JSON payloads and responses to reflect the actual implementation.
+    - **Reason**: Audit finding: Templates API payload differs from spec. The `media_url` field is implemented but not documented.
+
+- [ ] **DOCS**: Document the `bot_status` table and health update flow
+    - **File**: `docs/technical_design.md`
+    - **Action**: Add a new subsection under "Database" or "System Architecture" that describes the `bot_status` table. Explain that the Python bot periodically writes its health status to this table, and the admin dashboard reads from it to display the bot's health.
+    - **Reason**: Audit finding: Undocumented `bot_status` Table. This core monitoring feature is not documented.
+
+- [ ] **DOCS**: Document the use of Next.js Server Actions for trigger management
+    - **File**: `docs/technical_design.md`
+    - **Action**: Add a note under the "Admin Panel" section clarifying that the UI uses a mixed architecture. While RESTful API routes exist, some features like the Triggers page use Next.js Server Actions (defined in `lib/actions.ts`) for data manipulation.
+    - **Reason**: Audit finding: Mixed API/Server Action Architecture. This implementation detail is not documented and is important for future developers.
