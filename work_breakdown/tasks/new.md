@@ -67,7 +67,7 @@ Completing this plan will bring the codebase into 100% compliance with its docum
     - **Action**: Remove the entire `test_bot_service_service` method, as it attempts to make an HTTP request to a non-existent endpoint.
     - **Reason**: Audit finding: Architectural Mismatch in Bot Health Check. The test is invalid and will always fail because the bot does not run a web server.
 
-- [ ] **DOCS**: Update Templates API spec to include `media_url`
+- [x] **DOCS**: Update Templates API spec to include `media_url`
     - **File**: `docs/api_spec.md`
     - **Action**: For the Template Management endpoints (`POST`, `GET`, `PUT`), add an optional `media_url: "string"` field to the JSON payloads and responses to reflect the actual implementation.
     - **Reason**: Audit finding: Templates API payload differs from spec. The `media_url` field is implemented but not documented.

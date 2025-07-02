@@ -74,7 +74,8 @@ Response:
 ```json
 {
   "name": "Template Name",
-  "content": "Template content"
+  "content": "Template content",
+  "media_url": "https://example.com/media.jpg"
 }
 ```
 
@@ -84,7 +85,8 @@ Response:
   {
     "id": "UUID",
     "name": "Template Name",
-    "content": "Template content"
+    "content": "Template content",
+    "media_url": "https://example.com/media.jpg"
   }
 ]
 ```
@@ -94,7 +96,8 @@ Response:
 {
   "id": "UUID",
   "name": "Template Name",
-  "content": "Template content"
+  "content": "Template content",
+  "media_url": "https://example.com/media.jpg"
 }
 ```
 
@@ -102,7 +105,8 @@ Response:
 ```json
 {
   "name": "Updated Template Name",
-  "content": "Updated content"
+  "content": "Updated content",
+  "media_url": "https://example.com/updated.jpg"
 }
 ```
 
