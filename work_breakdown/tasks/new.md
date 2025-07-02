@@ -52,7 +52,7 @@ Completing this plan will bring the codebase into 100% compliance with its docum
 
 ### P3 - Documentation Updates
 
-- [ ] **DOCS**: Update API spec to remove bot health endpoints
+- [x] **DOCS**: Update API spec to remove bot health endpoints
     - **File**: `docs/api_spec.md`
     - **Action**: Search for and remove any mention of bot-specific HTTP endpoints, such as `POST /bot/healthcheck`.
     - **Reason**: Audit finding: Architectural Mismatch in Bot Health Check. The documentation incorrectly describes the bot as an HTTP service.
