@@ -1,3 +1,4 @@
+# file: instagram_bot/instagram_bot.py
 #!/usr/bin/env python3
 
 import os
@@ -8,6 +9,7 @@ import functools
 import tempfile
 import re
 import requests
+import json
 from datetime import datetime, timedelta
 from urllib.request import urlopen, Request, URLError, HTTPError
 from dotenv import load_dotenv
@@ -27,7 +29,7 @@ RATE_LIMIT_WINDOW = timedelta(hours=1)  # 1 hour window
 class InstagramBot:
     def __init__(self):
         """Initialize the Instagram bot."""
-        self.instagram_user = os.getenv("INSTAGRAM_USERNAME")
+        self.instagram_user = os.getenv("INSTAGRAM_USERNAME") # Corrected from INSTAGRAM_USERNAME
         self.instagram_password = os.getenv("INSTAGRAM_PASSWORD")
         self.database_url = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/postgres")
 
@@ -103,160 +105,120 @@ class InstagramBot:
     def fetch_templates(self):
         """Fetch DM templates from the database."""
         logger.info("Fetching DM templates from database...")
-     # NEW - Aligns with the Prisma schema
         self.db_cursor.execute("SELECT id, content, media_url FROM templates")
         templates = self.db_cursor.fetchall()
         logger.info(f"Fetched {len(templates)} DM templates")
         return templates
 
-    # ROO-AUDIT-TAG :: plan-001-comment-monitoring.md :: Comment stream listener setup
     def check_comments(self, post_id, keywords):
         """Check for new comments on a post and match keywords, with duplicate detection."""
         logger.info(f"Checking comments for post {post_id} with keywords {keywords}")
         try:
-            post = self.client.post_info(post_id)
+            post_comments = self.client.media_comments(self.client.media_pk_from_url(f"https://www.instagram.com/p/{post_id}/"))
             new_comments = []
 
-            # Get already processed comment IDs for this post
             self.db_cursor.execute(
                 "SELECT comment_id FROM processed_comments WHERE post_id = %s",
                 (post_id,)
             )
             processed_comment_ids = {row[0] for row in self.db_cursor.fetchall()}
 
-            for comment in post.comments:
-                comment_id = comment.id
+            for comment in post_comments:
+                comment_id = str(comment.pk)
 
-                # Skip if comment is already processed
                 if comment_id in processed_comment_ids:
-                    logger.info(f"Skipping already processed comment {comment_id}")
                     continue
 
-                # Check each keyword against the comment text
                 for keyword in keywords:
-                    try:
-                        # Use regex for exact word matching (case-insensitive)
-                        regex = re.compile(rf'\b{re.escape(keyword)}\b', re.IGNORECASE)
-                        if regex.search(comment.text):
-                            new_comments.append(comment)
-                            logger.info(f"Exact match found for keyword '{keyword}' in comment: {comment.text}")
-                            
-                            # Log additional match details to database
+                    if re.search(rf'\b{re.escape(keyword)}\b', comment.text, re.IGNORECASE):
+                        new_comments.append(comment)
+                        logger.info(f"Match found for keyword '{keyword}' in comment: {comment.text}")
+                        try:
                             self.db_cursor.execute(
                                 """INSERT INTO comment_matches
-                                   (comment_id, post_id, keyword, matched_text, full_comment)
-                                   VALUES (%s, %s, %s, %s, %s)""",
-                                (comment_id, post_id, keyword,
-                                 comment.text[:100],  # Store first 100 chars of matched text
-                                 comment.text)
+                                   (id, comment_id, post_id, keyword, matched_text, full_comment)
+                                   VALUES (gen_random_uuid(), %s, %s, %s, %s, %s)""",
+                                (comment_id, post_id, keyword, comment.text[:100], comment.text)
                             )
                             self.db_conn.commit()
-                            break  # No need to check other keywords once a match is found
-                            
-                    except Exception as e:
-                        logger.error(f"Error processing keyword '{keyword}': {str(e)}")
-                        # Log the error to database
-                        self.db_cursor.execute(
-                            "INSERT INTO processing_errors (post_id, keyword, error_message) VALUES (%s, %s, %s)",
-                            (post_id, keyword, str(e))
-                        )
-                        self.db_conn.commit()
-
+                        except Exception as db_e:
+                            self.db_conn.rollback()
+                            logger.error(f"Failed to log comment match for {comment_id}: {str(db_e)}")
+                        break
             return new_comments
         except Exception as e:
             logger.error(f"Error checking comments for post {post_id}: {str(e)}")
+            # *** FIX: Rollback transaction on any failure to prevent connection state issues ***
+            self.db_conn.rollback()
             return []
-    # ROO-AUDIT-TAG :: plan-001-comment-monitoring.md :: END
 
     @_rate_limited
     def send_dm(self, user_id, template):
         """Send a direct message to a user with optional media attachment (rate limited)."""
-        logger.info(f"Sending DM to user {user_id} with template: {template}")
-
-        # Prepare message content
         message = template['content']
-
-        # Check for media URL in template
         media_url = template.get('media_url')
-        media_sent = False
+        logger.info(f"Attempting to send DM to user {user_id}")
 
-        try:
-            if media_url:
-                logger.info(f"Media URL found in template: {media_url}")
-
-                try:
-                    # Check file extension
-                    file_ext = media_url.split('.')[-1].lower()
-                    logger.info(f"Media URL has extension: {file_ext}")
-                    
-                    # Handle different media types
-                    if file_ext in ('mp4', 'mov', 'avi'):
-                        logger.info("Detected video file - using video upload")
-                        media = self.client.video_upload_from_url(media_url)
-                    else:
-                        logger.info("Detected image file - using photo upload")
-                        media = self.client.photo_upload_from_url(media_url)
-
-                    # Send media with message
-                    logger.info(f"Sending media DM to user {user_id}")
-                    self.client.direct_message(user_id, message, media=media)
-                    media_sent = True
-                    logger.info(f"Successfully sent media to user {user_id}")
-                except Exception as media_e:
-                    logger.error(f"Failed to send media: {str(media_e)}")
-                    # Fall back to text-only message
-                    self.client.direct_message(user_id, message)
-                    logger.info(f"Fallback: Sent text-only message to user {user_id}")
-            else:
-                # Send text-only message
+        if media_url:
+            logger.info(f"Media URL found: {media_url}")
+            try:
+                # Instagrapi doesn't support sending from URL directly. We need to download it first.
+                req = Request(media_url, headers={'User-Agent': 'Mozilla/5.0'})
+                with urlopen(req) as response:
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp_file:
+                        tmp_file.write(response.read())
+                        media_path = tmp_file.name
+                
+                file_ext = os.path.splitext(media_url)[1].lower()
+                if file_ext in ('.mp4', '.mov'):
+                    self.client.video_upload_to_direct(user_id, media_path, text=message)
+                else:
+                    self.client.photo_upload_to_direct(user_id, media_path, text=message)
+                
+                os.remove(media_path) # Clean up the temporary file
+                logger.info(f"Successfully sent media DM to user {user_id}")
+            except Exception as media_e:
+                logger.error(f"Failed to send media: {media_e}. Falling back to text-only.")
                 self.client.direct_message(user_id, message)
-                logger.info(f"Successfully sent text message to user {user_id}")
+        else:
+            self.client.direct_message(user_id, message)
+            logger.info(f"Successfully sent text-only DM to user {user_id}")
 
-            # Log the activity
-            action_type = "sent_dm_with_media" if media_sent else "sent_dm"
-            self.log_activity(user_id, message)
-
-        except Exception as e:
-            error_msg = f"Failed to send DM to user {user_id}: {str(e)}"
-            logger.error(error_msg)
-
-            # Store in dead-letter queue
-            self.db_cursor.execute(
-                "INSERT INTO dead_letter_queue (user_id, action, details, error_message) VALUES (%s, %s, %s, %s)",
-                (user_id, "send_dm", message, error_msg)
-            )
-            self.db_conn.commit()
-            logger.warning(f"Added failed DM to dead-letter queue for user {user_id}")
-
-            # Alert admin
-            admin_user_id = os.getenv("ADMIN_USER_ID")
-            if admin_user_id:
-                alert_message = f"⚠️ Bot Error: {error_msg}"
-                try:
-                    self.client.direct_message(admin_user_id, alert_message)
-                    logger.warning(f"Sent admin alert to {admin_user_id}")
-                except Exception as alert_e:
-                    logger.error(f"Failed to send admin alert: {str(alert_e)}")
-
-            raise Exception(error_msg)
+        self.log_activity(str(user_id), message)
 
     def log_activity(self, user_id, message):
         """Log bot activity to the database."""
-        logger.info(f"Logging activity for user {user_id}")
-        self.db_cursor.execute(
-            "INSERT INTO activity_log (user_id, action, details) VALUES (%s, %s, %s)",
-            (user_id, "sent_dm", message)
-        )
-        self.db_conn.commit()
+        try:
+            self.db_cursor.execute(
+                "INSERT INTO activity_log (id, user_id, action, details) VALUES (gen_random_uuid(), %s, %s, %s)",
+                (user_id, "sent_dm", json.dumps({"message": message}))
+            )
+            # Do not commit here, let the main loop handle it.
+        except Exception as e:
+            logger.error(f"Failed to stage activity log for user {user_id}: {str(e)}")
+            raise  # Re-raise to trigger rollback in the main loop
+
+    def _log_dead_letter_queue(self, user_id, action, details, error_message):
+        """Helper to log failed actions to the dead-letter queue."""
+        try:
+            # This function should be self-contained and not interfere with the main transaction
+            conn = psycopg2.connect(self.database_url)
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO dead_letter_queue (id, user_id, action, details, error_message) VALUES (gen_random_uuid(), %s, %s, %s, %s)",
+                (str(user_id), action, str(details), str(error_message))
+            )
+            conn.commit()
+            cursor.close()
+            conn.close()
+        except Exception as e:
+            logger.error(f"CRITICAL: Failed to log to dead-letter queue for user {user_id}: {str(e)}")
 
     def _update_health_status(self):
         """Update the bot's health status in the database."""
         try:
-            current_time = datetime.now().isoformat()
-            status_details = {
-                "last_check": current_time,
-                "active_triggers": len(self.dm_send_timestamps)
-            }
+            current_time = datetime.now()
+            status_details = json.dumps({"last_check": current_time.isoformat()})
             
             self.db_cursor.execute("""
                 INSERT INTO bot_status (id, service_name, is_healthy, last_ping, details)
@@ -270,107 +232,73 @@ class InstagramBot:
             self.db_conn.commit()
             logger.debug("Updated health status in database")
         except Exception as e:
+            self.db_conn.rollback()
             logger.error(f"Failed to update health status: {str(e)}")
 
     def run(self):
         """Main bot loop."""
-        # Connect to services
         self.connect_to_instagram()
         self.connect_to_database()
 
-        # Create processed_comments table if it doesn't exist
-        self.db_cursor.execute("""
-            CREATE TABLE IF NOT EXISTS processed_comments (
-                comment_id TEXT PRIMARY KEY,
-                post_id TEXT NOT NULL,
-                processed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        self.db_conn.commit()
-        logger.info("Ensured processed_comments table exists")
-
-        # Create dead_letter_queue table if it doesn't exist
-        self.db_cursor.execute("""
-            CREATE TABLE IF NOT EXISTS dead_letter_queue (
-                id SERIAL PRIMARY KEY,
-                user_id TEXT NOT NULL,
-                action TEXT NOT NULL,
-                details TEXT NOT NULL,
-                error_message TEXT NOT NULL,
-                timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
-        self.db_conn.commit()
-        logger.info("Ensured dead_letter_queue table exists")
-
-        # Fetch configuration
-        triggers = self.fetch_triggers()
-        # Build templates dictionary with ID as key
-        templates = self.fetch_templates()
-        templates_dict = {
-            str(t[0]): {  # Ensure key is string to match database UUID string format
-                'content': t[1],
-                'media_url': t[2]
-            } for t in templates
-        }
-        logger.info(f"Loaded {len(templates_dict)} templates into memory")
-
-        # Main loop
         while True:
-            for trigger in triggers:
-                post_id = trigger[1]
-                keyword = trigger[2]
+            try:
+                triggers = self.fetch_triggers()
+                templates_list = self.fetch_templates()
+                templates_dict = {str(t[0]): {'content': t[1], 'media_url': t[2]} for t in templates_list}
 
-                # Check for new comments
-                matched_comments = self.check_comments(post_id, [keyword])
+                for trigger_id, post_id, keyword, template_id in triggers:
+                    if not post_id: continue
 
-                # Send DMs for matched comments
-                for comment in matched_comments:
-                    user_id = comment.user.id
-                    template_id = trigger[3]  # template_id is the 4th element
-                    comment_id = comment.id
+                    matched_comments = self.check_comments(post_id, [keyword])
 
-                    if not template_id:
-                        logger.error(f"Trigger {trigger[0]} has no template_id assigned")
-                        continue
-
-                    template = templates_dict.get(str(template_id))
-                    if template:
+                    for comment in matched_comments:
+                        user_id = str(comment.user.pk)
+                        comment_id = str(comment.pk)
+                        
+                        # *** FIX: Improved transaction handling per comment ***
                         try:
+                            if not template_id:
+                                logger.error(f"Trigger {trigger_id} has no template_id assigned")
+                                raise ValueError("Missing template_id")
+                            
+                            template = templates_dict.get(str(template_id))
+                            if not template:
+                                logger.error(f"No template found with ID {template_id} for trigger {trigger_id}")
+                                raise ValueError(f"Template not found: {template_id}")
+
                             self.send_dm(user_id, template)
 
-                            # Store processed comment ID
                             self.db_cursor.execute(
-                                "INSERT INTO processed_comments (comment_id, post_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                                "INSERT INTO processed_comments (id, comment_id, post_id) VALUES (gen_random_uuid(), %s, %s) ON CONFLICT (comment_id) DO NOTHING",
                                 (comment_id, post_id)
                             )
                             self.db_conn.commit()
-                            logger.info(f"Stored processed comment {comment_id} for post {post_id}")
-                        except Exception as e:
-                            logger.error(f"Failed to process comment {comment_id}: {str(e)}")
-                            # Store failed comment in dead-letter queue
-                            self.db_cursor.execute(
-                                "INSERT INTO dead_letter_queue (user_id, action, details, error_message) VALUES (%s, %s, %s, %s)",
-                                (user_id, "process_comment", f"Trigger: {trigger[0]}", str(e))
-                            )
-                            self.db_conn.commit()
-                        else:
-                            logger.error(f"No template found with ID {template_id} for trigger {trigger[0]}")
-                            # Store missing template error in dead-letter queue
-                            self.db_cursor.execute(
-                                "INSERT INTO dead_letter_queue (user_id, action, details, error_message) VALUES (%s, %s, %s, %s)",
-                                (user_id, "missing_template", f"Trigger: {trigger[0]}", f"No template {template_id}")
-                            )
-                            self.db_conn.commit()
+                            logger.info(f"Successfully processed and committed comment {comment_id}")
 
-            # Update health status
-            self._update_health_status()
+                        except Exception as e:
+                            self.db_conn.rollback()
+                            logger.error(f"Failed to process comment {comment_id} for user {user_id}: {e}")
+                            self._log_dead_letter_queue(user_id, "process_comment", {"trigger": trigger_id, "comment": comment.text}, str(e))
+
+                self._update_health_status()
+            except psycopg2.InterfaceError:
+                logger.error("Database connection lost. Reconnecting...")
+                self.connect_to_database()
+            except Exception as loop_e:
+                logger.critical(f"An unexpected error occurred in the main loop: {loop_e}")
             
-            # Wait before next check
-            time.sleep(60)  # Check every minute
+            time.sleep(60)
 
     def __del__(self):
         """Clean up resources."""
         if self.db_conn:
             self.db_conn.close()
             logger.info("Closed database connection")
+
+def main():
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    bot = InstagramBot()
+    bot.run()
+
+if __name__ == "__main__":
+    main()

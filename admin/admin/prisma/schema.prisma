@@ -107,6 +107,7 @@ model BotStatus {
   isHealthy   Boolean  @default(false) @map("is_healthy")
   lastPing    DateTime @map("last_ping")
   details     Json?
+  
 
   @@map("bot_status")
 }
