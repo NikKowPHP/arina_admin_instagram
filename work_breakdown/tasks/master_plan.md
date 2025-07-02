@@ -64,7 +64,7 @@
     -   [x] **Action:** Use the existing `Table` UI component to display the failed events, showing the `errorMessage`, `action`, `details`, and `timestamp`.
     -   [x] **Action:** Add a link to this new "Error Queue" page in the `Sidebar` component (`admin/admin/src/components/ui/sidebar.tsx`).
 
--   [ ] **Task 3.2: Enhance Bot Media Handling**
+-   [x] **Task 3.2: Enhance Bot Media Handling**
     -   [ ] **Action:** Open `bot/instagram_bot.py`.
     -   [ ] **Action:** In the `send_dm` function, before uploading, check the file extension of the `media_url`.
     -   [ ] **Action:** If the extension is `.mp4`, `.mov`, etc., use `self.client.video_upload_from_url(...)`. Otherwise, use `photo_upload_from_url`. Add specific logging for each case.

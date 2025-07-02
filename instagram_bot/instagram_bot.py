@@ -185,14 +185,17 @@ class InstagramBot:
                 logger.info(f"Media URL found in template: {media_url}")
 
                 try:
-                    # Download media directly using instagrapi
-                    logger.info(f"Downloading media from {media_url}")
-                    response = requests.get(media_url, stream=True)
-                    response.raise_for_status()
-
-                    # Upload media to Instagram using instagrapi
-                    logger.info(f"Uploading media to Instagram")
-                    media = self.client.photo_upload_from_url(media_url)
+                    # Check file extension
+                    file_ext = media_url.split('.')[-1].lower()
+                    logger.info(f"Media URL has extension: {file_ext}")
+                    
+                    # Handle different media types
+                    if file_ext in ('mp4', 'mov', 'avi'):
+                        logger.info("Detected video file - using video upload")
+                        media = self.client.video_upload_from_url(media_url)
+                    else:
+                        logger.info("Detected image file - using photo upload")
+                        media = self.client.photo_upload_from_url(media_url)
 
                     # Send media with message
                     logger.info(f"Sending media DM to user {user_id}")

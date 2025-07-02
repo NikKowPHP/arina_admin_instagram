@@ -63,9 +63,9 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { name, condition, action } = body;
+  const { postId, keyword, userId, templateId } = body;
 
-  if (!name || !condition || !action) {
+  if (!postId || !keyword || !userId || !templateId) {
     return NextResponse.json(
       { error: 'Missing required fields' },
       { status: 400 }
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
   const { data, error } = await supabase
     .from('triggers')
-    .insert({ id: uuidv4(), name, condition, action })
+    .insert({ id: uuidv4(), postId, keyword, userId, templateId })
     .single();
 
   if (error) {
@@ -94,9 +94,9 @@ export async function PUT(request: NextRequest) {
 
   const slug = request.nextUrl.pathname.split('/').filter(Boolean).pop();
   const body = await request.json();
-  const { name, condition, action } = body;
+  const { postId, keyword, userId, templateId } = body;
 
-  if (!slug || !name || !condition || !action) {
+  if (!slug || !postId || !keyword || !userId || !templateId) {
     return NextResponse.json(
       { error: 'Missing required fields' },
       { status: 400 }
@@ -105,7 +105,7 @@ export async function PUT(request: NextRequest) {
 
   const { data, error } = await supabase
     .from('triggers')
-    .update({ name, condition, action })
+    .update({ postId, keyword, userId, templateId })
     .eq('id', slug)
     .single();
 

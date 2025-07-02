@@ -114,19 +114,15 @@ Response:
 }
 ```
 
-## Bot Service API (Python)
+## Storage API
 
-### Configuration
-`GET /bot/config`
+`POST /api/storage/upload`
+- Protected route (requires valid JWT)
+- Accepts `FormData` with a single file field named `file`
+- Returns:
 ```json
 {
-  "active_triggers": [
-    {
-      "post_id": "INSTAGRAM_POST_ID",
-      "keyword": "WIN",
-      "template": { /* template object */ }
-    }
-  ]
+  "publicUrl": "https://your-project-ref.supabase.co/storage/v1/object/public/templates/filename.ext"
 }
 ```
 
