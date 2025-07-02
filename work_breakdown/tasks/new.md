@@ -72,7 +72,7 @@ Completing this plan will bring the codebase into 100% compliance with its docum
     - **Action**: For the Template Management endpoints (`POST`, `GET`, `PUT`), add an optional `media_url: "string"` field to the JSON payloads and responses to reflect the actual implementation.
     - **Reason**: Audit finding: Templates API payload differs from spec. The `media_url` field is implemented but not documented.
 
-- [ ] **DOCS**: Document the `bot_status` table and health update flow
+- [x] **DOCS**: Document the `bot_status` table and health update flow
     - **File**: `docs/technical_design.md`
     - **Action**: Add a new subsection under "Database" or "System Architecture" that describes the `bot_status` table. Explain that the Python bot periodically writes its health status to this table, and the admin dashboard reads from it to display the bot's health.
     - **Reason**: Audit finding: Undocumented `bot_status` Table. This core monitoring feature is not documented.

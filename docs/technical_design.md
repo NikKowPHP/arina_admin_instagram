@@ -27,10 +27,26 @@
      - `/api/templates` - Handle DM content
 
 3. **Database** (Supabase)
+
+### Bot Status Monitoring
+The bot periodically writes its health status to the `bot_status` table:
+- `service_name`: Identifier for the service (e.g., "instagram_bot")
+- `is_healthy`: Boolean indicating operational status
+- `last_ping`: Timestamp of last update
+- `details`: JSON with additional metrics (active triggers, errors, etc.)
+
+Example status update flow:
+1. Bot checks its health every 60 seconds
+2. Writes status to `bot_status` table with current metrics
+3. Admin dashboard reads this table to display bot health status
+4. Alerts triggered if `is_healthy` is false or last update is stale
+
+The table uses upsert logic to maintain a single row per service.
    - Tables:
      - `triggers` (post_id, keyword, template_id, is_active)
      - `templates` (content, media_url, metadata)
      - `activity_log` (timestamp, user_id, action)
+     - `bot_status` (service_name, is_healthy, last_ping, details)
 
 ## API Specifications
 
