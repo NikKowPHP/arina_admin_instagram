@@ -27,7 +27,7 @@ RATE_LIMIT_WINDOW = timedelta(hours=1)  # 1 hour window
 class InstagramBot:
     def __init__(self):
         """Initialize the Instagram bot."""
-        self.instagram_user = os.getenv("INSTAGRAM_USERNAME")
+        self.instagram_user = os.getenv("INSTAGRAM_USER")
         self.instagram_password = os.getenv("INSTAGRAM_PASSWORD")
         self.database_url = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/postgres")
 

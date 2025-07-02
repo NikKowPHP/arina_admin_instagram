@@ -14,7 +14,7 @@ Completing this plan will bring the codebase into 100% compliance with its docum
 
 ### P0 - Critical Code Fixes
 
-- [ ] **FIX**: Correct environment variable name in Python bot
+- [x] **FIX**: Correct environment variable name in Python bot
     - **File**: `instagram_bot/instagram_bot.py`
     - **Action**: Change the line `self.instagram_user = os.getenv("INSTAGRAM_USERNAME")` to `self.instagram_user = os.getenv("INSTAGRAM_USER")` to match the variable defined in `.env.example`.
     - **Reason**: Audit finding: Environment Variable Mismatch. The code is trying to read `INSTAGRAM_USERNAME` but the configuration specifies `INSTAGRAM_USER`.
