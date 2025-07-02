@@ -33,12 +33,12 @@ Completing this plan will bring the codebase into 100% compliance with its docum
     - **Action**: In the `PUT` function, read the `isActive` boolean value from the request body. Add `isActive` to the object passed to `supabase.from('triggers').update(...)`. Ensure proper type handling (it should be a boolean).
     - **Reason**: Audit finding: `PUT /api/triggers/:id` is missing the `isActive` field, which is specified as a possibility in the documentation.
 
-- [ ] **REFACTOR**: Delete obsolete bot health API route
+- [x] **REFACTOR**: Delete obsolete bot health API route
     - **File**: `admin/admin/src/app/api/bot/health/route.ts`
     - **Action**: Delete this file.
     - **Reason**: Audit finding: Obsolete Bot Monitoring Service. The bot is not an HTTP service, making this API endpoint non-functional and misleading.
 
-- [ ] **REFACTOR**: Delete obsolete bot healthcheck API route
+- [x] **REFACTOR**: Delete obsolete bot healthcheck API route
     - **File**: `admin/admin/src/app/api/bot/healthcheck/route.ts`
     - **Action**: Delete this file.
     - **Reason**: Audit finding: Obsolete Bot Monitoring Service. The bot is not an HTTP service, making this API endpoint non-functional and misleading.
