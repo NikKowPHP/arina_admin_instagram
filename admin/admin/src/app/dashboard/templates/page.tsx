@@ -64,7 +64,9 @@ interface Template {
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [formData, setFormData] = useState({ name: '', content: '', media_url: '' });
+  const [formData, setFormData] = useState({ name: '', content: '' });
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaPreviewUrl, setMediaPreviewUrl] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [currentId, setCurrentId] = useState('');
   const supabase = useSupabase();
@@ -91,35 +93,78 @@ export default function TemplatesPage() {
     });
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setMediaFile(file);
+    if (file) {
+      setMediaPreviewUrl(URL.createObjectURL(file));
+    } else {
+      setMediaPreviewUrl(null);
+    }
+  };
+
+  const uploadMedia = async (file: File) => {
+    const uploadFormData = new FormData();
+    uploadFormData.append('file', file);
+
+    const response = await fetch('/api/storage/upload', {
+      method: 'POST',
+      body: uploadFormData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to upload media');
+    }
+    const data = await response.json();
+    return data.publicUrl;
+  };
+
   const handleCreate = async () => {
     try {
+      let mediaUrl = '';
+      if (mediaFile) {
+        mediaUrl = await uploadMedia(mediaFile);
+      }
+
       const form = new FormData();
       form.append('name', formData.name);
       form.append('content', formData.content);
-      if (formData.media_url) {
-        form.append('media_url', formData.media_url);
+      if (mediaUrl) {
+        form.append('media_url', mediaUrl);
       }
       const newTemplate = await createTemplate(form);
       setTemplates([...templates, newTemplate]);
-      setFormData({ name: '', content: '', media_url: '' });
+      setFormData({ name: '', content: '' });
+      setMediaFile(null);
+      setMediaPreviewUrl(null);
     } catch (error) {
       console.error('Error creating template:', error);
     }
   };
 
   const handleEdit = (template: Template) => {
-    setFormData({ name: template.name, content: template.content, media_url: template.media_url || '' });
+    setFormData({ name: template.name, content: template.content });
+    setMediaFile(null); // Clear file input when editing
+    setMediaPreviewUrl(template.media_url || null);
     setIsEditing(true);
     setCurrentId(template.id);
   };
 
   const handleUpdate = async () => {
     try {
+      let mediaUrl = mediaPreviewUrl; // Keep existing URL if no new file is selected
+      if (mediaFile) {
+        mediaUrl = await uploadMedia(mediaFile);
+      }
+
       const form = new FormData();
       form.append('name', formData.name);
       form.append('content', formData.content);
-      if (formData.media_url) {
-        form.append('media_url', formData.media_url);
+      if (mediaUrl) {
+        form.append('media_url', mediaUrl);
+      } else {
+        form.append('media_url', ''); // Explicitly clear if no media
       }
       const updatedTemplate = await updateTemplate(currentId, form);
       setTemplates(
@@ -127,7 +172,9 @@ export default function TemplatesPage() {
           template.id === currentId ? updatedTemplate : template
         )
       );
-      setFormData({ name: '', content: '', media_url: '' });
+      setFormData({ name: '', content: '' });
+      setMediaFile(null);
+      setMediaPreviewUrl(null);
       setIsEditing(false);
       setCurrentId('');
     } catch (error) {
@@ -180,22 +227,31 @@ export default function TemplatesPage() {
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-300 mb-1">Media URL</label>
           <input
-            type="text"
-            name="media_url"
-            value={formData.media_url}
-            onChange={handleInputChange}
+            type="file"
+            name="media_file"
+            onChange={handleFileChange}
             className="w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500"
+            accept="image/*,video/*"
           />
         </div>
-        {formData.media_url && (
+        {mediaPreviewUrl && (
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-300 mb-1">Media Preview</label>
-            <img
-              src={formData.media_url}
-              alt="Preview"
-              className="mt-1 w-full rounded-md border border-gray-700"
-              style={{ maxHeight: '200px', objectFit: 'contain' }}
-            />
+            {mediaPreviewUrl.startsWith('blob:') || mediaPreviewUrl.match(/\.(jpeg|jpg|gif|png)$/i) ? (
+              <img
+                src={mediaPreviewUrl}
+                alt="Preview"
+                className="mt-1 w-full rounded-md border border-gray-700"
+                style={{ maxHeight: '200px', objectFit: 'contain' }}
+              />
+            ) : (
+              <video
+                src={mediaPreviewUrl}
+                controls
+                className="mt-1 w-full rounded-md border border-gray-700"
+                style={{ maxHeight: '200px', objectFit: 'contain' }}
+              />
+            )}
           </div>
         )}
         <div className="flex space-x-2">
@@ -207,7 +263,7 @@ export default function TemplatesPage() {
           </Button>
           {isEditing && (
             <Button
-              onClick={() => { setIsEditing(false); setFormData({ name: '', content: '', media_url: '' }); }}
+              onClick={() => { setIsEditing(false); setFormData({ name: '', content: '' }); setMediaFile(null); setMediaPreviewUrl(null); }}
               className="px-4 py-2 bg-gray-700 text-gray-300 rounded-md text-sm font-medium hover:bg-gray-600 transition-colors"
             >
               Cancel

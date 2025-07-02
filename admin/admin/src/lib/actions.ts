@@ -3,8 +3,6 @@
 'use server';
 
 import prisma from './prisma'; // Make sure the prisma client is imported
-import type { DashboardAnalytics } from '@/app/dashboard/page';
-import type { BotHealthStatus } from '@/types/bot-monitor'; // Import this type if needed
 
 export async function getTriggers(page = 1, pageSize = 10) {
   const skip = (page - 1) * pageSize;
@@ -78,27 +76,3 @@ export async function deleteTrigger(id: string) {
 //   // For now, returning an empty array to prevent crashes.
 //   return [];
 // }
-
-export async function getDashboardAnalytics(): Promise<DashboardAnalytics> {
-  // NOTE: You don't have `userActivity`, `botHealth`, or `templateUsage` tables.
-  // These queries will fail. I am providing mock data to prevent the app from crashing.
-  const [triggerActivations, userActivity, systemHealth, templateUsage] = await Promise.all([
-    prisma.trigger.count(),
-    Promise.resolve({ totalUsers: 10, activityLogEntries: 100, dmsSent: 50 }), // Mock data
-    Promise.resolve({ isHealthy: true, lastPing: new Date(), errorCount: 0, storageUsage: 123, authBreaches: 0, lastCheck: new Date(), mediaCacheCount: 0, status: 'Operational', uptime: 99.9 }), // Mock data
-    Promise.resolve([{ name: 'Welcome DM', count: 25 }, { name: 'Promo DM', count: 15 }]) // Mock data
-  ]);
-
-  return {
-    triggerActivations,
-    userActivity,
-    systemHealth: systemHealth as BotHealthStatus,
-    templateUsage,
-  };
-}
-
-export async function getBotHealth() {
-  // NOTE: You don't have a `botHealth` table.
-  // Returning mock data.
-  return Promise.resolve({ isHealthy: true, lastPing: new Date(), errorCount: 0, storageUsage: 123, authBreaches: 0, lastCheck: new Date(), mediaCacheCount: 0, status: 'Operational', uptime: 99.9 });
-}

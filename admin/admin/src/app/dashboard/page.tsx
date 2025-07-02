@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import useSWR from 'swr'
 import { BarChart } from '@/components/ui/bar-chart'
 import { LineChart } from '@/components/ui/line-chart'
 import { PieChart } from '@/components/ui/pie-chart'
 import { Card } from '@/components/ui/card'
 import { ChartControls } from '@/components/chart-controls'
 import { BotHealthStatusCard } from '@/components/bot-health-status'
-import { getDashboardAnalytics, getBotHealth } from '@/lib/actions'
 import type { BotHealthStatus } from '@/types/bot-monitor'
 
 type TriggerUsage = Array<{ date: string; count: number }>
@@ -19,47 +19,40 @@ export type DashboardAnalytics = {
     dmsSent: number
   }
   systemHealth: BotHealthStatus
-  templateUsage: Array<{ name: string; count: number }>
+  templateUsage: Array<{ id: string; count: number }>
 }
+
+const fetcher = (url: string) => fetch(url).then(res => {
+  if (!res.ok) {
+    throw new Error('Failed to fetch dashboard analytics')
+  }
+  return res.json()
+})
 
 // ROO-AUDIT-TAG :: plan-007-dashboard.md :: Implement analytics dashboard
 export default function DashboardPage() {
-  const [isLoading, setIsLoading] = useState(true)
   const [dateRange, setDateRange] = useState('7d')
   const [chartType, setChartType] = useState('bar')
   const [visibleData, setVisibleData] = useState(['Triggers', 'Users', 'Templates'])
-  const [chartData, setChartData] = useState<{
-    triggerUsage: TriggerUsage
-    analytics: DashboardAnalytics | null
-  }>({
-    triggerUsage: [],
-    analytics: null
-  })
-  const [botHealth, setBotHealth] = useState<{ status: BotHealthStatus | null; error: string | null }>({ status: null, error: null })
 
-  const fetchData = async () => {
-    setIsLoading(true)
-    try {
-      const [dashboardAnalytics, botHealthStatus] = await Promise.all([
-        getDashboardAnalytics(),
-        getBotHealth()
-      ])
-      setChartData({
-        triggerUsage: [], // Analytics commented out, so no trigger usage data for now
-        analytics: dashboardAnalytics
-      })
-      setBotHealth({ status: botHealthStatus, error: null })
-    } catch (error) {
-      console.error('Error fetching analytics:', error)
-      setBotHealth({ status: null, error: 'Failed to fetch bot health' })
-    } finally {
-      setIsLoading(false)
+  const { data, error, isLoading } = useSWR<DashboardAnalytics>(
+    '/api/dashboard/analytics',
+    fetcher,
+    {
+      refreshInterval: 30000,
+      revalidateOnFocus: false
     }
+  )
+
+  const botHealth = {
+    status: data?.systemHealth || null,
+    error: error ? 'Failed to fetch bot health' : null
   }
 
-  useEffect(() => {
-    fetchData()
-  }, [dateRange])
+  const chartData = {
+    triggerUsage: [] as TriggerUsage,
+    analytics: data || null
+  }
 
   if (isLoading) {
     return (
@@ -69,6 +62,15 @@ export default function DashboardPage() {
           <div className="h-8 bg-gray-200 rounded w-32"></div>
           <div className="h-64 bg-gray-200 rounded"></div>
         </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-4">Analytics Dashboard</h1>
+        <div className="text-red-500">Error loading dashboard data: {error.message}</div>
       </div>
     )
   }
@@ -124,11 +126,11 @@ export default function DashboardPage() {
 
         <Card className="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4 text-white">User Activity</h2>
-          {chartData.analytics && (
+          {data && (
             <LineChart
               datasets={[
-                { total: chartData.analytics.userActivity.totalUsers },
-                { active: chartData.analytics.userActivity.activityLogEntries }
+                { total: data.userActivity.totalUsers },
+                { active: data.userActivity.activityLogEntries }
               ]}
               xAxis="date"
               yFields={['total', 'active']}
@@ -139,9 +141,9 @@ export default function DashboardPage() {
 
         <Card className="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4 text-white">DMs Sent</h2>
-          {chartData.analytics && (
+          {data && (
             <div className="flex flex-col items-center justify-center h-32 text-white">
-              <p className="text-5xl font-bold">{chartData.analytics.userActivity.dmsSent}</p>
+              <p className="text-5xl font-bold">{data.userActivity.dmsSent}</p>
               <p className="text-sm text-gray-400">DMs sent in the last 7 days</p>
             </div>
           )}
@@ -149,16 +151,16 @@ export default function DashboardPage() {
 
         <Card className="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4 text-white">System Health</h2>
-          {chartData.analytics && (
+          {data && (
             <div className="space-y-2 text-gray-300">
-              <p><strong>Last Ping:</strong> {new Date(chartData.analytics.systemHealth.lastPing).toLocaleString()}</p>
-              <p><strong>Status:</strong> {chartData.analytics.systemHealth.isHealthy ? 'Healthy' : 'Unhealthy'}</p>
-              <p><strong>Errors:</strong> {chartData.analytics.systemHealth.errorCount}</p>
-              {chartData.analytics.systemHealth.storageUsage !== undefined && (
-                <p><strong>Storage:</strong> {chartData.analytics.systemHealth.storageUsage} MB</p>
+              <p><strong>Last Ping:</strong> {new Date(data.systemHealth.lastPing).toLocaleString()}</p>
+              <p><strong>Status:</strong> {data.systemHealth.isHealthy ? 'Healthy' : 'Unhealthy'}</p>
+              <p><strong>Errors:</strong> {data.systemHealth.errorCount}</p>
+              {data.systemHealth.storageUsage !== undefined && (
+                <p><strong>Storage:</strong> {data.systemHealth.storageUsage} MB</p>
               )}
-              {chartData.analytics.systemHealth.authBreaches !== undefined && (
-                <p><strong>Auth Breaches:</strong> {chartData.analytics.systemHealth.authBreaches}</p>
+              {data.systemHealth.authBreaches !== undefined && (
+                <p><strong>Auth Breaches:</strong> {data.systemHealth.authBreaches}</p>
               )}
             </div>
           )}
@@ -166,10 +168,10 @@ export default function DashboardPage() {
 
         <Card className="md:col-span-2 lg:col-span-3 bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4 text-white">Template Usage</h2>
-          {chartData.analytics && (
+          {data && (
             <div className="max-w-md mx-auto">
               <PieChart
-                datasets={chartData.analytics.templateUsage}
+                datasets={data.templateUsage}
                 labelField="name"
                 valueField="count"
               />
