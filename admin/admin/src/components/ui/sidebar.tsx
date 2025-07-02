@@ -29,6 +29,7 @@ export default function Sidebar() {
         <SidebarLink href="/dashboard" label="Dashboard" pathname={pathname} />
         <SidebarLink href="/dashboard/triggers" label="Triggers" pathname={pathname} />
         <SidebarLink href="/dashboard/templates" label="Templates" pathname={pathname} />
+        <SidebarLink href="/dashboard/errors" label="Error Queue" pathname={pathname} />
       </nav>
       </div>
     </>
