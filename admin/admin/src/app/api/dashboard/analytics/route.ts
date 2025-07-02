@@ -30,17 +30,22 @@ export async function GET() {
       prisma.deadLetterQueue.count(),
     ]);
 
-    // Placeholder for systemHealth as there's no direct model in schema.prisma for all fields
+    // Get real bot health status from database
+    const botStatus = await prisma.botStatus.findUnique({
+      where: { serviceName: 'instagram_bot' }
+    });
+
     const systemHealth: BotHealthStatus = {
-      isHealthy: true, // Placeholder
-      lastPing: new Date(), // Placeholder
+      isHealthy: botStatus?.isHealthy ?? false,
+      lastPing: botStatus?.lastPing ?? new Date(0),
       errorCount: errorCount,
-      storageUsage: 0, // Placeholder
-      authBreaches: 0, // Placeholder
-      lastCheck: new Date(), // Placeholder
-      mediaCacheCount: 0, // Placeholder
-      status: 'Operational', // Placeholder
-      uptime: 99.9, // Placeholder
+      storageUsage: 0, // Still placeholder as not tracked
+      authBreaches: 0, // Still placeholder as not tracked
+      lastCheck: botStatus?.lastPing ?? new Date(0),
+      mediaCacheCount: 0, // Still placeholder as not tracked
+      status: botStatus?.isHealthy ? 'Operational' : 'Degraded',
+      uptime: 99.9, // Still placeholder as not tracked
+      ...(botStatus?.details ? JSON.parse(JSON.stringify(botStatus.details)) : {})
     };
 
     const analytics: DashboardAnalytics = {

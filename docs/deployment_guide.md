@@ -29,11 +29,21 @@
    ```
 
 4. Set up database:
-   ```bash
-   # Create and migrate database using Supabase CLI
-   cd supabase
-   supabase start
-   ```
+    ```bash
+    # Create and migrate database using Supabase CLI
+    cd supabase
+    supabase start
+    ```
+
+5. Set up admin panel environment variables:
+    ```bash
+    cp admin/admin/.env.example admin/admin/.env
+    # Edit the .env file with your credentials:
+    # - DATABASE_URL: Postgres connection string
+    # - NEXT_PUBLIC_SUPABASE_URL: Your Supabase project URL
+    # - NEXT_PUBLIC_SUPABASE_KEY: Your Supabase anon/public key
+    # - SUPABASE_SERVICE_ROLE_KEY: Your Supabase service role key
+    ```
 
 ### Option 2: Docker Installation (Recommended)
 1. Clone the repository:

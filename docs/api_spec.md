@@ -10,9 +10,10 @@
 `POST /api/triggers`
 ```json
 {
-  "name": "Trigger Name",
-  "condition": "Keyword or condition",
-  "action": "Action to perform"
+  "postId": "INSTAGRAM_POST_ID",
+  "keyword": "WIN",
+  "userId": "OPTIONAL_USER_ID",
+  "templateId": "TEMPLATE_UUID"
 }
 ```
 Response:
@@ -28,9 +29,11 @@ Response:
 [
   {
     "id": "UUID",
-    "name": "Trigger Name",
-    "condition": "Keyword or condition",
-    "action": "Action to perform"
+    "postId": "INSTAGRAM_POST_ID",
+    "keyword": "WIN",
+    "userId": "OPTIONAL_USER_ID",
+    "templateId": "TEMPLATE_UUID",
+    "isActive": true
   }
 ]
 ```
@@ -39,18 +42,22 @@ Response:
 ```json
 {
   "id": "UUID",
-  "name": "Trigger Name",
-  "condition": "Keyword or condition",
-  "action": "Action to perform"
+  "postId": "INSTAGRAM_POST_ID",
+  "keyword": "WIN",
+  "userId": "OPTIONAL_USER_ID",
+  "templateId": "TEMPLATE_UUID",
+  "isActive": true
 }
 ```
 
 `PUT /api/triggers/:id`
 ```json
 {
-  "name": "Updated Trigger Name",
-  "condition": "Updated condition",
-  "action": "Updated action"
+  "postId": "UPDATED_POST_ID",
+  "keyword": "UPDATED_KEYWORD",
+  "userId": "UPDATED_USER_ID",
+  "templateId": "UPDATED_TEMPLATE_ID",
+  "isActive": false
 }
 ```
 
@@ -108,16 +115,6 @@ Response:
 ```
 
 ## Bot Service API (Python)
-
-### Health Check
-`GET /bot/health`
-```json
-{
-  "status": "ok",
-  "last_check": "ISO8601",
-  "queued_messages": 5
-}
-```
 
 ### Configuration
 `GET /bot/config`

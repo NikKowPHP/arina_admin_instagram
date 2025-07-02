@@ -29,11 +29,7 @@ class InstagramBot:
         """Initialize the Instagram bot."""
         self.instagram_user = os.getenv("INSTAGRAM_USERNAME")
         self.instagram_password = os.getenv("INSTAGRAM_PASSWORD")
-        self.db_host = os.getenv("DB_HOST", "localhost")
-        self.db_port = os.getenv("DB_PORT", "5432")
-        self.db_name = os.getenv("DB_NAME", "postgres")
-        self.db_user = os.getenv("DB_USER", "postgres")
-        self.db_password = os.getenv("DB_PASSWORD", "password")
+        self.database_url = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/postgres")
 
         # Initialize Instagram client
         self.client = None
@@ -92,13 +88,7 @@ class InstagramBot:
     def connect_to_database(self):
         """Connect to the PostgreSQL database."""
         logger.info("Connecting to database...")
-        self.db_conn = psycopg2.connect(
-            host=self.db_host,
-            port=self.db_port,
-            dbname=self.db_name,
-            user=self.db_user,
-            password=self.db_password
-        )
+        self.db_conn = psycopg2.connect(self.database_url)
         self.db_cursor = self.db_conn.cursor()
         logger.info("Successfully connected to database")
 
@@ -256,6 +246,29 @@ class InstagramBot:
         )
         self.db_conn.commit()
 
+    def _update_health_status(self):
+        """Update the bot's health status in the database."""
+        try:
+            current_time = datetime.now().isoformat()
+            status_details = {
+                "last_check": current_time,
+                "active_triggers": len(self.dm_send_timestamps)
+            }
+            
+            self.db_cursor.execute("""
+                INSERT INTO bot_status (id, service_name, is_healthy, last_ping, details)
+                VALUES (gen_random_uuid(), 'instagram_bot', TRUE, %s, %s)
+                ON CONFLICT (service_name)
+                DO UPDATE SET
+                    is_healthy = EXCLUDED.is_healthy,
+                    last_ping = EXCLUDED.last_ping,
+                    details = EXCLUDED.details
+            """, (current_time, status_details))
+            self.db_conn.commit()
+            logger.debug("Updated health status in database")
+        except Exception as e:
+            logger.error(f"Failed to update health status: {str(e)}")
+
     def run(self):
         """Main bot loop."""
         # Connect to services
@@ -347,6 +360,9 @@ class InstagramBot:
                             )
                             self.db_conn.commit()
 
+            # Update health status
+            self._update_health_status()
+            
             # Wait before next check
             time.sleep(60)  # Check every minute
 

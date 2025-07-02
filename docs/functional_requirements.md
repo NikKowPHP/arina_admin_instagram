@@ -56,6 +56,14 @@
   - Popular keywords
 - System health monitoring
 
+### Error Handling
+- Error Queue page displays:
+  - Failed events from DeadLetterQueue table
+  - Detailed error messages and timestamps
+  - Context about failed operations (user, trigger, etc.)
+  - Filtering by error type and date range
+  - Option to retry or archive failed events
+
 ## System Constraints
 - Instagram API rate limits:
   - Max 200 comments/min

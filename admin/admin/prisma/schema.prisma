@@ -101,4 +101,14 @@ model DeadLetterQueue {
   
   @@map("dead_letter_queue")
 }
+model BotStatus {
+  id          String   @id @default(uuid())
+  serviceName String   @unique @map("service_name")
+  isHealthy   Boolean  @default(false) @map("is_healthy")
+  lastPing    DateTime @map("last_ping")
+  details     Json?
+
+  @@map("bot_status")
+}
+
 // ROO-AUDIT-TAG :: plan-009-database-schema.md :: END
