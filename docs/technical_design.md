@@ -18,13 +18,23 @@
    - No HTTP interface (direct database access only)
 
 2. **Admin Panel** (Next.js 14)
-   - App Router structure:
-     - `/app/login` - Auth page
-     - `/app/dashboard` - Main interface
-     - `/app/triggers` - CRUD operations
-   - API Routes:
-     - `/api/triggers` - Manage keywords
-     - `/api/templates` - Handle DM content
+    - App Router structure:
+      - `/app/login` - Auth page
+      - `/app/dashboard` - Main interface
+      - `/app/triggers` - CRUD operations
+    - Mixed Architecture:
+      - RESTful API routes for most operations (`/api/*`)
+      - Next.js Server Actions (defined in `lib/actions.ts`) for:
+        - Trigger management forms
+        - Real-time status updates
+        - Other interactive UI elements
+      - Benefits:
+        - Reduced client-side JavaScript
+        - Progressive enhancement
+        - Simplified data mutation flows
+    - API Routes:
+      - `/api/triggers` - Manage keywords
+      - `/api/templates` - Handle DM content
 
 3. **Database** (Supabase)
 

@@ -77,7 +77,7 @@ Completing this plan will bring the codebase into 100% compliance with its docum
     - **Action**: Add a new subsection under "Database" or "System Architecture" that describes the `bot_status` table. Explain that the Python bot periodically writes its health status to this table, and the admin dashboard reads from it to display the bot's health.
     - **Reason**: Audit finding: Undocumented `bot_status` Table. This core monitoring feature is not documented.
 
-- [ ] **DOCS**: Document the use of Next.js Server Actions for trigger management
+- [x] **DOCS**: Document the use of Next.js Server Actions for trigger management
     - **File**: `docs/technical_design.md`
     - **Action**: Add a note under the "Admin Panel" section clarifying that the UI uses a mixed architecture. While RESTful API routes exist, some features like the Triggers page use Next.js Server Actions (defined in `lib/actions.ts`) for data manipulation.
     - **Reason**: Audit finding: Mixed API/Server Action Architecture. This implementation detail is not documented and is important for future developers.
