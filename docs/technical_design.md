@@ -10,11 +10,12 @@
 ```
 
 ### Components
-1. **Instagram Bot Service** (Python)
-   - Comment polling every 60s
-   - Keyword matching engine
-   - DM sending queue
-   - Error handling and retries
+1. **Instagram Bot Service** (Python - Standalone Polling Script)
+   - Polls database every 60s for active triggers
+   - Monitors Instagram comments via API
+   - Sends DMs directly via Instagram API
+   - Writes status updates to database
+   - No HTTP interface (direct database access only)
 
 2. **Admin Panel** (Next.js 14)
    - App Router structure:
@@ -32,10 +33,6 @@
      - `activity_log` (timestamp, user_id, action)
 
 ## API Specifications
-
-### Bot Service API
-- POST `/bot/healthcheck` - Monitoring endpoint
-- GET `/bot/config` - Retrieve active triggers
 
 ### Admin Panel API
 - CRUD endpoints for all database tables

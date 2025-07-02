@@ -57,7 +57,7 @@ Completing this plan will bring the codebase into 100% compliance with its docum
     - **Action**: Search for and remove any mention of bot-specific HTTP endpoints, such as `POST /bot/healthcheck`.
     - **Reason**: Audit finding: Architectural Mismatch in Bot Health Check. The documentation incorrectly describes the bot as an HTTP service.
 
-- [ ] **DOCS**: Update technical design to reflect the bot's non-HTTP nature
+- [x] **DOCS**: Update technical design to reflect the bot's non-HTTP nature
     - **File**: `docs/technical_design.md`
     - **Action**: In the "Bot Service API" section, remove the endpoints. In the "Components" section for the bot, clarify that it is a standalone polling script that interacts with the database, not an HTTP service.
     - **Reason**: Audit finding: Architectural Mismatch in Bot Health Check. The documentation needs to be corrected to reflect the actual implementation.
