@@ -62,7 +62,7 @@ Completing this plan will bring the codebase into 100% compliance with its docum
     - **Action**: In the "Bot Service API" section, remove the endpoints. In the "Components" section for the bot, clarify that it is a standalone polling script that interacts with the database, not an HTTP service.
     - **Reason**: Audit finding: Architectural Mismatch in Bot Health Check. The documentation needs to be corrected to reflect the actual implementation.
 
-- [ ] **DOCS**: Update integration test to remove invalid bot health check
+- [x] **DOCS**: Update integration test to remove invalid bot health check
     - **File**: `tests/docker_integration_test.py`
     - **Action**: Remove the entire `test_bot_service_service` method, as it attempts to make an HTTP request to a non-existent endpoint.
     - **Reason**: Audit finding: Architectural Mismatch in Bot Health Check. The test is invalid and will always fail because the bot does not run a web server.

@@ -32,13 +32,6 @@ class DockerIntegrationTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("text/html", response.headers["Content-Type"])
 
-    def test_bot_service_service(self):
-        """Test that the bot service is running and healthy."""
-        # This assumes the bot service has a healthcheck endpoint
-        response = requests.get("http://localhost:8000/health")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["status"], "healthy")
-
     def test_database_service(self):
         """Test that the database service is running."""
         # This is a simple test to check if the database is accepting connections
