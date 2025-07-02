@@ -94,7 +94,7 @@ export async function PUT(request: NextRequest) {
 
   const slug = request.nextUrl.pathname.split('/').filter(Boolean).pop();
   const body = await request.json();
-  const { postId, keyword, userId, templateId } = body;
+  const { postId, keyword, userId, templateId, isActive } = body;
 
   if (!slug || !postId || !keyword || !userId || !templateId) {
     return NextResponse.json(
@@ -105,7 +105,7 @@ export async function PUT(request: NextRequest) {
 
   const { data, error } = await supabase
     .from('triggers')
-    .update({ postId, keyword, userId, templateId })
+    .update({ postId, keyword, userId, templateId, isActive })
     .eq('id', slug)
     .single();
 

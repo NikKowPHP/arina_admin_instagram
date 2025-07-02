@@ -28,7 +28,7 @@ Completing this plan will bring the codebase into 100% compliance with its docum
     - **Action**: Delete this file entirely. Its functionality is already covered by the `DELETE` handler in `admin/admin/src/app/api/triggers/[[...slug]]/route.ts`.
     - **Reason**: Audit finding: Redundant API routes for Trigger Deletion. Having two endpoints for the same action is confusing and unnecessary.
 
-- [ ] **UPDATE**: Add `isActive` field handling to the trigger update API
+- [x] **UPDATE**: Add `isActive` field handling to the trigger update API
     - **File**: `admin/admin/src/app/api/triggers/[[...slug]]/route.ts`
     - **Action**: In the `PUT` function, read the `isActive` boolean value from the request body. Add `isActive` to the object passed to `supabase.from('triggers').update(...)`. Ensure proper type handling (it should be a boolean).
     - **Reason**: Audit finding: `PUT /api/triggers/:id` is missing the `isActive` field, which is specified as a possibility in the documentation.
