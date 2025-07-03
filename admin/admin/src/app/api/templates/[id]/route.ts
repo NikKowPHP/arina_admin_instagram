@@ -3,8 +3,10 @@ import { createClient } from '@/lib/supabase-server';
 import prisma from '@/lib/prisma';
 import logger from '@/lib/logger';
 
-export async function GET(request: NextRequest, context: { params: { id: string } }) {
-  const { params } = await context;
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -24,8 +26,7 @@ export async function GET(request: NextRequest, context: { params: { id: string 
   }
 }
 
-export async function PUT(request: NextRequest, context: { params: { id: string } }) {
-  const { params } = await context;
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
@@ -53,8 +54,7 @@ export async function PUT(request: NextRequest, context: { params: { id: string 
   }
 }
 
-export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
-  const { params } = await context;
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
