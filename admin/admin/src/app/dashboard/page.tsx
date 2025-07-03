@@ -55,6 +55,7 @@ export default function DashboardPage() {
     triggerUsage: [] as TriggerUsage,
     analytics: data || null
   }
+  console.log('Chart data:', chartData)
 
   if (isLoading) {
     return (
@@ -91,6 +92,38 @@ export default function DashboardPage() {
         />
       </div>
 
+      {/* Stat Cards Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <Card className="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-2 text-white">Total Triggers</h2>
+          {data && (
+            <p className="text-3xl font-bold text-white">{data.triggerActivations}</p>
+          )}
+        </Card>
+
+        <Card className="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-2 text-white">Total Users</h2>
+          {data && (
+            <p className="text-3xl font-bold text-white">{data.userActivity.totalUsers}</p>
+          )}
+        </Card>
+
+        <Card className="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-2 text-white">Events Logged</h2>
+          {data && (
+            <p className="text-3xl font-bold text-white">{data.userActivity.activityLogEntries}</p>
+          )}
+        </Card>
+
+        <Card className="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-2 text-white">DMs Sent</h2>
+          {data && (
+            <p className="text-3xl font-bold text-white">{data.userActivity.dmsSent}</p>
+          )}
+        </Card>
+      </div>
+
+      {/* Main Charts Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4 text-white">Bot Health Status</h2>
@@ -126,49 +159,7 @@ export default function DashboardPage() {
           )}
         </Card>
 
-        <Card className="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4 text-white">User Activity</h2>
-          {data && (
-            <LineChart
-              datasets={[
-                { total: data.userActivity.totalUsers },
-                { active: data.userActivity.activityLogEntries }
-              ]}
-              xAxis="date"
-              yFields={['total', 'active']}
-              colors={['#3b82f6', '#10b981']}
-            />
-          )}
-        </Card>
-
-        <Card className="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4 text-white">DMs Sent</h2>
-          {data && (
-            <div className="flex flex-col items-center justify-center h-32 text-white">
-              <p className="text-5xl font-bold">{data.userActivity.dmsSent}</p>
-              <p className="text-sm text-gray-400">DMs sent in the last 7 days</p>
-            </div>
-          )}
-        </Card>
-
-        <Card className="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4 text-white">System Health</h2>
-          {data && (
-            <div className="space-y-2 text-gray-300">
-              <p><strong>Last Ping:</strong> {new Date(data.systemHealth.lastPing).toLocaleString()}</p>
-              <p><strong>Status:</strong> {data.systemHealth.isHealthy ? 'Healthy' : 'Unhealthy'}</p>
-              <p><strong>Errors:</strong> {data.systemHealth.errorCount}</p>
-              {data.systemHealth.storageUsage !== undefined && (
-                <p><strong>Storage:</strong> {data.systemHealth.storageUsage} MB</p>
-              )}
-              {data.systemHealth.authBreaches !== undefined && (
-                <p><strong>Auth Breaches:</strong> {data.systemHealth.authBreaches}</p>
-              )}
-            </div>
-          )}
-        </Card>
-
-        <Card className="md:col-span-2 lg:col-span-3 bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
+        <Card className="md:col-span-2 bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4 text-white">Template Usage</h2>
           {data && (
             <div className="max-w-md mx-auto">
