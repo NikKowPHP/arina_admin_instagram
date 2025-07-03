@@ -5,7 +5,7 @@ import TriggerList from '@/components/trigger-list';
 import CreateTriggerForm from '@/components/create-trigger-form';
 import EditTriggerForm from '@/components/edit-trigger-form';
 import Modal from '@/components/ui/modal';
-import { getTriggers, deleteTrigger, getTemplates } from '@/lib/actions';
+import { getTriggers, deleteTrigger, getTemplates, createTrigger, updateTrigger } from '@/lib/actions';
 import { Trigger } from '@prisma/client';
 
 interface TemplateOption {
