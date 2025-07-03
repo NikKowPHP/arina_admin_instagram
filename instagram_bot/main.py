@@ -21,7 +21,17 @@ logger = logging.getLogger(__name__)
 
 def main():
     """Main function to run the Instagram bot."""
+        # --- ADD THIS LINE ---
+    print("---- DUMPING ENVIRONMENT VARIABLES ----")
+    import os
+    print(os.environ)
+    print("---------------------------------------")
+    # ---------------------
     logger.info("Starting Instagram bot service...")
+  
+
+
+
 
     # Initialize the bot
     bot = InstagramBot()
