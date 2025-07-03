@@ -171,9 +171,11 @@ class InstagramBot:
                 
                 file_ext = os.path.splitext(media_url)[1].lower()
                 if file_ext in ('.mp4', '.mov'):
-                    self.client.direct_send_video(media_path, user_ids=[user_id], text=message)
+                    self.client.direct_send_video(media_path, user_ids=[user_id])
+                    self.client.direct_send(message, user_ids=[user_id])
                 else:
-                    self.client.direct_send_photo(media_path, user_ids=[user_id], text=message)
+                    self.client.direct_send_photo(media_path, user_ids=[user_id])
+                    self.client.direct_send(message, user_ids=[user_id])
                 
                 os.remove(media_path) # Clean up the temporary file
                 logger.info(f"Successfully sent media DM to user {user_id}")

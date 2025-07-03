@@ -181,6 +181,7 @@ export default function TemplatesPage() {
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-300 mb-1">Content</label>
           <textarea name="content" value={formData.content} onChange={handleInputChange} rows={4} className="w-full p-2 rounded-md bg-gray-800 border border-gray-700 text-white focus:ring-blue-500 focus:border-blue-500" />
+<p className="text-gray-500 text-xs mt-1">To add a link, paste the full URL (e.g., https://t.me/yourchannel). Instagram will make it clickable. HTML is not supported.</p>
         </div>
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-300 mb-1">Media</label>

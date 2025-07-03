@@ -1,5 +1,6 @@
+'use client';
 import { useEffect, useState } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableRow } from '@/components/ui/table';
 
 interface DeadLetterQueueItem {
   id: string;
@@ -12,6 +13,7 @@ interface DeadLetterQueueItem {
 const DeadLetterQueuePage = () => {
   const [errorQueue, setErrorQueue] = useState<DeadLetterQueueItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchErrorQueue = async () => {
@@ -24,6 +26,7 @@ const DeadLetterQueuePage = () => {
         setErrorQueue(data);
       } catch (error) {
         console.error('Error fetching error queue:', error);
+        setError('Failed to load error queue. Please try again later.');
       } finally {
         setIsLoading(false);
       }
@@ -33,32 +36,46 @@ const DeadLetterQueuePage = () => {
   }, []);
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen text-white">
+        <p className="text-lg">Loading error queue...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-screen text-red-500">
+        <p className="text-lg">{error}</p>
+      </div>
+    );
   }
 
   return (
-    <div>
-      <h1>Error Queue</h1>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableHeader>Error Message</TableHeader>
-            <TableHeader>Action</TableHeader>
-            <TableHeader>Details</TableHeader>
-            <TableHeader>Timestamp</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {errorQueue.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell>{item.errorMessage}</TableCell>
-              <TableCell>{item.action}</TableCell>
-              <TableCell>{item.details}</TableCell>
-              <TableCell>{new Date(item.timestamp).toLocaleString()}</TableCell>
+    <div className="p-8 mt-16">
+      <h1 className="text-3xl font-bold text-white mb-6">Error Queue</h1>
+      <div className="bg-gray-900 border border-gray-800 rounded-lg shadow-md overflow-hidden">
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Error Message</TableHead>
+              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Action</TableHead>
+              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Details</TableHead>
+              <TableHead className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Timestamp</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHead>
+          <TableBody>
+            {errorQueue.map((item) => (
+              <TableRow key={item.id}>
+                <TableCell>{item.errorMessage}</TableCell>
+                <TableCell>{item.action}</TableCell>
+                <TableCell><pre className="whitespace-pre-wrap break-all">{item.details}</pre></TableCell>
+                <TableCell>{new Date(item.timestamp).toLocaleString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 };
