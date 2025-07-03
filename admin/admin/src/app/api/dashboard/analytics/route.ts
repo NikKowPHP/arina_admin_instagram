@@ -19,7 +19,8 @@ export async function GET() {
       prisma.activityLog.count({ where: { action: 'sent_dm' } }), // Assuming 'dm_sent' action for DMs
       prisma.template.findMany({
         select: {
-          id: true, // Use id instead of name
+          // id: true, // Use id instead of name
+          name: true, // Include name for display purposes
           _count: {
             select: {
               triggers: true,
@@ -56,10 +57,11 @@ export async function GET() {
         dmsSent,
       },
       systemHealth: systemHealth,
-      templateUsage: templateUsage.map((template: { id: string; _count: { triggers: number } }) => ({
-        id: template.id, // Use id as name for display
+      templateUsage: templateUsage.map((template: { name: string; _count: { triggers: number } }) => ({
+        name: template.name, // Use id as name for display
         count: template._count.triggers,
       })),
+      triggerActivity: [], 
     };
 
     return NextResponse.json(analytics);

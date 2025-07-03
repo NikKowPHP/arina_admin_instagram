@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+// import { useState } from 'react'
 import useSWR from 'swr'
-import { BarChart } from '@/components/ui/bar-chart'
-import { LineChart } from '@/components/ui/line-chart'
+// import { BarChart } from '@/components/ui/bar-chart'
+// import { LineChart } from '@/components/ui/line-chart'
 import { PieChart } from '@/components/ui/pie-chart'
 import { Card } from '@/components/ui/card'
-import { ChartControls } from '@/components/chart-controls'
+// import { ChartControls } from '@/components/chart-controls'
 import { BotHealthStatusCard } from '@/components/bot-health-status'
 import type { BotHealthStatus } from '@/types/bot-monitor'
 
@@ -19,7 +19,8 @@ export type DashboardAnalytics = {
     dmsSent: number
   }
   systemHealth: BotHealthStatus
-  templateUsage: Array<{ id: string; count: number }>
+  templateUsage: Array<{ name: string; count: number }>
+  triggerActivity: Array<{ date: string; count: number }>
 }
 
 const fetcher = (url: string) => fetch(url).then(res => {
@@ -31,9 +32,9 @@ const fetcher = (url: string) => fetch(url).then(res => {
 
 // ROO-AUDIT-TAG :: plan-007-dashboard.md :: Implement analytics dashboard
 export default function DashboardPage() {
-  const [dateRange, setDateRange] = useState('7d')
-  const [chartType, setChartType] = useState('bar')
-  const [visibleData, setVisibleData] = useState(['Triggers', 'Users', 'Templates'])
+  // const [dateRange, setDateRange] = useState('7d')
+  // const [chartType, setChartType] = useState('bar')
+  // const [visibleData, setVisibleData] = useState(['Triggers', 'Users', 'Templates'])
 
   const { data, error, isLoading } = useSWR<DashboardAnalytics>(
     '/api/dashboard/analytics',
@@ -52,7 +53,7 @@ export default function DashboardPage() {
   }
 
   const chartData = {
-    triggerUsage: [] as TriggerUsage,
+    triggerUsage: data?.triggerActivity || [] as TriggerUsage,
     analytics: data || null
   }
   console.log('Chart data:', chartData)
@@ -82,14 +83,14 @@ export default function DashboardPage() {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-start gap-4 flex-wrap">
         <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
-        <ChartControls
+        {/* <ChartControls
           dateRange={dateRange}
           onDateRangeChange={setDateRange}
           chartType={chartType}
           onChartTypeChange={setChartType}
           visibleData={visibleData}
           onVisibleDataChange={setVisibleData}
-        />
+        /> */}
       </div>
 
       {/* Stat Cards Grid */}
@@ -134,30 +135,30 @@ export default function DashboardPage() {
           )}
         </Card>
 
-        <Card className="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
+        {/* <Card className="bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4 text-white">Trigger Activity</h2>
-          {chartType === 'bar' && (
+          {data?.triggerActivity && chartType === 'bar' && (
             <BarChart
-              datasets={chartData.triggerUsage}
+              datasets={data.triggerActivity}
               xAxis="date"
               yFields={['count']}
             />
           )}
-          {chartType === 'line' && (
+          {data?.triggerActivity && chartType === 'line' && (
             <LineChart
-              datasets={chartData.triggerUsage}
+              datasets={data.triggerActivity}
               xAxis="date"
               yFields={['count']}
             />
           )}
-          {chartType === 'pie' && (
+          {data?.triggerActivity && chartType === 'pie' && (
             <PieChart
-              datasets={chartData.triggerUsage}
+              datasets={data.triggerActivity}
               labelField="date"
               valueField="count"
             />
           )}
-        </Card>
+        </Card> */}
 
         <Card className="md:col-span-2 bg-gray-900 border border-gray-800 rounded-lg shadow-md p-6">
           <h2 className="text-xl font-semibold mb-4 text-white">Template Usage</h2>
