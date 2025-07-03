@@ -1,5 +1,6 @@
+import { Database } from '@/types/supabase'
 import { createBrowserClient } from '@supabase/ssr'
-import { Database } from '@prisma/client'
+
 
 export function createClient() {
   return createBrowserClient<Database>(
