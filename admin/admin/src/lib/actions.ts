@@ -2,7 +2,8 @@
 
 'use server';
 
-import prisma from './prisma'; // Make sure the prisma client is imported
+import prisma from './prisma';
+import { createClient } from './supabase-server';
 
 export async function getTriggers(page = 1, pageSize = 10) {
   const skip = (page - 1) * pageSize;
@@ -25,25 +26,37 @@ export async function getTriggers(page = 1, pageSize = 10) {
 }
 
 export async function createTrigger(data: FormData) {
-  // Assuming 'name', 'keyword', 'status' are not the actual fields.
-  // Based on your schema, it should be something like this:
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
   return prisma.trigger.create({
     data: {
       postId: data.get('postId') as string,
       keyword: data.get('keyword') as string,
-      userId: data.get('userId') as string,
+      userId: user.id,
       templateId: data.get('templateId') as string,
     },
   });
 }
 
 export async function updateTrigger(id: string, data: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
   return prisma.trigger.update({
     where: { id },
     data: {
       postId: data.get('postId') as string,
       keyword: data.get('keyword') as string,
-      userId: data.get('userId') as string,
+      userId: user.id,
       templateId: data.get('templateId') as string,
     },
   });
@@ -51,6 +64,23 @@ export async function updateTrigger(id: string, data: FormData) {
 
 export async function deleteTrigger(id: string) {
   return prisma.trigger.delete({ where: { id } });
+}
+
+interface TemplateOption {
+  id: string;
+  name: string;
+}
+
+export async function getTemplates(): Promise<TemplateOption[]> {
+  return prisma.template.findMany({
+    select: {
+      id: true,
+      name: true
+    },
+    orderBy: {
+      name: 'asc'
+    }
+  });
 }
 
 // THIS IS A PLACEHOLDER. You don't have an `analytics` table.

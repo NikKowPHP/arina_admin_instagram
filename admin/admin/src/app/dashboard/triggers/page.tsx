@@ -5,10 +5,17 @@ import TriggerList from '@/components/trigger-list';
 import CreateTriggerForm from '@/components/create-trigger-form';
 import EditTriggerForm from '@/components/edit-trigger-form';
 import Modal from '@/components/ui/modal';
-import { getTriggers, deleteTrigger } from '@/lib/actions';
+import { getTriggers, deleteTrigger, getTemplates } from '@/lib/actions';
 import { Trigger } from '@prisma/client';
+
+interface TemplateOption {
+  id: string;
+  name: string;
+}
+
 const TriggersPage: React.FC = () => {
   const [triggers, setTriggers] = useState<Trigger[]>([]);
+  const [templates, setTemplates] = useState<TemplateOption[]>([]);
   const [selectedTrigger, setSelectedTrigger] = useState<Trigger | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -23,8 +30,14 @@ const TriggersPage: React.FC = () => {
     setTotalPages(data.totalPages);
   };
 
+  const fetchTemplates = async () => {
+    const templates = await getTemplates();
+    setTemplates(templates);
+  };
+
   useEffect(() => {
     fetchTriggers();
+    fetchTemplates();
   }, [currentPage, sortField, sortDirection]);
 
   const handleCreate = () => {
@@ -74,6 +87,15 @@ const TriggersPage: React.FC = () => {
 
   return (
     <div className="p-8 mt-16"> {/* Added mt-16 for spacing from fixed sidebar */}
+      <div className="bg-gray-800 p-6 rounded-lg mb-6">
+        <h2 className="text-xl font-bold text-white mb-4">How Triggers Work</h2>
+        <ol className="list-decimal list-inside space-y-2 text-gray-300">
+          <li>Create a <strong>Template</strong>: This is the DM you want to send.</li>
+          <li>Create a <strong>Trigger</strong>: This links a keyword to a specific Instagram post and your chosen template.</li>
+          <li>When a user comments with the <strong>keyword</strong> on that <strong>post</strong>, the bot sends them your <strong>template</strong> message.</li>
+        </ol>
+      </div>
+
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-white">Triggers</h1>
         <button
@@ -112,7 +134,7 @@ const TriggersPage: React.FC = () => {
         currentSort={{ field: sortField, direction: sortDirection }}
       />
       <Modal isOpen={isCreateModalOpen} onClose={() => { setIsCreateModalOpen(false); fetchTriggers(); }}>
-        <CreateTriggerForm />
+        <CreateTriggerForm templates={templates} />
       </Modal>
       <Modal isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); fetchTriggers(); }}>
         {selectedTrigger && (
@@ -121,8 +143,7 @@ const TriggersPage: React.FC = () => {
             initialData={{
               postId: selectedTrigger.postId,
               keyword: selectedTrigger.keyword,
-              userId: selectedTrigger.userId,
-              templateId: selectedTrigger.templateId,
+              templateId: selectedTrigger.templateId
             }}
           />
         )}
