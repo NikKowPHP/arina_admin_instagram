@@ -20,6 +20,7 @@ const fetcher = (url: string) => fetch(url).then(res => res.json());
 const deleteTemplate = async (id: string) => {
   const response = await fetch(`/api/templates/${id}`, {
     method: 'DELETE',
+    body: JSON.stringify({id}),
   });
   if (!response.ok) {
     const error = await response.json();

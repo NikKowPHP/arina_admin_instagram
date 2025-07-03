@@ -5,8 +5,13 @@ import { createClient } from '@/lib/supabase-server';
 import prisma from '@/lib/prisma';
 import logger from '@/lib/logger';
 
-// --- GET: Handles fetching all templates OR a single template by ID ---
-export async function GET(request: NextRequest) {
+type Params = { id: string; locale: string }
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Params }
+) {
+  const { id } = params
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -14,7 +19,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const id = request.nextUrl.searchParams.get('id');
+  if (!id) {
+    // If no ID is provided, return an error
+    return NextResponse.json({ error: 'Template ID is required' }, { status: 400 });
+  }
 
   try {
     // If an ID is provided, fetch a single template
@@ -71,15 +79,17 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// --- PUT: Handles updating a template by ID ---
-export async function PUT(request: NextRequest) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Params }
+) {
+  const { id } = params
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const id = request.nextUrl.searchParams.get('id');
   if (!id) {
     return NextResponse.json({ error: 'Template ID is required' }, { status: 400 });
   }
@@ -106,26 +116,40 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-// --- DELETE: Handles deleting a template by ID ---
-export async function DELETE(request: NextRequest) {
+export async function DELETE(
+  request: NextRequest
+) {
+  console.log('request', request);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-
-  const id = request.nextUrl.searchParams.get('id');
+  const body = await request.json();
+  const { id } = body;
   if (!id) {
     return NextResponse.json({ error: 'Template ID is required' }, { status: 400 });
   }
 
   try {
-    await prisma.template.delete({
-      where: { id }
+    await prisma.$transaction(async (prisma) => {
+      // Delete all triggers associated with the template
+      await prisma.trigger.deleteMany({
+        where: { templateId: id },
+      });
+
+      // Then delete the template
+      await prisma.template.delete({
+        where: { id },
+      });
     });
     return NextResponse.json({ message: 'Template deleted successfully' });
-  } catch (error) {
+  } catch (error: any ) {
     logger.error(`Error deleting template ${id}:`, error);
+    // Check if the error is a Prisma foreign key constraint violation
+    if (error.code === 'P2003') {
+      return NextResponse.json({ error: 'Cannot delete template while it is referenced by other entities.' }, { status: 409 });
+    }
     return NextResponse.json({ error: 'Database error or template not found' }, { status: 500 });
   }
 }
