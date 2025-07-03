@@ -10,13 +10,15 @@ const logger = winston.createLogger({
     new winston.transports.Console({
       format: winston.format.simple(),
     }),
-    new winston.transports.File({ 
+    new winston.transports.File({
       filename: 'logs/application.log',
-      level: 'debug'
+      level: 'debug',
+      format: winston.format.prettyPrint()
     }),
-    new winston.transports.File({ 
-      filename: 'logs/error.log', 
-      level: 'error' 
+    new winston.transports.File({
+      filename: 'logs/error.log',
+      level: 'error',
+      format: winston.format.prettyPrint()
     })
   ]
 });
