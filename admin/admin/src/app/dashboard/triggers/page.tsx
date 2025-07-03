@@ -49,6 +49,26 @@ const TriggersPage: React.FC = () => {
     setIsEditModalOpen(true);
   };
 
+  const handleCreateSubmit = async (data: FormData) => {
+    try {
+      await createTrigger(data);
+      fetchTriggers();
+      setIsCreateModalOpen(false);
+    } catch (error) {
+      console.error('Failed to create trigger:', error);
+    }
+  };
+
+  const handleEditSubmit = async (id: string, data: FormData) => {
+    try {
+      await updateTrigger(id, data);
+      fetchTriggers();
+      setIsEditModalOpen(false);
+    } catch (error) {
+      console.error('Failed to update trigger:', error);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     await deleteTrigger(id);
     fetchTriggers(); // Refresh list after delete
@@ -133,10 +153,10 @@ const TriggersPage: React.FC = () => {
         onSort={handleSort}
         currentSort={{ field: sortField, direction: sortDirection }}
       />
-      <Modal isOpen={isCreateModalOpen} onClose={() => { setIsCreateModalOpen(false); fetchTriggers(); }}>
-        <CreateTriggerForm templates={templates} />
+      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)}>
+        <CreateTriggerForm templates={templates} onSubmit={handleCreateSubmit} />
       </Modal>
-      <Modal isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); fetchTriggers(); }}>
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
         {selectedTrigger && (
           <EditTriggerForm
             triggerId={selectedTrigger.id}
@@ -145,6 +165,7 @@ const TriggersPage: React.FC = () => {
               keyword: selectedTrigger.keyword,
               templateId: selectedTrigger.templateId
             }}
+            onSubmit={handleEditSubmit}
           />
         )}
       </Modal>

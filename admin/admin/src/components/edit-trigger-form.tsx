@@ -1,8 +1,6 @@
 import React from 'react';
 import Input from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
-import { updateTrigger } from '@/lib/actions';
-
 interface EditTriggerFormValues {
   postId: string;
   keyword: string;
@@ -12,27 +10,24 @@ interface EditTriggerFormValues {
 interface EditTriggerFormProps {
   triggerId: string;
   initialData: EditTriggerFormValues;
+  onSubmit: (id: string, data: FormData) => Promise<void>;
 }
 
-const EditTriggerForm: React.FC<EditTriggerFormProps> = ({ triggerId, initialData }) => {
+const EditTriggerForm: React.FC<EditTriggerFormProps> = ({ triggerId, initialData, onSubmit }) => {
   const { register, handleSubmit, formState: { errors } } = useForm<EditTriggerFormValues>({
     defaultValues: initialData,
   });
 
-  const onSubmit = async (data: EditTriggerFormValues) => {
-    try {
-      const formData = new FormData();
-      formData.append('postId', data.postId);
-      formData.append('keyword', data.keyword);
-      formData.append('templateId', data.templateId);
-      await updateTrigger(triggerId, formData);
-    } catch (error) {
-      console.error('Failed to update trigger:', error);
-    }
+  const handleFormSubmit = async (data: EditTriggerFormValues) => {
+    const formData = new FormData();
+    formData.append('postId', data.postId);
+    formData.append('keyword', data.keyword);
+    formData.append('templateId', data.templateId);
+    await onSubmit(triggerId, formData);
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-300 mb-1">Instagram Post Shortcode</label>
         <Input

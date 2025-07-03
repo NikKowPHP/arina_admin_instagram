@@ -3,6 +3,15 @@
 
 import React, { useEffect, useState } from 'react';
 import { Trigger } from '@prisma/client';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'; // Assuming these are the correct imports
+
 interface TriggerListProps {
   triggers: Trigger[];
   onEdit: (trigger: Trigger) => void;
@@ -41,43 +50,55 @@ const TriggerList: React.FC<TriggerListProps> = ({
   };
 
   return (
-    <table>
-      <thead>
-        <tr>
-          <th onClick={() => onSort?.('postId')}>
-            Post ID {getSortIcon('postId')}
-          </th>
-          <th onClick={() => onSort?.('keyword')}>
-            Keyword {getSortIcon('keyword')}
-          </th>
-          <th onClick={() => onSort?.('isActive')}>
-            Active {getSortIcon('isActive')}
-          </th>
-          <th onClick={() => onSort?.('userId')}>
-            User ID {getSortIcon('userId')}
-          </th>
-          <th onClick={() => onSort?.('templateId')}>
-            Template ID {getSortIcon('templateId')}
-          </th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {triggerData.map((trigger: Trigger) => (
-          <tr key={trigger.id}>
-            <td>{trigger.postId}</td>
-            <td>{trigger.keyword}</td>
-            <td>{trigger.isActive ? 'Yes' : 'No'}</td>
-            <td>{trigger.userId}</td>
-            <td>{trigger.templateId}</td>
-            <td>
-              <button onClick={() => onEdit(trigger)}>Edit</button>
-              <button onClick={() => onDelete(trigger.id)}>Delete</button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="overflow-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead onClick={() => onSort?.('postId')} className="cursor-pointer">
+              Post ID {getSortIcon('postId')}
+            </TableHead>
+            <TableHead onClick={() => onSort?.('keyword')} className="cursor-pointer">
+              Keyword {getSortIcon('keyword')}
+            </TableHead>
+            <TableHead onClick={() => onSort?.('isActive')} className="cursor-pointer">
+              Active {getSortIcon('isActive')}
+            </TableHead>
+            <TableHead onClick={() => onSort?.('userId')} className="cursor-pointer">
+              User ID {getSortIcon('userId')}
+            </TableHead>
+            <TableHead onClick={() => onSort?.('templateId')} className="cursor-pointer">
+              Template ID {getSortIcon('templateId')}
+            </TableHead>
+            <TableHead>Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {triggerData.map((trigger: Trigger) => (
+            <TableRow key={trigger.id}>
+              <TableCell>{trigger.postId}</TableCell>
+              <TableCell>{trigger.keyword}</TableCell>
+              <TableCell>{trigger.isActive ? 'Yes' : 'No'}</TableCell>
+              <TableCell>{trigger.userId}</TableCell>
+              <TableCell>{trigger.templateId}</TableCell>
+              <TableCell>
+                <button
+                  onClick={() => onEdit(trigger)}
+                  className="text-blue-500 hover:underline mr-2"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => onDelete(trigger.id)}
+                  className="text-red-500 hover:underline"
+                >
+                  Delete
+                </button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 };
 

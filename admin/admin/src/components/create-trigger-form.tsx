@@ -1,7 +1,6 @@
 import React from 'react';
 import Input from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
-import { createTrigger } from '@/lib/actions';
 
 interface CreateTriggerFormValues {
   postId: string;
@@ -11,25 +10,22 @@ interface CreateTriggerFormValues {
 
 interface CreateTriggerFormProps {
   templates: Array<{ id: string; name: string }>;
+  onSubmit: (data: FormData) => Promise<void>;
 }
 
-const CreateTriggerForm: React.FC<CreateTriggerFormProps> = ({ templates }) => {
+const CreateTriggerForm: React.FC<CreateTriggerFormProps> = ({ templates, onSubmit }) => {
   const { register, handleSubmit, formState: { errors } } = useForm<CreateTriggerFormValues>();
 
-  const onSubmit = async (data: CreateTriggerFormValues) => {
-    try {
-      const formData = new FormData();
-      formData.append('postId', data.postId);
-      formData.append('keyword', data.keyword);
-      formData.append('templateId', data.templateId);
-      await createTrigger(formData);
-    } catch (error) {
-      console.error('Failed to create trigger:', error);
-    }
+  const handleFormSubmit = async (data: CreateTriggerFormValues) => {
+    const formData = new FormData();
+    formData.append('postId', data.postId);
+    formData.append('keyword', data.keyword);
+    formData.append('templateId', data.templateId);
+    await onSubmit(formData);
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-300 mb-1">Instagram Post Shortcode</label>
         <Input
