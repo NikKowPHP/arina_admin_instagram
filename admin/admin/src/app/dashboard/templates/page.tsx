@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import useSWR, { mutate } from 'swr'; // Import useSWR and mutate
+import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -33,12 +33,13 @@ interface Template {
   id: string;
   name: string;
   content: string;
-  media_url?: string;
+  mediaUrl?: string;
 }
 
 export default function TemplatesPage() {
   // Use SWR to fetch data from the API endpoint
-  const { data: templates, error, isLoading } = useSWR<Template[]>('/api/templates', fetcher);
+  const { data: templates, error, isLoading, mutate: swrMutate } = useSWR<Template[]>('/api/templates/', fetcher);
+
 
   const [formData, setFormData] = useState({ name: '', content: '' });
   const [mediaFile, setMediaFile] = useState<File | null>(null);
@@ -89,12 +90,14 @@ export default function TemplatesPage() {
         content: formData.content,
         media_url: mediaUrl || undefined
       };
-      await fetch('/api/templates', {
+      const response = await fetch('/api/templates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      mutate('/api/templates'); // Revalidate the data
+      const newTemplate = await response.json();
+      // Optimistic update
+      swrMutate((currentTemplates = []) => [...currentTemplates, newTemplate], false);
       setFormData({ name: '', content: '' });
       setMediaFile(null);
       setMediaPreviewUrl(null);
@@ -106,7 +109,7 @@ export default function TemplatesPage() {
   const handleEdit = (template: Template) => {
     setFormData({ name: template.name, content: template.content });
     setMediaFile(null);
-    setMediaPreviewUrl(template.media_url || null);
+    setMediaPreviewUrl(template.mediaUrl || null);
     setIsEditing(true);
     setCurrentId(template.id);
   };
@@ -120,14 +123,19 @@ export default function TemplatesPage() {
       const payload = {
         name: formData.name,
         content: formData.content,
-        media_url: mediaUrl || undefined
+        mediaUrl: mediaUrl || undefined
       };
-      await fetch(`/api/templates/${currentId}`, {
+      const response = await fetch(`/api/templates/${currentId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      mutate('/api/templates'); // Revalidate the data
+      const updatedTemplate = await response.json();
+      // Optimistic update
+      swrMutate((currentTemplates = []) =>
+        currentTemplates.map(t => t.id === currentId ? updatedTemplate : t),
+        false
+      );
       setFormData({ name: '', content: '' });
       setMediaFile(null);
       setMediaPreviewUrl(null);
@@ -140,8 +148,12 @@ export default function TemplatesPage() {
 
   const handleDelete = async (id: string) => {
     try {
+      // Optimistic update
+      swrMutate((currentTemplates = []) =>
+        currentTemplates.filter(t => t.id !== id),
+        false
+      );
       await deleteTemplate(id);
-      mutate('/api/templates'); // Revalidate the data
     } catch (error) {
       console.error('Error deleting template:', error);
     }
