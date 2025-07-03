@@ -16,7 +16,7 @@ export async function GET() {
       prisma.trigger.count(),
       prisma.user.count(),
       prisma.activityLog.count(),
-      prisma.activityLog.count({ where: { action: 'dm_sent' } }), // Assuming 'dm_sent' action for DMs
+      prisma.activityLog.count({ where: { action: 'sent_dm' } }), // Assuming 'dm_sent' action for DMs
       prisma.template.findMany({
         select: {
           id: true, // Use id instead of name

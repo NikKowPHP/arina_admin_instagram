@@ -44,6 +44,8 @@ export default function DashboardPage() {
     }
   )
 
+  console.log('Dashboard data:', data)
+
   const botHealth = {
     status: data?.systemHealth || null,
     error: error ? 'Failed to fetch bot health' : null

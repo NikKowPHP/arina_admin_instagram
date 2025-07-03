@@ -26,8 +26,15 @@ def main():
     # Initialize the bot
     bot = InstagramBot()
 
-    # Start the bot
-    bot.run()
+    # Determine run mode from environment (default to 'single' for cloud)
+    run_mode = os.getenv("RUN_MODE", "single").lower()
+    logger.info(f"Running in {run_mode} mode")
+
+    # Start the bot in appropriate mode
+    if run_mode == "continuous":
+        bot.run_continuously()
+    else:
+        bot.run_single_check()
 
 def check_health():
     """Check if the bot can connect to the database."""

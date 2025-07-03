@@ -25,6 +25,8 @@ services:
       context: ./instagram_bot
     env_file:
       - ./instagram_bot/.env
+    environment:
+      - RUN_MODE=continuous
     depends_on:
       - db
     volumes:

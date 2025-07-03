@@ -237,58 +237,61 @@ class InstagramBot:
             self.db_conn.rollback()
             logger.error(f"Failed to update health status: {str(e)}")
 
-    def run(self):
-        """Main bot loop."""
+    def run_single_check(self):
+        """Execute a single cycle of the bot's checks."""
+        try:
+            triggers = self.fetch_triggers()
+            templates_list = self.fetch_templates()
+            templates_dict = {str(t[0]): {'content': t[1], 'media_url': t[2]} for t in templates_list}
+
+            for trigger_id, post_id, keyword, template_id in triggers:
+                if not post_id: continue
+
+                matched_comments = self.check_comments(post_id, [keyword])
+
+                for comment in matched_comments:
+                    user_id = str(comment.user.pk)
+                    comment_id = str(comment.pk)
+                    
+                    # *** FIX: Improved transaction handling per comment ***
+                    try:
+                        if not template_id:
+                            logger.error(f"Trigger {trigger_id} has no template_id assigned")
+                            raise ValueError("Missing template_id")
+                        
+                        template = templates_dict.get(str(template_id))
+                        if not template:
+                            logger.error(f"No template found with ID {template_id} for trigger {trigger_id}")
+                            raise ValueError(f"Template not found: {template_id}")
+
+                        self.send_dm(user_id, template)
+
+                        self.db_cursor.execute(
+                            "INSERT INTO processed_comments (id, comment_id, post_id) VALUES (gen_random_uuid(), %s, %s) ON CONFLICT (comment_id) DO NOTHING",
+                            (comment_id, post_id)
+                        )
+                        self.db_conn.commit()
+                        logger.info(f"Successfully processed and committed comment {comment_id}")
+
+                    except Exception as e:
+                        self.db_conn.rollback()
+                        logger.error(f"Failed to process comment {comment_id} for user {user_id}: {e}")
+                        self._log_dead_letter_queue(user_id, "process_comment", {"trigger": trigger_id, "comment": comment.text}, str(e))
+
+            self._update_health_status()
+        except psycopg2.InterfaceError:
+            logger.error("Database connection lost. Reconnecting...")
+            self.connect_to_database()
+        except Exception as loop_e:
+            logger.critical(f"An unexpected error occurred in the main loop: {loop_e}")
+
+    def run_continuously(self):
+        """Run the bot in continuous polling mode (for local development)."""
         self.connect_to_instagram()
         self.connect_to_database()
 
         while True:
-            try:
-                triggers = self.fetch_triggers()
-                templates_list = self.fetch_templates()
-                templates_dict = {str(t[0]): {'content': t[1], 'media_url': t[2]} for t in templates_list}
-
-                for trigger_id, post_id, keyword, template_id in triggers:
-                    if not post_id: continue
-
-                    matched_comments = self.check_comments(post_id, [keyword])
-
-                    for comment in matched_comments:
-                        user_id = str(comment.user.pk)
-                        comment_id = str(comment.pk)
-                        
-                        # *** FIX: Improved transaction handling per comment ***
-                        try:
-                            if not template_id:
-                                logger.error(f"Trigger {trigger_id} has no template_id assigned")
-                                raise ValueError("Missing template_id")
-                            
-                            template = templates_dict.get(str(template_id))
-                            if not template:
-                                logger.error(f"No template found with ID {template_id} for trigger {trigger_id}")
-                                raise ValueError(f"Template not found: {template_id}")
-
-                            self.send_dm(user_id, template)
-
-                            self.db_cursor.execute(
-                                "INSERT INTO processed_comments (id, comment_id, post_id) VALUES (gen_random_uuid(), %s, %s) ON CONFLICT (comment_id) DO NOTHING",
-                                (comment_id, post_id)
-                            )
-                            self.db_conn.commit()
-                            logger.info(f"Successfully processed and committed comment {comment_id}")
-
-                        except Exception as e:
-                            self.db_conn.rollback()
-                            logger.error(f"Failed to process comment {comment_id} for user {user_id}: {e}")
-                            self._log_dead_letter_queue(user_id, "process_comment", {"trigger": trigger_id, "comment": comment.text}, str(e))
-
-                self._update_health_status()
-            except psycopg2.InterfaceError:
-                logger.error("Database connection lost. Reconnecting...")
-                self.connect_to_database()
-            except Exception as loop_e:
-                logger.critical(f"An unexpected error occurred in the main loop: {loop_e}")
-            
+            self.run_single_check()
             time.sleep(60)
 
     def __del__(self):
@@ -300,7 +303,7 @@ class InstagramBot:
 def main():
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     bot = InstagramBot()
-    bot.run()
+    bot.run_continuously()
 
 if __name__ == "__main__":
     main()
