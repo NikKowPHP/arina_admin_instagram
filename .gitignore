@@ -10,3 +10,4 @@ DS_Store
 repomix-output.xml
 .env
 instagram_bot/bot.log
+.vercel
