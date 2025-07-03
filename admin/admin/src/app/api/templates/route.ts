@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import logger from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
+  console.log('request', request);
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
