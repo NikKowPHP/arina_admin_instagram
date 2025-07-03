@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Trigger } from '@/types/database';
+import { Trigger } from '@prisma/client';
 interface TriggerListProps {
   triggers: Trigger[];
   onEdit: (trigger: Trigger) => void;

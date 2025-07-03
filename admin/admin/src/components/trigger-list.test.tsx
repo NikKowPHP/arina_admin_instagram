@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import TriggerList from './trigger-list';
-import { Trigger } from '@/types/database';
+import { Trigger } from '@prisma/client';
 
 const mockTriggers: Trigger[] = [
   {

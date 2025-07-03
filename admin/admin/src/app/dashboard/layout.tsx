@@ -1,25 +1,12 @@
 'use client';
 
-import { ReactNode, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSupabase } from '@/lib/supabase-provider';
+import { ReactNode } from 'react';
+// No longer need useEffect, useRouter, or useSupabase here for the check
 import Sidebar from '@/components/ui/sidebar';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  const supabase = useSupabase();
-  const router = useRouter();
-
-  useEffect(() => {
-    const checkUserSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push('/login');
-      }
-    };
-
-    checkUserSession();
-  }, [supabase, router]);
-
+  // The useEffect hook for authentication has been REMOVED.
+  
   return (
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-[256px_1fr]">
       <Sidebar />

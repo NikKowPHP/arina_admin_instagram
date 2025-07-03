@@ -6,7 +6,7 @@ import CreateTriggerForm from '@/components/create-trigger-form';
 import EditTriggerForm from '@/components/edit-trigger-form';
 import Modal from '@/components/ui/modal';
 import { getTriggers, deleteTrigger } from '@/lib/actions';
-import { Trigger } from '@/types/database';
+import { Trigger } from '@prisma/client';
 const TriggersPage: React.FC = () => {
   const [triggers, setTriggers] = useState<Trigger[]>([]);
   const [selectedTrigger, setSelectedTrigger] = useState<Trigger | null>(null);

@@ -44,6 +44,7 @@ model Trigger {
 
 model Template {
   id        String   @id @default(uuid())
+  name      String
   content   String
   mediaUrl  String?  @map("media_url")
   metadata  Json?

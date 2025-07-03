@@ -1,10 +1,7 @@
-// ROO-AUDIT-TAG :: plan-010-api-integration.md :: Implement triggers API integration
-'use server';
-
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { v4 as uuidv4 } from 'uuid';
 import { cookies } from 'next/headers';
+import prisma from '@/lib/prisma';
 
 async function getSupabaseClient() {
   const cookieStore = await cookies();
@@ -39,19 +36,20 @@ export async function GET(request: NextRequest) {
   }
 
   const slug = request.nextUrl.pathname.split('/').filter(Boolean).pop();
-  let query = supabase.from('triggers').select('*');
-
-  if (slug) {
-    query = query.eq('id', slug);
+  
+  try {
+    if (slug) {
+      const trigger = await prisma.trigger.findUnique({
+        where: { id: slug }
+      });
+      return NextResponse.json(trigger);
+    } else {
+      const triggers = await prisma.trigger.findMany();
+      return NextResponse.json(triggers);
+    }
+  } catch {
+    return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }
-
-  const { data, error } = await query;
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json(data);
 }
 
 export async function POST(request: NextRequest) {
@@ -72,16 +70,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { data, error } = await supabase
-    .from('triggers')
-    .insert({ id: uuidv4(), postId, keyword, userId, templateId })
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  try {
+    const trigger = await prisma.trigger.create({
+      data: { postId, keyword, userId, templateId }
+    });
+    return NextResponse.json(trigger, { status: 201 });
+  } catch {
+    return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }
-
-  return NextResponse.json(data, { status: 201 });
 }
 
 export async function PUT(request: NextRequest) {
@@ -103,17 +99,15 @@ export async function PUT(request: NextRequest) {
     );
   }
 
-  const { data, error } = await supabase
-    .from('triggers')
-    .update({ postId, keyword, userId, templateId, isActive })
-    .eq('id', slug)
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  try {
+    const trigger = await prisma.trigger.update({
+      where: { id: slug },
+      data: { postId, keyword, userId, templateId, isActive }
+    });
+    return NextResponse.json(trigger);
+  } catch {
+    return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }
-
-  return NextResponse.json(data);
 }
 
 export async function DELETE(request: NextRequest) {
@@ -130,12 +124,13 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Missing trigger ID' }, { status: 400 });
   }
 
-  const { error } = await supabase.from('triggers').delete().eq('id', slug);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  try {
+    await prisma.trigger.delete({
+      where: { id: slug }
+    });
+    return NextResponse.json({ message: 'Trigger deleted successfully' });
+  } catch {
+    return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }
-
-  return NextResponse.json({ message: 'Trigger deleted successfully' });
 }
 // ROO-AUDIT-TAG :: plan-010-api-integration.md :: END

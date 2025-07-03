@@ -1,38 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { v4 as uuidv4 } from 'uuid';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createClient } from '@/lib/supabase-server';
+import prisma from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const slug = request.nextUrl.pathname.split('/').filter(Boolean).pop();
-  let query = supabase.from('templates').select('id, name, content, media_url');
-
-  if (slug) {
-    query = query.eq('id', slug);
+  
+  try {
+    if (slug) {
+      const template = await prisma.template.findUnique({
+        where: { id: slug },
+        select: { id: true, name: true, content: true, media_url: true }
+      });
+      return NextResponse.json(template);
+    } else {
+      const templates = await prisma.template.findMany({
+        select: { id: true, name: true, content: true, media_url: true }
+      });
+      return NextResponse.json(templates);
+    }
+  } catch {
+    return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }
-
-  const { data, error } = await query;
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json(data);
 }
 
 export async function POST(request: NextRequest) {
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -47,21 +46,19 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { data, error } = await supabase
-    .from('templates')
-    .insert({ id: uuidv4(), name, content, media_url })
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  try {
+    const template = await prisma.template.create({
+      data: { name, content, media_url }
+    });
+    return NextResponse.json(template, { status: 201 });
+  } catch {
+    return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }
-
-  return NextResponse.json(data, { status: 201 });
 }
 
 export async function PUT(request: NextRequest) {
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -77,22 +74,20 @@ export async function PUT(request: NextRequest) {
     );
   }
 
-  const { data, error } = await supabase
-    .from('templates')
-    .update({ name, content, media_url })
-    .eq('id', slug)
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  try {
+    const template = await prisma.template.update({
+      where: { id: slug },
+      data: { name, content, media_url }
+    });
+    return NextResponse.json(template);
+  } catch {
+    return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }
-
-  return NextResponse.json(data);
 }
 
 export async function DELETE(request: NextRequest) {
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -103,11 +98,12 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Missing template ID' }, { status: 400 });
   }
 
-  const { error } = await supabase.from('templates').delete().eq('id', slug);
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  try {
+    await prisma.template.delete({
+      where: { id: slug }
+    });
+    return NextResponse.json({ message: 'Template deleted successfully' });
+  } catch {
+    return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }
-
-  return NextResponse.json({ message: 'Template deleted successfully' });
 }
