@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase-server';
 import prisma from '@/lib/prisma';
+import logger from '@/lib/logger';
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
@@ -51,7 +52,8 @@ export async function POST(request: NextRequest) {
       data: { name, content, media_url }
     });
     return NextResponse.json(template, { status: 201 });
-  } catch {
+  } catch (error) {
+    logger.error(error);
     return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }
 }

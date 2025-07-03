@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import logger from '@/lib/logger';
 
 async function getSupabaseClient() {
   const cookieStore = await cookies();
@@ -75,7 +76,8 @@ export async function POST(request: NextRequest) {
       data: { postId, keyword, userId, templateId }
     });
     return NextResponse.json(trigger, { status: 201 });
-  } catch {
+  } catch (error) {
+    logger.error(error);
     return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }
 }
