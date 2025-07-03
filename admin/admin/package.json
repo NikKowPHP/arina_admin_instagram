@@ -21,6 +21,7 @@
     "formidable-serverless": "^1.1.1",
     "instagram-private-api": "^1.45.3",
     "lucide-react": "^0.515.0",
+        "@tailwindcss/postcss": "^4.1.10",
     "next": "15.3.3",
     "prisma": "^6.9.0",
     "react": "^19.0.0",
@@ -37,7 +38,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@faker-js/faker": "^9.8.0",
-     "postcss": "^8",
+     "postcss": "^8.5.6",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.0.0",
     "@types/jest": "^29.5.12",
@@ -49,7 +50,7 @@
     "eslint-config-next": "15.3.3",
     "jest": "^29.7.0",
     "supabase": "^2.24.3",
-    "tailwindcss": "^3.4.1",
+  "tailwindcss": "^4.1.10",
     "ts-jest": "^29.4.0",
     "typescript": "^5"
   }
