@@ -16,16 +16,18 @@ export async function GET(request: NextRequest) {
     if (slug) {
       const template = await prisma.template.findUnique({
         where: { id: slug },
-        select: { id: true, name: true, content: true, media_url: true }
+        select: { id: true, name: true, content: true, mediaUrl: true }
       });
       return NextResponse.json(template);
     } else {
       const templates = await prisma.template.findMany({
-        select: { id: true, name: true, content: true, media_url: true }
+        select: { id: true, name: true, content: true, mediaUrl: true }
       });
       return NextResponse.json(templates);
     }
-  } catch {
+  } catch (error) {
+    logger.error('Error fetching templates:', error);
+   
     return NextResponse.json({ error: 'Database error' }, { status: 500 });
   }
 }
@@ -38,7 +40,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { name, content, media_url } = body;
+  const { name, content, mediaUrl } = body;
 
   if (!name || !content) {
     return NextResponse.json(
@@ -49,7 +51,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const template = await prisma.template.create({
-      data: { name, content, media_url }
+      data: { name, content, mediaUrl }
     });
     return NextResponse.json(template, { status: 201 });
   } catch (error) {
@@ -67,7 +69,7 @@ export async function PUT(request: NextRequest) {
 
   const slug = request.nextUrl.pathname.split('/').filter(Boolean).pop();
   const body = await request.json();
-  const { name, content, media_url } = body;
+  const { name, content, mediaUrl } = body;
 
   if (!slug || !name || !content) {
     return NextResponse.json(
@@ -79,7 +81,7 @@ export async function PUT(request: NextRequest) {
   try {
     const template = await prisma.template.update({
       where: { id: slug },
-      data: { name, content, media_url }
+      data: { name, content, mediaUrl }
     });
     return NextResponse.json(template);
   } catch {

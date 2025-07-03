@@ -60,7 +60,7 @@ export async function middleware(request: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession()
 
-  console.log('Session:', session)
+ 
 
   // If the user is not logged in and is trying to access a protected route,
   // redirect them to the login page.
