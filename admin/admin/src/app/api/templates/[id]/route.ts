@@ -5,19 +5,22 @@ import { createClient } from '@/lib/supabase-server';
 import prisma from '@/lib/prisma';
 import logger from '@/lib/logger';
 
-type Params = { id: string; locale: string }
+interface RouteParams {
+  params: {
+    id: string;
+  };
+}
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Params }
-) {
-  const { id } = params
+export async function GET(request: NextRequest, { params }: RouteParams) {
+  const { id } = params;
+  
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
 
   if (!id) {
     // If no ID is provided, return an error
@@ -79,10 +82,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Params }
-) {
+export async function PUT(request: NextRequest, { params }: RouteParams) {
+ 
   const { id } = params
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -144,12 +145,9 @@ export async function DELETE(
       });
     });
     return NextResponse.json({ message: 'Template deleted successfully' });
-  } catch (error: any ) {
+  } catch (error: unknown ) {
     logger.error(`Error deleting template ${id}:`, error);
-    // Check if the error is a Prisma foreign key constraint violation
-    if (error.code === 'P2003') {
-      return NextResponse.json({ error: 'Cannot delete template while it is referenced by other entities.' }, { status: 409 });
-    }
+   
     return NextResponse.json({ error: 'Database error or template not found' }, { status: 500 });
   }
 }
