@@ -23,6 +23,7 @@ services:
   bot-service:
     build:
       context: ./instagram_bot
+    dockerfile: Dockerfile.dev
     env_file:
       - ./instagram_bot/.env
     depends_on:

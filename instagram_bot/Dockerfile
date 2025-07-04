@@ -1,34 +1,63 @@
-# Use the official Python 3.11 image from the Docker Hub
+# =========================================================================
+# 1. BUILDER STAGE: To build dependencies without polluting the final image
+# =========================================================================
+FROM python:3.11-slim as builder
+
+# Set environment variables to prevent writing .pyc files
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Install build-time system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    pkg-config \
+    zlib1g-dev \
+    libjpeg-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install Python dependencies into a virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy and install Python requirements (leveraging cache)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# =========================================================================
+# 2. FINAL STAGE: The actual image that will be deployed
+# =========================================================================
 FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Create a non-root user and group
+RUN addgroup --system app && adduser --system --ingroup app app
 
 # Set the working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    zlib1g-dev \
-    libjpeg-dev \
-    build-essential \
-    pkg-config \
-    && rm -rf /var/lib/apt/lists/*
+# Copy the virtual environment from the builder stage
+COPY --from=builder /opt/venv /opt/venv
 
-# Copy the requirements file
-COPY requirements.txt .
-
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the rest of the application code
+# Copy application code from the current directory
 COPY . .
 
-# Set environment variables
-ENV PYTHONUNBUFFERED=1
+# *** THIS IS THE FIX: Make the entrypoint script executable ***
+RUN chmod +x entrypoint.sh
 
-# Expose the port the app runs on
+# Change ownership of the app directory to the non-root user
+RUN chown -R app:app /app
+
+# Switch to the non-root user
+USER app
+
+# Expose the port (good practice, though not used by the job)
 EXPOSE 8000
 
-# Command to run the application
-HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-  CMD python -c "import requests; requests.get('http://localhost:8000/health')"
-
+# The CMD will be the only thing that runs.
 CMD ["sh", "-c", "./entrypoint.sh && python main.py"]
