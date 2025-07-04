@@ -5,14 +5,10 @@ import { createClient } from '@/lib/supabase-server';
 import prisma from '@/lib/prisma';
 import logger from '@/lib/logger';
 
-interface RouteParams {
-  params: {
-    id: string;
-  };
-}
 
-export async function GET(request: NextRequest, { params }: RouteParams) {
-  const { id } = params;
+
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -82,9 +78,9 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function PUT(request: NextRequest, { params }: RouteParams) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
  
-  const { id } = params
+  const { id } = await params
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
