@@ -240,6 +240,8 @@ class InstagramBot:
     def run_single_check(self):
         """Execute a single cycle of the bot's checks."""
         try:
+            self.connect_to_instagram()
+            self.connect_to_database()
             triggers = self.fetch_triggers()
             templates_list = self.fetch_templates()
             templates_dict = {str(t[0]): {'content': t[1], 'media_url': t[2]} for t in templates_list}
@@ -284,6 +286,10 @@ class InstagramBot:
             self.connect_to_database()
         except Exception as loop_e:
             logger.critical(f"An unexpected error occurred in the main loop: {loop_e}")
+        finally:
+            if self.db_conn:
+                self.db_conn.close()
+                logger.info("Closed database connection for single run.")
 
     def run_continuously(self):
         """Run the bot in continuous polling mode (for local development)."""
